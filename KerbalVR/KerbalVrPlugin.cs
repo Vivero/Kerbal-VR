@@ -49,8 +49,6 @@ namespace KerbalVR
                 else
                 {
                     ResetInitialHmdPosition();
-
-                    Debug.Log("[KerbalVR] IVA Cam FOV: " + CameraManager.GetCurrentCamera().fieldOfView);
                 }
             }
 
