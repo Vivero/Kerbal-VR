@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kerbal-VR", "Kerbal-VR\Kerbal-VR.csproj", "{A26C4088-0BA7-4BB7-85B5-96D5FA719D79}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KerbalVR", "KerbalVR\KerbalVR.csproj", "{A26C4088-0BA7-4BB7-85B5-96D5FA719D79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
