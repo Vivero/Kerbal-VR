@@ -21,7 +21,7 @@ namespace KerbalVR
 
 
         /// <summary>
-        ///  Overrides the Start method for a MonoBehaviour plugin.
+        /// Overrides the Start method for a MonoBehaviour plugin.
         /// </summary>
         void Start()
         {
@@ -29,7 +29,7 @@ namespace KerbalVR
         }
 
         /// <summary>
-        ///  Overrides the Update method, called every frame.
+        /// Overrides the Update method, called every frame.
         /// </summary>
         void Update()
         {
@@ -90,6 +90,9 @@ namespace KerbalVR
             }
         }
 
+        /// <summary>
+        /// Overrides the OnDestroy method, called when plugin is destroyed (leaving Flight scene).
+        /// </summary>
         void OnDestroy()
         {
             Debug.Log("[KerbalVR] KerbalVrPlugin OnDestroy");
@@ -97,6 +100,10 @@ namespace KerbalVR
             hmdIsInitialized = false;
         }
 
+        /// <summary>
+        /// Initialize HMD using OpenVR API calls.
+        /// </summary>
+        /// <returns>True on success, false otherwise. Errors logged.</returns>
         bool InitHMD()
         {
             bool retVal = false;
@@ -144,6 +151,9 @@ namespace KerbalVR
             return retVal;
         }
 
+        /// <summary>
+        /// Sets the current real-world position of the HMD as the seated origin in IVA.
+        /// </summary>
         void ResetInitialHmdPosition()
         {
             if (hmdIsInitialized)
