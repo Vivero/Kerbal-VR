@@ -49,6 +49,8 @@ namespace KerbalVR
                 else
                 {
                     ResetInitialHmdPosition();
+
+                    Debug.Log("[KerbalVR] IVA Cam FOV: " + CameraManager.GetCurrentCamera().fieldOfView);
                 }
             }
 
@@ -61,15 +63,17 @@ namespace KerbalVR
                 Vector3 hmdPosition = new Vector3();
                 Vector3 hmdRotation = new Vector3();
                 MathUtils.PoseMatrix2PositionAndRotation(ref vrDevicePoses[0].mDeviceToAbsoluteTracking, ref hmdPosition, ref hmdRotation);
+                //Quaternion hmdQuat = new Quaternion();
+                //MathUtils.PoseMatrix2PositionAndRotation(ref vrDevicePoses[0].mDeviceToAbsoluteTracking, ref hmdPosition, ref hmdQuat);
 
                 // Transform camera orientation
                 Vector3 camEulerAngles = InternalCamera.Instance.transform.localEulerAngles;
                 camEulerAngles.x = camEulerAngles.x - hmdRotation.x * Mathf.Rad2Deg;
                 camEulerAngles.y = camEulerAngles.y - hmdRotation.y * Mathf.Rad2Deg;
                 camEulerAngles.z = camEulerAngles.z + hmdRotation.z * Mathf.Rad2Deg;
-
                 InternalCamera.Instance.transform.localEulerAngles = camEulerAngles;
-                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+                //InternalCamera.Instance.transform.localRotation = Quaternion.Inverse(hmdQuat);
+                
 
                 // Transform camera position
                 float posScale = 0.8f;
@@ -78,6 +82,12 @@ namespace KerbalVR
                 camPosition = camPosition * posScale;
 
                 InternalCamera.Instance.transform.localPosition = camPosition;
+
+                // adjust FOV
+                InternalCamera.Instance.SetFOV(120.0f);
+
+                // adjust the flight camera as well, otherwise the outside world will not move accordingly
+                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
                 FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
             }
         }
