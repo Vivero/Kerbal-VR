@@ -82,5 +82,27 @@ namespace KerbalVR
             // return rotation
             rotation = PoseMatrix2RotationQuaternion(ref poseMatrix);
         }
+
+        public static Matrix4x4 Matrix4x4_OpenVr2UnityFormat(ref HmdMatrix44_t mat44_openvr)
+        {
+            Matrix4x4 mat44_unity = new Matrix4x4();
+            mat44_unity.m00 = mat44_openvr.m0;
+            mat44_unity.m01 = mat44_openvr.m1;
+            mat44_unity.m02 = mat44_openvr.m2;
+            mat44_unity.m03 = mat44_openvr.m3;
+            mat44_unity.m10 = mat44_openvr.m4;
+            mat44_unity.m11 = mat44_openvr.m5;
+            mat44_unity.m12 = mat44_openvr.m6;
+            mat44_unity.m13 = mat44_openvr.m7;
+            mat44_unity.m20 = mat44_openvr.m8;
+            mat44_unity.m21 = mat44_openvr.m9;
+            mat44_unity.m22 = mat44_openvr.m10;
+            mat44_unity.m23 = mat44_openvr.m11;
+            mat44_unity.m30 = mat44_openvr.m12;
+            mat44_unity.m31 = mat44_openvr.m13;
+            mat44_unity.m32 = mat44_openvr.m14;
+            mat44_unity.m33 = mat44_openvr.m15;
+            return mat44_unity;
+        }
     }
 }
