@@ -28,6 +28,8 @@ namespace KerbalVR
         private RenderTexture rt1, rt2;
         private Texture2D tex1, tex2;
 
+        private float counter = 0f;
+
 
         /// <summary>
         /// Overrides the Start method for a MonoBehaviour plugin.
@@ -38,11 +40,13 @@ namespace KerbalVR
 
             int sz = 512;
 
+            /*
             rt1 = new RenderTexture(sz, sz, 16, RenderTextureFormat.ARGB32);
             rt1.Create();
 
             rt2 = new RenderTexture(sz, sz, 16, RenderTextureFormat.ARGB32);
             rt2.Create();
+            */
 
             tex1 = new Texture2D(sz, sz);
             //tex2 = Texture2D.whiteTexture;
@@ -84,8 +88,8 @@ namespace KerbalVR
 
                 // get latest HMD pose
                 vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, 0.0f, vrDevicePoses);
-                //HmdMatrix34_t hmdLeftEyeXform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Left);
-                //HmdMatrix34_t hmdRightEyeXform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Right);
+                HmdMatrix34_t hmdLeftEyeXform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Left);
+                HmdMatrix34_t hmdRightEyeXform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Right);
                 vrCompositorError = vrCompositor.WaitGetPoses(vrRenderPoses, vrGamePoses);
 
                 if (vrCompositorError != EVRCompositorError.None)
@@ -97,82 +101,81 @@ namespace KerbalVR
                 var hmdLTransform = new SteamVR_Utils.RigidTransform(vrSystem.GetEyeToHeadTransform(EVREye.Eye_Left));
                 var hmdRTransform = new SteamVR_Utils.RigidTransform(vrSystem.GetEyeToHeadTransform(EVREye.Eye_Right));
 
-                HmdMatrix44_t hmdLeftProjMatrix = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, 0.1f, 1000.0f, EGraphicsAPIConvention.API_OpenGL);
-                HmdMatrix44_t hmdRightProjMatrix = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, 0.1f, 1000.0f, EGraphicsAPIConvention.API_OpenGL);
+                float nearClip = FlightCamera.fetch.mainCamera.nearClipPlane;
+                float farClip = FlightCamera.fetch.mainCamera.farClipPlane;
+                HmdMatrix44_t hmdLeftProjMatrix = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, nearClip, farClip, EGraphicsAPIConvention.API_OpenGL);
+                HmdMatrix44_t hmdRightProjMatrix = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, nearClip, farClip, EGraphicsAPIConvention.API_OpenGL);
 
+                // perform transforms on camera
+                Camera cam = FlightCamera.fetch.mainCamera;
+                Matrix4x4 camOriginalProjection = cam.projectionMatrix;
+                Vector3 camOriginalPosition = InternalCamera.Instance.transform.localPosition;
+                Quaternion camOriginalRotation = InternalCamera.Instance.transform.localRotation;
 
-                //Vector3 hmdPosition = new Vector3();
-                //Vector3 hmdRotation = new Vector3();
-                //MathUtils.PoseMatrix2PositionAndRotation(ref vrDevicePoses[0].mDeviceToAbsoluteTracking, ref hmdPosition, ref hmdRotation);
-                //Quaternion hmdQuat = new Quaternion();
-                //MathUtils.PoseMatrix2PositionAndRotation(ref vrDevicePoses[0].mDeviceToAbsoluteTracking, ref hmdPosition, ref hmdQuat);
-
-                /*
-                Vector3 hmdLeftPosition = new Vector3();
-                Quaternion hmdLeftQuat = new Quaternion();
-                MathUtils.PoseMatrix2PositionAndRotation(ref hmdLeftEyeXform, ref hmdLeftPosition, ref hmdLeftQuat);
-
-                Vector3 hmdRightPosition = new Vector3();
-                Quaternion hmdRightQuat = new Quaternion();
-                MathUtils.PoseMatrix2PositionAndRotation(ref hmdRightEyeXform, ref hmdRightPosition, ref hmdRightQuat);
+                /* debug
+                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
+                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
+                InternalCamera.Instance.transform.Translate(counter, 0f, 0f);
+                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+                FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
                 */
 
-                // Transform camera orientation
-                /*Vector3 camEulerAngles = InternalCamera.Instance.transform.localEulerAngles;
-                camEulerAngles.x = camEulerAngles.x - hmdRotation.x * Mathf.Rad2Deg;
-                camEulerAngles.y = camEulerAngles.y - hmdRotation.y * Mathf.Rad2Deg;
-                camEulerAngles.z = camEulerAngles.z + hmdRotation.z * Mathf.Rad2Deg;
-                InternalCamera.Instance.transform.localEulerAngles = camEulerAngles;*/
-                //InternalCamera.Instance.transform.localRotation = Quaternion.Inverse(hmdQuat * hmdLeftQuat);
+                
 
-
-                // Transform camera position
-                /*float posScale = 1f;
-                Vector3 deltaPos = (hmdPosition + hmdLeftPosition) - hmdInitialPosition;
-                Vector3 camPosition = new Vector3(deltaPos.x, deltaPos.y, -deltaPos.z);
-                camPosition = camPosition * posScale;
-                InternalCamera.Instance.transform.localPosition = camPosition;*/
-
-                // adjust FOV
-                //InternalCamera.Instance.SetFOV(90.0f);
-
-                InternalCamera.Instance.transform.localPosition = (hmdTransform.pos + hmdLTransform.pos) - hmdInitialPosition;
-                InternalCamera.Instance.transform.localRotation = hmdTransform.rot * hmdLTransform.rot;
+                // Render the LEFT eye
+                //Vector3 hmdTransform2 = new Vector3(hmdTransform.pos.x, -hmdTransform.pos.z, hmdTransform.pos.y);
+                //Vector3 hmdLTransform2 = new Vector3(hmdLTransform.pos.x, -hmdLTransform.pos.z, hmdLTransform.pos.y);
+                //Vector3 camPosition = InternalCamera.Instance.transform.TransformVector(hmdTransform2);
+                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;// * hmdLTransform.rot;
+                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
+                InternalCamera.Instance.transform.Translate(hmdLTransform.pos);
+                //Vector3 camLPosition = InternalCamera.Instance.transform.TransformVector(hmdLTransform2);
+                InternalCamera.Instance.transform.localPosition += hmdTransform.pos;
 
                 // adjust the flight camera as well, otherwise the outside world will not move accordingly
                 FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
                 FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
                 FlightCamera.fetch.mainCamera.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref hmdLeftProjMatrix);
 
-                Camera cam = FlightCamera.fetch.mainCamera;
                 cam.targetTexture = rt1;
                 RenderTexture.active = rt1;
                 cam.Render();
-                tex1.ReadPixels(new Rect(0f, 0f, rt1.width, rt1.height), 0, 0);
-                tex1.Apply(false);
                 RenderTexture.active = null;
                 cam.targetTexture = null;
 
+                // reset camera before transforming for the right eye
+                //InternalCamera.Instance.transform.localPosition = camOriginalPosition;
+                //InternalCamera.Instance.transform.localRotation = camOriginalRotation;
 
-                
-                InternalCamera.Instance.transform.localPosition = (hmdTransform.pos + hmdRTransform.pos) - hmdInitialPosition;
-                InternalCamera.Instance.transform.localRotation = hmdTransform.rot * hmdRTransform.rot;
+
+                // Render the RIGHT eye
+                //Vector3 hmdRTransform2 = new Vector3(hmdRTransform.pos.x, -hmdRTransform.pos.z, hmdRTransform.pos.y);
+                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;// * hmdRTransform.rot;
+                //Vector3 camRPosition = InternalCamera.Instance.transform.TransformVector(hmdRTransform2);
+                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
+                InternalCamera.Instance.transform.Translate(hmdRTransform.pos);
+                InternalCamera.Instance.transform.localPosition += hmdTransform.pos;
+
+                // adjust the flight camera as well, otherwise the outside world will not move accordingly
                 FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
                 FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
                 FlightCamera.fetch.mainCamera.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref hmdRightProjMatrix);
 
                 cam.targetTexture = rt2;
-                cam.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref hmdRightProjMatrix);
                 RenderTexture.active = rt2;
                 cam.Render();
-                tex2.ReadPixels(new Rect(0f, 0f, rt2.width, rt2.height), 0, 0);
-                tex2.Apply(false);
                 RenderTexture.active = null;
                 cam.targetTexture = null;
 
 
+                // return camera position to an HMD-centered position
+                InternalCamera.Instance.transform.localPosition = camOriginalPosition;
+                InternalCamera.Instance.transform.localRotation = camOriginalRotation;
+                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+                FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+                FlightCamera.fetch.mainCamera.projectionMatrix = camOriginalProjection;
 
-                //Debug.Log("[KerbalVR] About to submit frames.");
+                
 
                 vrCompositorError = vrCompositor.Submit(EVREye.Eye_Left, ref hmdTex1, ref bnds, EVRSubmitFlags.Submit_Default);
                 if (vrCompositorError != EVRCompositorError.None)
@@ -185,6 +188,35 @@ namespace KerbalVR
                 if (vrCompositorError != EVRCompositorError.None)
                 {
                     Debug.Log("[KerbalVR] Submit (Eye_Right) failed: " + (int)vrCompositorError);
+                }
+
+
+                // DEBUG
+                if (Input.GetKeyDown(KeyCode.H))
+                {
+                    Debug.Log("[KerbalVR] POSITION hmdTransform : " + hmdTransform.pos.x + ", " + hmdTransform.pos.y + ", " + hmdTransform.pos.z);
+                    Debug.Log("[KerbalVR] POSITION hmdLTransform : " + hmdLTransform.pos.x + ", " + hmdLTransform.pos.y + ", " + hmdLTransform.pos.z);
+                    Debug.Log("[KerbalVR] POSITION hmdRTransform : " + hmdRTransform.pos.x + ", " + hmdRTransform.pos.y + ", " + hmdRTransform.pos.z);
+                    /*Debug.Log("[KerbalVR] POSITION camLPosition : " + camLPosition.x + ", " + camLPosition.y + ", " + camLPosition.z);
+                    Debug.Log("[KerbalVR] POSITION camRPosition : " + camRPosition.x + ", " + camRPosition.y + ", " + camRPosition.z);
+                    Debug.Log("[KerbalVR] POSITION hmdTransform2 : " + hmdTransform2.x + ", " + hmdTransform2.y + ", " + hmdTransform2.z);
+                    Debug.Log("[KerbalVR] POSITION hmdLTransform2 : " + hmdLTransform2.x + ", " + hmdLTransform2.y + ", " + hmdLTransform2.z);
+                    Debug.Log("[KerbalVR] POSITION hmdRTransform2 : " + hmdRTransform2.x + ", " + hmdRTransform2.y + ", " + hmdRTransform2.z);
+
+                    foreach (Camera c in Camera.allCameras)
+                    {
+                        Debug.Log("[KerbalVR] Camera: " + c.name);
+                    }
+                    Debug.Log("[KerbalVR] FlightCamera: " + FlightCamera.fetch.mainCamera.name);*/
+
+                    counter -= 0.2f;
+                    Debug.Log("[KerbalVR] Counter = " + counter);
+                }
+
+                if (Input.GetKeyDown(KeyCode.J))
+                {
+                    counter += 0.2f;
+                    Debug.Log("[KerbalVR] Counter = " + counter);
                 }
             }
         }
@@ -250,11 +282,24 @@ namespace KerbalVR
             // initialize Compositor
             vrCompositor = OpenVR.Compositor;
 
-            hmdTex1.handle = tex1.GetNativeTexturePtr();
+            // initialize render textures (for displaying on HMD)
+            uint renderTextureWidth = 0;
+            uint renderTextureHeight = 0;
+            vrSystem.GetRecommendedRenderTargetSize(ref renderTextureWidth, ref renderTextureHeight);
+
+            Debug.Log("[KerbalVR] Render Texture size: " + renderTextureWidth + " x " + renderTextureHeight);
+
+            rt1 = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 16, RenderTextureFormat.ARGB32);
+            rt1.Create();
+
+            rt2 = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 16, RenderTextureFormat.ARGB32);
+            rt2.Create();
+
+            hmdTex1.handle = rt1.GetNativeTexturePtr();
             hmdTex1.eType = EGraphicsAPIConvention.API_OpenGL;
             hmdTex1.eColorSpace = EColorSpace.Auto;
 
-            hmdTex2.handle = tex2.GetNativeTexturePtr();
+            hmdTex2.handle = rt2.GetNativeTexturePtr();
             hmdTex2.eType = EGraphicsAPIConvention.API_OpenGL;
             hmdTex2.eColorSpace = EColorSpace.Auto;
 
@@ -262,6 +307,9 @@ namespace KerbalVR
             bnds.uMax = 1.0f;
             bnds.vMin = 0.0f;
             bnds.vMax = 1.0f;
+
+            Vector3 intCamPos = InternalCamera.Instance.transform.localPosition;
+            Debug.Log("[KerbalVR] InternalCamera position: " + intCamPos.x + ", " + intCamPos.y + ", " + intCamPos.z);
 
             return retVal;
         }
@@ -274,11 +322,11 @@ namespace KerbalVR
             if (hmdIsInitialized)
             {
                 vrSystem.ResetSeatedZeroPose();
-                vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, 0.0f, vrDevicePoses);
+                //vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, 0.0f, vrDevicePoses);
 
                 //hmdInitialPosition = MathUtils.PoseMatrix2Position(ref vrDevicePoses[0].mDeviceToAbsoluteTracking);
-                var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[0].mDeviceToAbsoluteTracking);
-                hmdInitialPosition = hmdTransform.pos;
+                //var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[0].mDeviceToAbsoluteTracking);
+                //hmdInitialPosition = hmdTransform.pos;
             }
         }
     }

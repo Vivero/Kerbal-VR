@@ -85,7 +85,7 @@ namespace KerbalVR
 
         public static Matrix4x4 Matrix4x4_OpenVr2UnityFormat(ref HmdMatrix44_t mat44_openvr)
         {
-            Matrix4x4 mat44_unity = new Matrix4x4();
+            Matrix4x4 mat44_unity = Matrix4x4.identity;
             mat44_unity.m00 = mat44_openvr.m0;
             mat44_unity.m01 = mat44_openvr.m1;
             mat44_unity.m02 = mat44_openvr.m2;
