@@ -41,9 +41,9 @@ namespace KerbalVR
         };
         private int cameraNameSelected = 0;
 
-        private string[] camerasToRender = new string[4]
+        private string[] camerasToRender = new string[3]
         {
-            "Camera ScaledSpace",
+            //"Camera ScaledSpace",
             "Camera 01",
             "Camera 00",
             "InternalCamera",
@@ -124,7 +124,7 @@ namespace KerbalVR
                 var hmdRTransform = new SteamVR_Utils.RigidTransform(vrSystem.GetEyeToHeadTransform(EVREye.Eye_Right));
 
                 // get projection matrices from HMD eyes
-                float nearClip = FlightCamera.fetch.mainCamera.nearClipPlane;
+                float nearClip = 0.05f;// FlightCamera.fetch.mainCamera.nearClipPlane;
                 float farClip = FlightCamera.fetch.mainCamera.farClipPlane;
                 HmdMatrix44_t hmdLeftProjMatrix = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, nearClip, farClip, EGraphicsAPIConvention.API_OpenGL);
                 HmdMatrix44_t hmdRightProjMatrix = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, nearClip, farClip, EGraphicsAPIConvention.API_OpenGL);
@@ -139,21 +139,74 @@ namespace KerbalVR
                 string uiMainCamera = "UIMainCamera";
                 string uiVectorCamera = "UIVectorCamera";*/
 
+                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
+                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
+                InternalCamera.Instance.transform.Translate(hmdLTransform.pos);
+                InternalCamera.Instance.transform.localPosition += hmdTransform.pos;
 
-                Camera cam = FlightCamera.fetch.mainCamera;
+                Vector3 camLPosition = InternalCamera.Instance.transform.localPosition;
+                Quaternion camLRotation = InternalCamera.Instance.transform.localRotation;
 
-                foreach (Camera c in Camera.allCameras)
+                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
+                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
+                InternalCamera.Instance.transform.Translate(hmdRTransform.pos);
+                InternalCamera.Instance.transform.localPosition += hmdTransform.pos;
+
+                Vector3 camRPosition = InternalCamera.Instance.transform.localPosition;
+                Quaternion camRRotation = InternalCamera.Instance.transform.localRotation;
+
+                foreach (string camToRender in camerasToRender)
                 {
-                    if (c.name.Equals(cameraNames[cameraNameSelected], StringComparison.Ordinal))
+                    Camera cam = FlightCamera.fetch.mainCamera;
+
+                    foreach (Camera c in Camera.allCameras)
                     {
-                        cam = c;
-                        break;
+                        if (c.name.Equals(camToRender, StringComparison.Ordinal))
+                        {
+                            cam = c;
+                            break;
+                        }
                     }
+
+                    Matrix4x4 camOriginalProjection = cam.projectionMatrix;
+                    Vector3 camOriginalPosition = cam.transform.localPosition;
+                    Quaternion camOriginalRotation = cam.transform.localRotation;
+
+                    // Render the LEFT eye
+                    //--------------------------------------------------------------
+                    cam.transform.localRotation = hmdTransform.rot;
+                    cam.transform.localPosition = new Vector3(0f, 0f, 0f);
+                    cam.transform.Translate(hmdLTransform.pos);
+                    cam.transform.localPosition += hmdTransform.pos;
+                    cam.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref hmdLeftProjMatrix);
+
+                    // render
+                    cam.targetTexture = rt1;
+                    RenderTexture.active = rt1;
+                    cam.Render();
+
+                    // Render the RIGHT eye
+                    //--------------------------------------------------------------
+                    cam.transform.localRotation = hmdTransform.rot;
+                    cam.transform.localPosition = new Vector3(0f, 0f, 0f);
+                    cam.transform.Translate(hmdRTransform.pos);
+                    cam.transform.localPosition += hmdTransform.pos;
+                    cam.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref hmdRightProjMatrix);
+
+                    // render
+                    cam.targetTexture = rt2;
+                    RenderTexture.active = rt2;
+                    cam.Render();
+                    RenderTexture.active = null;
+                    cam.targetTexture = null;
+
+                    // Reset camera position to an HMD-centered position (for regular screen rendering)
+                    //--------------------------------------------------------------
+                    cam.transform.localPosition = hmdTransform.pos;
+                    cam.transform.localRotation = hmdTransform.rot;
                 }
 
-                Matrix4x4 camOriginalProjection = cam.projectionMatrix;
-                Vector3 camOriginalPosition = InternalCamera.Instance.transform.localPosition;
-                Quaternion camOriginalRotation = InternalCamera.Instance.transform.localRotation;
+
 
 
                 /* debug
@@ -166,53 +219,7 @@ namespace KerbalVR
 
 
 
-                // Render the LEFT eye
-                //--------------------------------------------------------------
-                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
-                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
-                InternalCamera.Instance.transform.Translate(hmdLTransform.pos);
-                InternalCamera.Instance.transform.localPosition += hmdTransform.pos;
 
-                // adjust the flight camera as well, otherwise the outside world will not move accordingly
-                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-                FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-                FlightCamera.fetch.mainCamera.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref hmdLeftProjMatrix);
-
-                // render
-                cam.targetTexture = rt1;
-                RenderTexture.active = rt1;
-                cam.Render();
-                RenderTexture.active = null;
-                cam.targetTexture = null;
-                
-
-                // Render the RIGHT eye
-                //--------------------------------------------------------------
-                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
-                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
-                InternalCamera.Instance.transform.Translate(hmdRTransform.pos);
-                InternalCamera.Instance.transform.localPosition += hmdTransform.pos;
-
-                // adjust the flight camera as well, otherwise the outside world will not move accordingly
-                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-                FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-                FlightCamera.fetch.mainCamera.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref hmdRightProjMatrix);
-
-                // render
-                cam.targetTexture = rt2;
-                RenderTexture.active = rt2;
-                cam.Render();
-                RenderTexture.active = null;
-                cam.targetTexture = null;
-
-
-                // Reset camera position to an HMD-centered position (for regular screen rendering)
-                //--------------------------------------------------------------
-                InternalCamera.Instance.transform.localPosition = hmdTransform.pos;
-                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
-                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-                FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-                //FlightCamera.fetch.mainCamera.projectionMatrix = camOriginalProjection;
 
 
                 // Submit frames to HMD
@@ -331,10 +338,10 @@ namespace KerbalVR
 
             Debug.Log("[KerbalVR] Render Texture size: " + renderTextureWidth + " x " + renderTextureHeight);
 
-            rt1 = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 16, RenderTextureFormat.RGB565);
+            rt1 = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 24, RenderTextureFormat.ARGB32);
             rt1.Create();
 
-            rt2 = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 16, RenderTextureFormat.RGB565);
+            rt2 = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 24, RenderTextureFormat.ARGB32);
             rt2.Create();
 
             hmdTex1.handle = rt1.GetNativeTexturePtr();
