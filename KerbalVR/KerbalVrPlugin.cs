@@ -81,6 +81,7 @@ namespace KerbalVR
             Debug.Log("[KerbalVR] KerbalVrPlugin started.");
             // define what cameras to render to HMD
             cameraNamesToRender = new List<string>();
+            cameraNamesToRender.Add(cameraNames[0]);
             cameraNamesToRender.Add(cameraNames[1]);
             cameraNamesToRender.Add(cameraNames[2]);
             cameraNamesToRender.Add(cameraNames[3]);
@@ -340,8 +341,8 @@ namespace KerbalVR
             uint renderTextureWidth = 0;
             uint renderTextureHeight = 0;
             vrSystem.GetRecommendedRenderTargetSize(ref renderTextureWidth, ref renderTextureHeight);
-            renderTextureWidth /= 2;
-            renderTextureHeight /= 2;
+            //renderTextureWidth /= 2;
+            //renderTextureHeight /= 2;
 
             //Debug.Log("[KerbalVR] Render Texture size: " + renderTextureWidth + " x " + renderTextureHeight);
 
