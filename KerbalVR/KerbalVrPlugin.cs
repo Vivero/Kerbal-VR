@@ -138,7 +138,7 @@ namespace KerbalVR
                 }
 
                 // convert SteamVR poses to Unity coordinates
-                Debug.Log("[KerbalVR] transforms");
+                //Debug.Log("[KerbalVR] transforms");
                 var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[0].mDeviceToAbsoluteTracking);
                 var hmdLeftEyeTransform = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                 var hmdRightEyeTransform = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
@@ -345,11 +345,13 @@ namespace KerbalVR
             hmdRightEyeRenderTexture.Create();
 
             hmdLeftEyeTexture.handle = hmdLeftEyeRenderTexture.GetNativeTexturePtr();
-            hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
+            //hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
+            hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_DirectX;
             hmdLeftEyeTexture.eColorSpace = EColorSpace.Auto;
 
             hmdRightEyeTexture.handle = hmdRightEyeRenderTexture.GetNativeTexturePtr();
-            hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
+            //hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
+            hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_DirectX;
             hmdRightEyeTexture.eColorSpace = EColorSpace.Auto;
 
             hmdTextureBounds.uMin = 0.0f;
@@ -368,8 +370,10 @@ namespace KerbalVR
                 {
                     if (cameraName.Equals(camera.name))
                     {
-                        HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
-                        HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        //HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        //HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX);
+                        HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX);
                         camerasToRender.Add(new CameraProperties(camera, camera.projectionMatrix, MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft), MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
                         break;
                     }
