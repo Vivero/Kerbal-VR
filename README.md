@@ -14,7 +14,9 @@ This is an early WIP mod to allow the use of the HTC Vive (and potentially any H
 - 16GB DDR4 (PC4-17000)
 - SteamVR / OpenVR SDK
 
-This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. However, rendering is slow, even on a decent rig that I'm testing with. Maybe needs some code re-work to reduce inefficiencies. But even with all graphics settings set to low, I can only get about 30-50 fps, which makes for a nauseating VR experience.
+This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. However, rendering is slow, even on a decent rig that I'm testing with. Maybe needs some code re-work to reduce inefficiencies. But even with all graphics settings set to low, I can only get about 40-60 fps, which makes for a nauseating VR experience.
+
+It's still fairly playable for short amounts of time. I'd also recommend installing the [RasterPropMonitor mod](http://forum.kerbalspaceprogram.com/index.php?/topic/105821-112-rasterpropmonitor-still-putting-the-a-in-iva-v0260-30-april-2016/) to make it easier to navigate your craft in IVA. However be warned, I've seen the game crash randomly while using VR. Not sure if it's KSP-specific issues, or VR-related issues.
 
 While in VR, your viewpoint is not limited to being inside the cockpit. If you have the proper setup and space to move around irl, you can actually "walk" outside your craft and see it from outside (and it's way cooler than what I can describe here).
 
