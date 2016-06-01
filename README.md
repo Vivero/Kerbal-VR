@@ -18,6 +18,12 @@ This KerbalVR plugin captures the orientation information from the HMD and trans
 
 While in VR, your viewpoint is not limited to being inside the cockpit. If you have the proper setup and space to move around irl, you can actually "walk" outside your craft and see it from outside (and it's way cooler than what I can describe here).
 
+Somehow VR will only work with KSP using OpenGL, i.e. you need to use the "-force-opengl" flag on the executable. It will not work if you try to run KSP normally, nor with the "-force-d3d11" flag (even with the OpenVR function calls set up to use DirectX rendering). To enable the OpenGL flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append "-force-opengl" to the Target, e.g.:
+
+```
+Target: C:\Games\KSP_win\KSP_x64.exe -force-opengl
+```
+
 ----
 
 ## Installation
@@ -46,7 +52,7 @@ Instructions:
 1. Start SteamVR. Only the Vive headset will be used (no controllers needed), and it will be a Seated Experience (no Room-Scale required).
 2. Sit down
 3. Put on your Vive
-4. Start up KSP
+4. Start up KSP with the "-force-opengl" flag
 5. During flight, enter IVA, and press the 'N' key to initialize the HMD
 6. You can press 'N' again to reset the default position
 7. Any errors should come up in the Debug log (press Alt-F12)
