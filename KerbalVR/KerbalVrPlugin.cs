@@ -15,6 +15,9 @@ namespace KerbalVR
     public class KerbalVrPlugin : MonoBehaviour
     {
         private bool hmdIsInitialized = false;
+        private bool hmdIsActive = false;
+        private bool hmdIsActive_prev = false;
+        private bool hmdIsRenderingLeft = true;
 
         private CVRSystem vrSystem;
         private CVRCompositor vrCompositor;
@@ -100,11 +103,15 @@ namespace KerbalVR
             // do nothing unless we are in IVA
             if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
             {
-                return;
+                hmdIsActive = false;
+            }
+            else
+            {
+                hmdIsActive = true;
             }
 
             // start HMD using the N key
-            if (Input.GetKeyDown(KeyCode.N))
+            if (Input.GetKeyDown(KeyCode.N) && hmdIsActive)
             {
                 if (!hmdIsInitialized)
                 {
@@ -122,7 +129,7 @@ namespace KerbalVR
             }
 
             // perform regular updates if HMD is initialized
-            if (hmdIsInitialized)
+            if (hmdIsActive && hmdIsInitialized)
             {
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
 
@@ -270,6 +277,8 @@ namespace KerbalVR
                     Debug.Log("[KerbalVR] Counter = " + counter);
                 }
             }
+
+            hmdIsActive_prev = hmdIsActive;
         }
 
         /// <summary>
