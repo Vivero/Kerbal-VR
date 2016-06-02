@@ -66,7 +66,15 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetPath)" C:\Games\KSP_win\GameData\KerbalVR\
-copy /Y "$(ProjectDir)"\lib\win64\openvr_api.dll C:\Games\KSP_win\</PostBuildEvent>
+copy /Y "$(ProjectDir)"\lib\win64\openvr_api.dll C:\Games\KSP_win\
+
+mkdir "$(TargetDir)"\rel\GameData\KerbalVR\
+mkdir "$(TargetDir)"\rel\openvr
+copy /Y "$(TargetDir)"\"$(TargetFileName)" "$(TargetDir)"\rel\GameData\KerbalVR\
+copy /Y "$(SolutionDir)"\LICENSE "$(TargetDir)"\rel\
+copy /Y "$(SolutionDir)"\README.md "$(TargetDir)"\rel\
+robocopy "$(ProjectDir)\lib" "$(TargetDir)\rel\openvr" /E
+copy /Y "$(ProjectDir)"\LICENSE-openvr "$(TargetDir)"\rel\openvr</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
