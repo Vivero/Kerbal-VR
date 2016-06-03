@@ -44,9 +44,6 @@ namespace KerbalVR
         // list of cameras to render (string names), defined on Start()
         private List<string> cameraNamesToRender;
 
-        // list of cameras to render (Camera objects)
-        //private List<Camera> camerasToRender = new List<Camera>();
-
         // struct to keep track of Camera properties
         private struct CameraProperties
         {
@@ -64,16 +61,15 @@ namespace KerbalVR
             }
         }
 
+        // list of cameras to render (Camera objects)
         private List<CameraProperties> camerasToRender;
 
 
-
-        // debug
+        //*** debug
         private float counter = 0f;
         private int cameraNameSelected = 0;
+        //*** debug
 
-
-        
 
 
         /// <summary>
@@ -82,15 +78,16 @@ namespace KerbalVR
         void Start()
         {
             Debug.Log("[KerbalVR] KerbalVrPlugin started.");
+            
             // define what cameras to render to HMD
             cameraNamesToRender = new List<string>();
-            cameraNamesToRender.Add(cameraNames[0]);
-            cameraNamesToRender.Add(cameraNames[1]);
-            cameraNamesToRender.Add(cameraNames[2]);
-            cameraNamesToRender.Add(cameraNames[3]);
-            cameraNamesToRender.Add(cameraNames[4]);
-            //cameraNamesToRender.Add(cameraNames[5]);
-            //cameraNamesToRender.Add(cameraNames[6]);
+            cameraNamesToRender.Add(cameraNames[0]); // renders the galaxy
+            cameraNamesToRender.Add(cameraNames[1]); // renders space/planets?
+            cameraNamesToRender.Add(cameraNames[2]); // renders things far away (like out to the horizon)
+            cameraNamesToRender.Add(cameraNames[3]); // renders things close to you
+            cameraNamesToRender.Add(cameraNames[4]); // renders the IVA view (cockpit)
+            //cameraNamesToRender.Add(cameraNames[5]); // don't render UI, it looks shitty
+            //cameraNamesToRender.Add(cameraNames[6]); // don't render UI, it looks shitty
 
             camerasToRender = new List<CameraProperties>(cameraNamesToRender.Count);
         }
@@ -147,14 +144,12 @@ namespace KerbalVR
                 }
 
                 // convert SteamVR poses to Unity coordinates
-                //Debug.Log("[KerbalVR] transforms");
                 var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[0].mDeviceToAbsoluteTracking);
                 var hmdLeftEyeTransform = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                 var hmdRightEyeTransform = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
                 // Render the LEFT eye
                 //--------------------------------------------------------------
-                //Debug.Log("[KerbalVR] left eye");
                 // rotate camera according to the HMD orientation
                 InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
 
@@ -193,7 +188,6 @@ namespace KerbalVR
 
                 // Render the RIGHT eye (see previous comments)
                 //--------------------------------------------------------------
-                //Debug.Log("[KerbalVR] right eye");
                 InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
                 InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
                 InternalCamera.Instance.transform.Translate(hmdRightEyeTransform.pos);
@@ -214,7 +208,6 @@ namespace KerbalVR
 
                 // Set camera position to an HMD-centered position (for regular screen rendering)
                 //--------------------------------------------------------------
-                //Debug.Log("[KerbalVR] reset");
                 /*InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
                 InternalCamera.Instance.transform.localPosition = hmdTransform.pos;
                 FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
@@ -232,7 +225,6 @@ namespace KerbalVR
 
                 // Submit frames to HMD
                 //--------------------------------------------------------------
-                //Debug.Log("[KerbalVR] frame submit");
                 vrCompositorError = vrCompositor.Submit(EVREye.Eye_Left, ref hmdLeftEyeTexture, ref hmdTextureBounds, EVRSubmitFlags.Submit_Default);
                 if (vrCompositorError != EVRCompositorError.None)
                 {
@@ -374,22 +366,20 @@ namespace KerbalVR
 
             hmdLeftEyeTexture.handle = hmdLeftEyeRenderTexture.GetNativeTexturePtr();
             hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
-            //hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_DirectX;
+            //hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_DirectX; // this doesn't seem to work
             hmdLeftEyeTexture.eColorSpace = EColorSpace.Auto;
 
             hmdRightEyeTexture.handle = hmdRightEyeRenderTexture.GetNativeTexturePtr();
             hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
-            //hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_DirectX;
+            //hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_DirectX; // this doesn't seem to work
             hmdRightEyeTexture.eColorSpace = EColorSpace.Auto;
 
+            // Set rendering bounds on texture to render?
+            // I assume min=0.0 and max=1.0 renders to the full extent of the texture
             hmdTextureBounds.uMin = 0.0f;
             hmdTextureBounds.uMax = 1.0f;
             hmdTextureBounds.vMin = 0.0f;
             hmdTextureBounds.vMax = 1.0f;
-
-            // debug
-            //Vector3 intCamPos = InternalCamera.Instance.transform.localPosition;
-            //Debug.Log("[KerbalVR] InternalCamera position: " + intCamPos.x + ", " + intCamPos.y + ", " + intCamPos.z);
 
             // search for camera objects to render
             foreach (string cameraName in cameraNamesToRender)
@@ -400,19 +390,20 @@ namespace KerbalVR
                     {
                         HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
                         HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
-                        //HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX);
-                        //HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX);
+                        //HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
+                        //HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
                         camerasToRender.Add(new CameraProperties(camera, camera.projectionMatrix, MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft), MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
                         break;
                     }
                 }
             }
 
-            // debug
+            //*** debug
             /*foreach (Camera cam in camerasToRender)
             {
                 Debug.Log("[KerbalVR] Found camera: " + cam.name + ", clip near: " + cam.nearClipPlane + ", clip far: " + cam.farClipPlane);
             }*/
+            //*** debug
 
             return retVal;
         }
