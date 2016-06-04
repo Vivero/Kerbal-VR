@@ -17,7 +17,8 @@ namespace KerbalVR
         private bool hmdIsInitialized = false;
         private bool hmdIsActive = false;
         private bool hmdIsActive_prev = false;
-        private bool hmdIsRenderingLeft = true;
+
+        private bool renderToScreen = true;
 
         private CVRSystem vrSystem;
         private CVRCompositor vrCompositor;
@@ -137,7 +138,8 @@ namespace KerbalVR
                 }
 
                 // convert SteamVR poses to Unity coordinates
-                var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+                //var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+                var hmdTransform = new SteamVR_Utils.RigidTransform(vrRenderPoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
                 var hmdLeftEyeTransform = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                 var hmdRightEyeTransform = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
@@ -171,11 +173,11 @@ namespace KerbalVR
                     camStruct.camera.Render();
 
                     // reset texture buffer
-                    camStruct.camera.targetTexture = null;
-                    RenderTexture.active = null;
+                    //camStruct.camera.targetTexture = null;
+                    //RenderTexture.active = null;
 
                     // reset camera projection back to original
-                    camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
+                    //camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
                 }
 
 
@@ -194,18 +196,26 @@ namespace KerbalVR
                     camStruct.camera.targetTexture = hmdRightEyeRenderTexture;
                     RenderTexture.active = hmdRightEyeRenderTexture;
                     camStruct.camera.Render();
-                    camStruct.camera.targetTexture = null;
-                    RenderTexture.active = null;
-                    camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
+                    //camStruct.camera.targetTexture = null;
+                    //RenderTexture.active = null;
+                    //camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
                 }
 
                 // Set camera position to an HMD-centered position (for regular screen rendering)
                 //--------------------------------------------------------------
-                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
-                InternalCamera.Instance.transform.localPosition = hmdTransform.pos;
-                FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-
+                if (renderToScreen)
+                {
+                    foreach (CameraProperties camStruct in camerasToRender)
+                    {
+                        camStruct.camera.targetTexture = null;
+                        RenderTexture.active = null;
+                        camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
+                    }
+                    InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
+                    InternalCamera.Instance.transform.localPosition = hmdTransform.pos;
+                    FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
+                    FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+                }
 
                 /* debug
                 InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
