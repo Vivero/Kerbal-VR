@@ -98,14 +98,7 @@ namespace KerbalVR
         void Update()
         {
             // do nothing unless we are in IVA
-            if (CameraManager.Instance.currentCameraMode != CameraManager.CameraMode.IVA)
-            {
-                hmdIsActive = false;
-            }
-            else
-            {
-                hmdIsActive = true;
-            }
+            hmdIsActive = (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
 
             // start HMD using the N key
             if (Input.GetKeyDown(KeyCode.N) && hmdIsActive)
@@ -144,7 +137,7 @@ namespace KerbalVR
                 }
 
                 // convert SteamVR poses to Unity coordinates
-                var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[0].mDeviceToAbsoluteTracking);
+                var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
                 var hmdLeftEyeTransform = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                 var hmdRightEyeTransform = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
