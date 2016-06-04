@@ -246,6 +246,15 @@ namespace KerbalVR
                     Debug.Log("[KerbalVR] Submit (Eye_Right) failed: " + (int)vrCompositorError);
                 }
 
+                // disable highlighting of parts due to mouse
+                Part hoveredPart = Mouse.HoveredPart;
+                if (hoveredPart != null)
+                {
+                    hoveredPart.HighlightActive = false;
+                    hoveredPart.highlightColor = new Color(0f, 0f, 0f, 0f);
+                    //Debug.Log("[KerbalVR] hovered part: " + hoveredPart.name);
+                }
+
 
                 // DEBUG
                 if (Input.GetKeyDown(KeyCode.H))
@@ -398,8 +407,18 @@ namespace KerbalVR
                 {
                     if (cameraName.Equals(camera.name))
                     {
-                        HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
-                        HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        HmdMatrix44_t projLeft, projRight;
+                        if (cameraName.Equals("Camera 00"))
+                        {
+                            // for the near camera, set near clipping plane closer
+                            projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, 0.05f, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                            projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, 0.05f, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        }
+                        else
+                        {
+                            projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                            projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        }
                         //HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX);
                         //HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX);
                         camerasToRender.Add(new CameraProperties(camera, camera.projectionMatrix, MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft), MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
