@@ -178,11 +178,11 @@ namespace KerbalVR
                     camStruct.camera.Render();
 
                     // reset texture buffer
-                    //camStruct.camera.targetTexture = null;
-                    //RenderTexture.active = null;
+                    camStruct.camera.targetTexture = null;
+                    RenderTexture.active = null;
 
                     // reset camera projection back to original
-                    //camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
+                    camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
                 }
 
 
@@ -201,17 +201,17 @@ namespace KerbalVR
                     camStruct.camera.targetTexture = hmdRightEyeRenderTexture;
                     RenderTexture.active = hmdRightEyeRenderTexture;
                     camStruct.camera.Render();
-                    //camStruct.camera.targetTexture = null;
-                    //RenderTexture.active = null;
-                    //camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
+                    camStruct.camera.targetTexture = null;
+                    RenderTexture.active = null;
+                    camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
                 }
 
                 // Set camera position to an HMD-centered position (for regular screen rendering)
                 //--------------------------------------------------------------
-                /*InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
+                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
                 InternalCamera.Instance.transform.localPosition = hmdTransform.pos;
                 FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);*/
+                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
 
 
                 /* debug
