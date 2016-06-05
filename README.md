@@ -3,6 +3,8 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ### This mod currently only supports the HTC Vive, in "seated" mode
 
+### FOLLOW the installation instructions below, this is not like other KSP mods
+
 **Built for KSP v1.1.2**
 
 ----
