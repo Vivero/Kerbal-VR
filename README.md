@@ -1,5 +1,7 @@
 # Kerbal-VR
-An add-on for Kerbal Space Program (KSP) to enable head-tracking through OpenVR (HTC Vive, Oculus Rift, etc)
+An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset (HTC Vive, Oculus Rift, etc), as supported by OpenVR.
+
+**Built for KSP v1.1.2**
 
 **Built for KSP 1.1.2**
 
@@ -7,11 +9,26 @@ An add-on for Kerbal Space Program (KSP) to enable head-tracking through OpenVR 
 
 This is an early WIP mod to allow the use of the HTC Vive (and potentially any HMD supported by the OpenVR SDK) in KSP. The primary focus is for use in IVA. Head-tracking works, but displaying the game screen on the HMD currently has caveats.
 
-**I'm currently only testing with the HTC Vive on Windows 10.**
+**Currently testing with:**
 
-I haven't been able to find a proper injector to use with KSP that is compatible with the Vive. VorpX and TriDef are not free, and Vireio currently does not support the HTC Vive.
+- HTC Vive
+- Windows 10
+- Intel Core i5-6600K
+- EVGA GeForce GTX 970 4GB GDDR5 (04G-P4-3975-KR)
+- 16GB DDR4 (PC4-17000)
+- SteamVR / OpenVR SDK
 
-The KerbalVR plugin simply captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation).
+This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. However, rendering is slow, even on a decent rig that I'm testing with. Maybe needs some code re-work to reduce inefficiencies. But even with all graphics settings set to low, I can only get about 40-60 fps, which makes for a nauseating VR experience.
+
+It's still fairly playable for short amounts of time. I'd also recommend installing the [RasterPropMonitor mod](http://forum.kerbalspaceprogram.com/index.php?/topic/105821-112-rasterpropmonitor-still-putting-the-a-in-iva-v0260-30-april-2016/) to make it easier to navigate your craft in IVA. However be warned, I've seen the game crash randomly while using VR. Not sure if it's KSP-specific issues, or VR-related issues.
+
+While in VR, your viewpoint is not limited to being inside the cockpit. If you have the proper setup and space to move around irl, you can actually "walk" outside your craft and see it from outside (and it's way cooler than what I can describe here).
+
+Somehow VR will only work with KSP using OpenGL, i.e. you need to use the "-force-opengl" flag on the executable. It will not work if you try to run KSP normally, nor with the "-force-d3d11" flag (even with the OpenVR function calls set up to use DirectX rendering). To enable the OpenGL flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append "-force-opengl" to the Target, e.g.:
+
+```
+Target: C:\Games\KSP_win\KSP_x64.exe -force-opengl
+```
 
 ----
 
@@ -27,26 +44,21 @@ Should look something like this:
 |   +-- KerbalVR
 |   |   +-- KerbalVR.dll
 |   +-- Squad
+|   +-- <other mods>
 +-- KSP.exe
 +-- KSP_x64.exe
 +-- openvr_api.dll
++-- <other KSP files/directories>
 ```
 
 ## Usage
 
-**The best method I've found** to display KSP on the HTC Vive is to use [Virtual Desktop](http://store.steampowered.com/app/382110/). It's not free, but if you already dropped $800+ for a Vive, then the cost of this should be negligible. The following options seem to provide a good IVA experience:
-
-- Screen Size: *240 degrees*
-- Screen Distance: *0.80m*
-- Screen Options: *Curved*
-
 Instructions:
 
-1. Start SteamVR. Only the Vive headset will be used (no controllers needed), and will be a Seated Experience (no Room-Scale required).
+1. Start SteamVR. Only the Vive headset will be used (no controllers needed), and it will be a Seated Experience (no Room-Scale required).
 2. Sit down
 3. Put on your Vive
-4. Start Virtual Desktop
-5. Start up KSP
-6. During flight, enter IVA, and press the 'N' key to initialize the HMD
-7. You can press 'N' again to reset the default position
-8. Any errors should come up in the Debug log (press Alt-F12)
+4. Start up KSP with the "-force-opengl" flag
+5. During flight, enter IVA, and press the 'N' key to initialize the HMD
+6. You can press 'N' again to reset the default position
+7. Any errors should come up in the Debug log (press Alt-F12)
