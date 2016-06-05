@@ -127,8 +127,9 @@ namespace KerbalVR
             // TEST CODE: rendering controller as an internal prop
             foreach (InternalProp prop in props)
             {
-                Debug.Log("[KerbalVR] prop: " + prop.propName);
-                if (prop.name.Equals("CrewManual_FlightPlan"))
+                Debug.Log("[KerbalVR] prop: " + prop.propName + ", " + prop.name);
+                //if (prop.name.Equals("CrewManual_FlightPlan"))
+                if (prop.name.Equals("Glove"))
                     testProp = prop;
             }
         }
