@@ -25,12 +25,36 @@ namespace KerbalVR
         private TrackedDevicePose_t[] vrDevicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrRenderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrGamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        
+
+        private VRControllerState_t ctrlStateLeft = new VRControllerState_t();
+        private VRControllerState_t ctrlStateRight = new VRControllerState_t();
+        private uint ctrlStateLeft_lastPacketNum, ctrlStateRight_lastPacketNum;
+        private uint ctrlIndexLeft = 0;
+        private uint ctrlIndexRight = 0;
+
         private Texture_t hmdLeftEyeTexture, hmdRightEyeTexture;
         private VRTextureBounds_t hmdTextureBounds;
         private RenderTexture hmdLeftEyeRenderTexture, hmdRightEyeRenderTexture;
-        
+        private Mesh hmdHiddenAreaMeshLeft, hmdHiddenAreaMeshRight;
+        private Material hmdHiddenAreaMeshMaterial;
+
+
+        // define controller button masks
+        //--------------------------------------------------------------
+
+        // trigger button
+        public const ulong CONTROLLER_BUTTON_MASK_TRIGGER = 1ul << (int)EVRButtonId.k_EButton_SteamVR_Trigger;
+
+        // app menu button
+        public const ulong CONTROLLER_BUTTON_MASK_APP_MENU = 1ul << (int)EVRButtonId.k_EButton_ApplicationMenu;
+
+        // touchpad
+        public const ulong CONTROLLER_BUTTON_MASK_TOUCHPAD = 1ul << (int)EVRButtonId.k_EButton_SteamVR_Touchpad;
+
+
+
         // list of all cameras in the game
+        //--------------------------------------------------------------
         private string[] cameraNames = new string[7]
         {
             "GalaxyCamera",
@@ -64,14 +88,7 @@ namespace KerbalVR
 
         // list of cameras to render (Camera objects)
         private List<CameraProperties> camerasToRender;
-
-
-        //*** debug
-        private float counter = 0f;
-        private int cameraNameSelected = 0;
-        //*** debug
-
-
+        
 
         /// <summary>
         /// Overrides the Start method for a MonoBehaviour plugin.
@@ -91,6 +108,14 @@ namespace KerbalVR
             //cameraNamesToRender.Add(cameraNames[6]); // don't render UI, it looks shitty
 
             camerasToRender = new List<CameraProperties>(cameraNamesToRender.Count);
+
+            // define the material for the hidden area mask
+            hmdHiddenAreaMeshMaterial = new Material(Shader.Find("Unlit/Color"));
+            hmdHiddenAreaMeshMaterial.color = Color.black;
+
+            // define the vessel to control
+            Vessel activeVessel = FlightGlobals.ActiveVessel;
+            activeVessel.OnFlyByWire += VesselControl;
         }
 
         /// <summary>
@@ -138,10 +163,12 @@ namespace KerbalVR
                 }
 
                 // convert SteamVR poses to Unity coordinates
-                //var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
-                var hmdTransform = new SteamVR_Utils.RigidTransform(vrRenderPoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+                var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
                 var hmdLeftEyeTransform = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                 var hmdRightEyeTransform = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
+                var ctrlPoseLeft = new SteamVR_Utils.RigidTransform(vrDevicePoses[ctrlIndexLeft].mDeviceToAbsoluteTracking);
+                var ctrlPoseRight = new SteamVR_Utils.RigidTransform(vrDevicePoses[ctrlIndexRight].mDeviceToAbsoluteTracking);
+                
 
                 // Render the LEFT eye
                 //--------------------------------------------------------------
@@ -171,15 +198,8 @@ namespace KerbalVR
 
                     // render camera
                     camStruct.camera.Render();
-
-                    // reset texture buffer
-                    //camStruct.camera.targetTexture = null;
-                    //RenderTexture.active = null;
-
-                    // reset camera projection back to original
-                    //camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
                 }
-
+                
 
                 // Render the RIGHT eye (see previous comments)
                 //--------------------------------------------------------------
@@ -196,10 +216,9 @@ namespace KerbalVR
                     camStruct.camera.targetTexture = hmdRightEyeRenderTexture;
                     RenderTexture.active = hmdRightEyeRenderTexture;
                     camStruct.camera.Render();
-                    //camStruct.camera.targetTexture = null;
-                    //RenderTexture.active = null;
-                    //camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
                 }
+
+
 
                 // Set camera position to an HMD-centered position (for regular screen rendering)
                 //--------------------------------------------------------------
@@ -216,15 +235,7 @@ namespace KerbalVR
                     FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
                     FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
                 }
-
-                /* debug
-                InternalCamera.Instance.transform.localRotation = hmdTransform.rot;
-                InternalCamera.Instance.transform.localPosition = new Vector3(0f, 0f, 0f);
-                InternalCamera.Instance.transform.Translate(counter, 0f, 0f);
-                FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
-                FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-                */
-
+                
 
                 // Submit frames to HMD
                 //--------------------------------------------------------------
@@ -242,11 +253,12 @@ namespace KerbalVR
                 }
 
                 // disable highlighting of parts due to mouse
+                // TODO: there needs to be a better way to do this. this affects the Part permanently
                 Part hoveredPart = Mouse.HoveredPart;
                 if (hoveredPart != null)
                 {
                     hoveredPart.HighlightActive = false;
-                    hoveredPart.highlightColor = new Color(0f, 0f, 0f, 0f);
+                    hoveredPart.highlightColor.a = 0f;// = new Color(0f, 0f, 0f, 0f);
                     //Debug.Log("[KerbalVR] hovered part: " + hoveredPart.name);
                 }
 
@@ -263,12 +275,10 @@ namespace KerbalVR
                         Debug.Log("[KerbalVR] Camera: " + c.name);
                     }
                     Debug.Log("[KerbalVR] FlightCamera: " + FlightCamera.fetch.mainCamera.name);
-
-                    cameraNameSelected += 1;
-                    cameraNameSelected = (cameraNameSelected >= cameraNames.Length) ? 0 : cameraNameSelected;
-                    Debug.Log("[KerbalVR] Rendering camera: " + cameraNames[cameraNameSelected]);
+                    
                 }
 
+                /* debug
                 if (Input.GetKeyDown(KeyCode.I))
                 {
                     counter += 0.2f;
@@ -280,6 +290,7 @@ namespace KerbalVR
                     counter -= 0.2f;
                     Debug.Log("[KerbalVR] Counter = " + counter);
                 }
+                */
             }
 
             // if we are exiting VR, restore the cameras
@@ -296,12 +307,61 @@ namespace KerbalVR
             hmdIsActive_prev = hmdIsActive;
         }
 
+        public void VesselControl(FlightCtrlState s)
+        {
+            if (hmdIsActive && hmdIsInitialized)
+            {
+
+                // handle left controller inputs
+                //--------------------------------------------------------------
+                bool ctrlStateOk = vrSystem.GetControllerState(ctrlIndexLeft, ref ctrlStateLeft);
+                if (ctrlStateOk && ctrlStateLeft.unPacketNum != ctrlStateLeft_lastPacketNum)
+                {
+                    // activate next stage with app menu button
+                    if ((ctrlStateLeft.ulButtonPressed & CONTROLLER_BUTTON_MASK_APP_MENU) > 0)
+                    {
+                        KSP.UI.Screens.StageManager.ActivateNextStage();
+                    }
+
+                    // control the throttle by touching the touchpad (no need to click)
+                    if ((ctrlStateLeft.ulButtonTouched & CONTROLLER_BUTTON_MASK_TOUCHPAD) > 0)
+                    {
+                        float throttleCmd = Mathf.Clamp((ctrlStateLeft.rAxis0.y + 1.0f) / 2.0f, 0.0f, 1.0f);
+                        s.mainThrottle = throttleCmd;
+                    }
+
+                    ctrlStateLeft_lastPacketNum = ctrlStateLeft.unPacketNum;
+                }
+
+                // handle right controller inputs
+                //--------------------------------------------------------------
+                ctrlStateOk = vrSystem.GetControllerState(ctrlIndexRight, ref ctrlStateRight);
+                if (ctrlStateOk && ctrlStateRight.unPacketNum != ctrlStateRight_lastPacketNum)
+                {
+                    // control pitch and roll by touching the touchpad (no need to click)
+                    if ((ctrlStateRight.ulButtonTouched & CONTROLLER_BUTTON_MASK_TOUCHPAD) > 0)
+                    {
+                        float pitchCmd = -ctrlStateRight.rAxis0.y;
+                        float rollCmd = ctrlStateRight.rAxis0.x;
+                        s.pitch = pitchCmd;
+                        s.roll = rollCmd;
+                    }
+
+                    ctrlStateRight_lastPacketNum = ctrlStateRight.unPacketNum;
+                }
+            }
+
+            // feed inputs to vessel
+            FlightInputHandler.state = s;
+        }
+
         /// <summary>
         /// Overrides the OnDestroy method, called when plugin is destroyed (leaving Flight scene).
         /// </summary>
         void OnDestroy()
         {
             Debug.Log("[KerbalVR] KerbalVrPlugin OnDestroy");
+            vrSystem.ReleaseInputFocus();
             OpenVR.Shutdown();
             hmdIsInitialized = false;
         }
@@ -393,6 +453,12 @@ namespace KerbalVR
             hmdTextureBounds.vMin = 0.0f;
             hmdTextureBounds.vMax = 1.0f;
 
+            // create the hidden area mask meshes
+            HiddenAreaMesh_t vrHiddenAreaMesh = vrSystem.GetHiddenAreaMesh(EVREye.Eye_Left);
+            hmdHiddenAreaMeshLeft = SteamVR_Utils.CreateHiddenAreaMesh(vrHiddenAreaMesh, hmdTextureBounds);
+            vrHiddenAreaMesh = vrSystem.GetHiddenAreaMesh(EVREye.Eye_Right);
+            hmdHiddenAreaMeshRight = SteamVR_Utils.CreateHiddenAreaMesh(vrHiddenAreaMesh, hmdTextureBounds);
+
             // search for camera objects to render
             foreach (string cameraName in cameraNamesToRender)
             {
@@ -400,22 +466,35 @@ namespace KerbalVR
                 {
                     if (cameraName.Equals(camera.name))
                     {
-                        HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
-                        HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
-                        //HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
-                        //HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, camera.nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
+                        float nearClipPlane = (camera.name.Equals(cameraNames[3])) ? 0.05f : camera.nearClipPlane;
+
+                        HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        //HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
+                        //HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
                         camerasToRender.Add(new CameraProperties(camera, camera.projectionMatrix, MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft), MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
                         break;
                     }
                 }
             }
 
-            //*** debug
-            /*foreach (Camera cam in camerasToRender)
+            // detect controllers
+            for (uint idx = 0; idx < OpenVR.k_unMaxTrackedDeviceCount; idx++)
             {
-                Debug.Log("[KerbalVR] Found camera: " + cam.name + ", clip near: " + cam.nearClipPlane + ", clip far: " + cam.farClipPlane);
-            }*/
-            //*** debug
+                if ((ctrlIndexLeft == 0) && (vrSystem.GetTrackedDeviceClass(idx) == ETrackedDeviceClass.Controller))
+                {
+                    ctrlIndexLeft = idx;
+                }
+                else if ((ctrlIndexRight == 0) && (vrSystem.GetTrackedDeviceClass(idx) == ETrackedDeviceClass.Controller))
+                {
+                    ctrlIndexRight = idx;
+                }
+            }
+            bool ctrlFocusCaptured = vrSystem.CaptureInputFocus();
+            if (!ctrlFocusCaptured)
+            {
+                Debug.LogWarning("[KerbalVR] Controller input focus was not captured");
+            }
 
             return retVal;
         }
