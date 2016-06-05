@@ -1,9 +1,9 @@
 # Kerbal-VR
 An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset (HTC Vive, Oculus Rift, etc), as supported by OpenVR.
 
-**Built for KSP v1.1.2**
+### This mod currently only supports the HTC Vive, in "seated" mode
 
-**Built for KSP 1.1.2**
+**Built for KSP v1.1.2**
 
 ----
 
@@ -13,7 +13,7 @@ This is an early WIP mod to allow the use of the HTC Vive (and potentially any H
 
 - HTC Vive
 - Windows 10
-- Intel Core i5-6600K
+- Intel Core i5-6600K (overclocked to 4.1GHz)
 - EVGA GeForce GTX 970 4GB GDDR5 (04G-P4-3975-KR)
 - 16GB DDR4 (PC4-17000)
 - SteamVR / OpenVR SDK
@@ -55,10 +55,8 @@ Should look something like this:
 
 Instructions:
 
-1. Start SteamVR. Only the Vive headset will be used (no controllers needed), and it will be a Seated Experience (no Room-Scale required).
-2. Sit down
-3. Put on your Vive
-4. Start up KSP with the "-force-opengl" flag
+1. Start SteamVR
+2. Start up KSP with the "-force-opengl" flag
 5. During flight, enter IVA, and press the 'N' key to initialize the HMD
 6. You can press 'N' again to reset the default position
 7. Any errors should come up in the Debug log (press Alt-F12)
