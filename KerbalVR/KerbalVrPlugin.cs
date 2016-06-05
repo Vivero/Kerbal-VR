@@ -38,6 +38,8 @@ namespace KerbalVR
         private Mesh hmdHiddenAreaMeshLeft, hmdHiddenAreaMeshRight;
         private Material hmdHiddenAreaMeshMaterial;
 
+        private InternalProp testProp = null;
+
 
         // define controller button masks
         //--------------------------------------------------------------
@@ -116,6 +118,19 @@ namespace KerbalVR
             // define the vessel to control
             Vessel activeVessel = FlightGlobals.ActiveVessel;
             activeVessel.OnFlyByWire += VesselControl;
+
+            Part cmdpod = activeVessel.rootPart;
+            List<InternalProp> props = cmdpod.internalModel.props;
+            //Debug.Log("[KerbalVR] test part = " + cmdpod.name);
+
+            
+            // TEST CODE: rendering controller as an internal prop
+            foreach (InternalProp prop in props)
+            {
+                Debug.Log("[KerbalVR] prop: " + prop.propName);
+                if (prop.name.Equals("CrewManual_FlightPlan"))
+                    testProp = prop;
+            }
         }
 
         /// <summary>
@@ -168,6 +183,7 @@ namespace KerbalVR
                 var hmdRightEyeTransform = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
                 var ctrlPoseLeft = new SteamVR_Utils.RigidTransform(vrDevicePoses[ctrlIndexLeft].mDeviceToAbsoluteTracking);
                 var ctrlPoseRight = new SteamVR_Utils.RigidTransform(vrDevicePoses[ctrlIndexRight].mDeviceToAbsoluteTracking);
+
                 
 
                 // Render the LEFT eye
@@ -236,6 +252,12 @@ namespace KerbalVR
                     FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
                 }
                 
+                // TEST CODE: rendering controller as an internal prop
+                testProp.transform.position = InternalCamera.Instance.transform.parent.position;
+                testProp.transform.rotation = InternalCamera.Instance.transform.parent.rotation;
+                testProp.transform.Translate(ctrlPoseRight.pos);
+                testProp.transform.rotation *= ctrlPoseRight.rot;
+
 
                 // Submit frames to HMD
                 //--------------------------------------------------------------
@@ -269,13 +291,18 @@ namespace KerbalVR
                     Debug.Log("[KerbalVR] POSITION hmdTransform : " + hmdTransform.pos.x + ", " + hmdTransform.pos.y + ", " + hmdTransform.pos.z);
                     Debug.Log("[KerbalVR] POSITION hmdLTransform : " + hmdLeftEyeTransform.pos.x + ", " + hmdLeftEyeTransform.pos.y + ", " + hmdLeftEyeTransform.pos.z);
                     Debug.Log("[KerbalVR] POSITION hmdRTransform : " + hmdRightEyeTransform.pos.x + ", " + hmdRightEyeTransform.pos.y + ", " + hmdRightEyeTransform.pos.z);
+                    Debug.Log("[KerbalVR] POSITION ctrlPoseRight : " + ctrlPoseRight.pos.x + ", " + ctrlPoseRight.pos.y + ", " + ctrlPoseRight.pos.z);
 
-                    foreach (Camera c in Camera.allCameras)
+                    Debug.Log("[KerbalVR] POSITION InternalCamera.Instance.transform.abs : " + InternalCamera.Instance.transform.position.x + ", " + InternalCamera.Instance.transform.position.y + ", " + InternalCamera.Instance.transform.position.z);
+                    Debug.Log("[KerbalVR] POSITION InternalCamera.Instance.transform.rel : " + InternalCamera.Instance.transform.localPosition.x + ", " + InternalCamera.Instance.transform.localPosition.y + ", " + InternalCamera.Instance.transform.localPosition.z);
+                    Debug.Log("[KerbalVR] POSITION myprop.transform : " + testProp.transform.position.x + ", " + testProp.transform.position.y + ", " + testProp.transform.position.z);
+
+                    /*foreach (Camera c in Camera.allCameras)
                     {
                         Debug.Log("[KerbalVR] Camera: " + c.name);
                     }
-                    Debug.Log("[KerbalVR] FlightCamera: " + FlightCamera.fetch.mainCamera.name);
-                    
+                    Debug.Log("[KerbalVR] FlightCamera: " + FlightCamera.fetch.mainCamera.name);*/
+
                 }
 
                 /* debug
@@ -347,6 +374,16 @@ namespace KerbalVR
                         s.roll = rollCmd;
                     }
 
+                    // brake with the trigger
+                    if ((ctrlStateRight.ulButtonPressed & CONTROLLER_BUTTON_MASK_TRIGGER) > 0)
+                    {
+                        FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Brakes, true);
+                    }
+                    else
+                    {
+                        FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Brakes, false);
+                    }
+
                     ctrlStateRight_lastPacketNum = ctrlStateRight.unPacketNum;
                 }
             }
@@ -354,6 +391,7 @@ namespace KerbalVR
             // feed inputs to vessel
             FlightInputHandler.state = s;
         }
+        
 
         /// <summary>
         /// Overrides the OnDestroy method, called when plugin is destroyed (leaving Flight scene).
