@@ -42,6 +42,9 @@ namespace KerbalVR
         private InternalProp propRightHand = null;
         private MeshRenderer propLeftHandRenderer, propRightHandRenderer;
 
+        private List<InternalProp> activeVesselInternalProps;
+        private Collider gloveCollider;
+
 
         // define controller button masks
         //--------------------------------------------------------------
@@ -122,7 +125,7 @@ namespace KerbalVR
             activeVessel.OnFlyByWire += VesselControl;
 
             // define the left and right hand models for the controllers
-            List<InternalProp> activeVesselInternalProps = activeVessel.rootPart.internalModel.props;
+            activeVesselInternalProps = activeVessel.rootPart.internalModel.props;
             foreach (InternalProp prop in activeVesselInternalProps)
             {
                 Debug.Log("[KerbalVR] Internal Prop: " + prop.propName + " / " + prop.name);
@@ -137,6 +140,8 @@ namespace KerbalVR
                 {
                     propRightHand = prop;
                     propRightHandRenderer = propRightHand.gameObject.GetComponentInChildren<MeshRenderer>();
+                    gloveCollider = propRightHand.gameObject.GetComponentInChildren<Collider>();
+                    Debug.Log("[KerbalVR] got collider: " + gloveCollider + ", " + gloveCollider.transform.position);
                 }
             }
         }
@@ -281,6 +286,32 @@ namespace KerbalVR
                     propRightHandRenderer.enabled = vrDevicePoses[ctrlIndexRight].bDeviceIsConnected;
                 }
 
+                InternalProp closestProp = null;
+                float closestDistanceSqr = 10000f;
+                foreach (InternalProp prop in activeVesselInternalProps)
+                {
+                    if (!prop.name.Equals(propRightHand.name))
+                    {
+                        Vector3 directionToTarget = prop.transform.position - gloveCollider.transform.position;
+                        float distanceToTargetSqr = directionToTarget.sqrMagnitude;
+                        if (distanceToTargetSqr < closestDistanceSqr)
+                        {
+                            closestDistanceSqr = distanceToTargetSqr;
+                            closestProp = prop;
+                        }
+                    }
+                }
+
+                /*
+                if (closestProp != null && closestDistanceSqr < 0.005f)
+                {
+                    Debug.Log("[KerbalVR] closest prop: " + closestProp + ", " + closestDistanceSqr + " m2");
+                    foreach (InternalModule mod in closestProp.internalModules)
+                    {
+                        Debug.Log("[KerbalVR] module: " + mod.name);
+                    }
+                }
+                */
 
                 // Submit frames to HMD
                 //--------------------------------------------------------------
