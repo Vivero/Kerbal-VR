@@ -38,7 +38,9 @@ namespace KerbalVR
         private Mesh hmdHiddenAreaMeshLeft, hmdHiddenAreaMeshRight;
         private Material hmdHiddenAreaMeshMaterial;
 
-        private InternalProp testProp = null;
+        private InternalProp propLeftHand = null;
+        private InternalProp propRightHand = null;
+        private MeshRenderer propLeftHandRenderer, propRightHandRenderer;
 
 
         // define controller button masks
@@ -119,18 +121,23 @@ namespace KerbalVR
             Vessel activeVessel = FlightGlobals.ActiveVessel;
             activeVessel.OnFlyByWire += VesselControl;
 
-            Part cmdpod = activeVessel.rootPart;
-            List<InternalProp> props = cmdpod.internalModel.props;
-            //Debug.Log("[KerbalVR] test part = " + cmdpod.name);
-
-            
-            // TEST CODE: rendering controller as an internal prop
-            foreach (InternalProp prop in props)
+            // define the left and right hand models for the controllers
+            List<InternalProp> activeVesselInternalProps = activeVessel.rootPart.internalModel.props;
+            foreach (InternalProp prop in activeVesselInternalProps)
             {
-                Debug.Log("[KerbalVR] prop: " + prop.propName + ", " + prop.name);
-                //if (prop.name.Equals("CrewManual_FlightPlan"))
-                if (prop.name.Equals("Glove"))
-                    testProp = prop;
+                Debug.Log("[KerbalVR] Internal Prop: " + prop.propName + " / " + prop.name);
+                
+                if (prop.name.Equals("GloveL"))
+                {
+                    propLeftHand = prop;
+                    propLeftHandRenderer = propLeftHand.gameObject.GetComponentInChildren<MeshRenderer>();
+                }
+
+                if (prop.name.Equals("GloveR"))
+                {
+                    propRightHand = prop;
+                    propRightHandRenderer = propRightHand.gameObject.GetComponentInChildren<MeshRenderer>();
+                }
             }
         }
 
@@ -252,12 +259,27 @@ namespace KerbalVR
                     FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
                     FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
                 }
-                
-                // TEST CODE: rendering controller as an internal prop
-                testProp.transform.position = InternalCamera.Instance.transform.parent.position;
-                testProp.transform.rotation = InternalCamera.Instance.transform.parent.rotation;
-                testProp.transform.Translate(ctrlPoseRight.pos);
-                testProp.transform.rotation *= ctrlPoseRight.rot;
+
+
+                // Set position of the hand controller props
+                //--------------------------------------------------------------
+                if (propLeftHand != null)
+                {
+                    propLeftHand.transform.position = InternalCamera.Instance.transform.parent.position;
+                    propLeftHand.transform.rotation = InternalCamera.Instance.transform.parent.rotation;
+                    propLeftHand.transform.Translate(ctrlPoseLeft.pos);
+                    propLeftHand.transform.rotation *= ctrlPoseLeft.rot;
+                    propLeftHandRenderer.enabled = vrDevicePoses[ctrlIndexLeft].bDeviceIsConnected;
+                }
+
+                if (propRightHand != null)
+                {
+                    propRightHand.transform.position = InternalCamera.Instance.transform.parent.position;
+                    propRightHand.transform.rotation = InternalCamera.Instance.transform.parent.rotation;
+                    propRightHand.transform.Translate(ctrlPoseRight.pos);
+                    propRightHand.transform.rotation *= ctrlPoseRight.rot;
+                    propRightHandRenderer.enabled = vrDevicePoses[ctrlIndexRight].bDeviceIsConnected;
+                }
 
 
                 // Submit frames to HMD
@@ -296,7 +318,7 @@ namespace KerbalVR
 
                     Debug.Log("[KerbalVR] POSITION InternalCamera.Instance.transform.abs : " + InternalCamera.Instance.transform.position.x + ", " + InternalCamera.Instance.transform.position.y + ", " + InternalCamera.Instance.transform.position.z);
                     Debug.Log("[KerbalVR] POSITION InternalCamera.Instance.transform.rel : " + InternalCamera.Instance.transform.localPosition.x + ", " + InternalCamera.Instance.transform.localPosition.y + ", " + InternalCamera.Instance.transform.localPosition.z);
-                    Debug.Log("[KerbalVR] POSITION myprop.transform : " + testProp.transform.position.x + ", " + testProp.transform.position.y + ", " + testProp.transform.position.z);
+                    //Debug.Log("[KerbalVR] POSITION myprop.transform : " + testProp.transform.position.x + ", " + testProp.transform.position.y + ", " + testProp.transform.position.z);
 
                     /*foreach (Camera c in Camera.allCameras)
                     {
