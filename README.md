@@ -36,8 +36,8 @@ Target: C:\Games\KSP_win\KSP_x64.exe -force-opengl
 
 ## Installation
 
-1. Download the [latest KerbalVR release](https://github.com/Vivero/Kerbal-VR/releases)
-2. Copy the `KerbalVR` folder into your KSP `GameData` folder.
+1. Download the [latest KerbalVR release](https://github.com/Vivero/Kerbal-VR/releases).
+2. Copy the `KerbalVR` folder into your KSP `GameData` folder. The `KerbalVR` folder contains `KerbalVR.dll`.
 3. Copy `openvr_api.dll` into the **root of the KSP directory**, i.e. `openvr_api.dll` should be next to KSP.exe and KSP_x64.exe. Use either the 32- or 64-bit version of `openvr_api.dll`, according to your bit-version of Windows.
 
 Should look something like this:
