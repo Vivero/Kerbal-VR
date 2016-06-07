@@ -284,20 +284,20 @@ namespace KerbalVR
                     propRightHand.transform.Translate(ctrlPoseRight.pos);
                     propRightHand.transform.rotation *= ctrlPoseRight.rot;
                     propRightHandRenderer.enabled = vrDevicePoses[ctrlIndexRight].bDeviceIsConnected;
-                }
 
-                InternalProp closestProp = null;
-                float closestDistanceSqr = 10000f;
-                foreach (InternalProp prop in activeVesselInternalProps)
-                {
-                    if (!prop.name.Equals(propRightHand.name))
+                    InternalProp closestProp = null;
+                    float closestDistanceSqr = 10000f;
+                    foreach (InternalProp prop in activeVesselInternalProps)
                     {
-                        Vector3 directionToTarget = prop.transform.position - gloveCollider.transform.position;
-                        float distanceToTargetSqr = directionToTarget.sqrMagnitude;
-                        if (distanceToTargetSqr < closestDistanceSqr)
+                        if (!prop.name.Equals(propRightHand.name))
                         {
-                            closestDistanceSqr = distanceToTargetSqr;
-                            closestProp = prop;
+                            Vector3 directionToTarget = prop.transform.position - gloveCollider.transform.position;
+                            float distanceToTargetSqr = directionToTarget.sqrMagnitude;
+                            if (distanceToTargetSqr < closestDistanceSqr)
+                            {
+                                closestDistanceSqr = distanceToTargetSqr;
+                                closestProp = prop;
+                            }
                         }
                     }
                 }
