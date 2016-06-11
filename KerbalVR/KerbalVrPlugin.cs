@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-//using System.Runtime.InteropServices;
-//using System.Text;
-//using System.Threading.Tasks;
 using UnityEngine;
 using Valve.VR;
 
@@ -12,7 +8,7 @@ namespace KerbalVR
     // Start plugin on entering the Flight scene
     //
     [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class KerbalVrPlugin : MonoBehaviour
+    public class KerbalVRPlugin : MonoBehaviour
     {
         private bool hmdIsInitialized = false;
         private bool hmdIsActive = false;

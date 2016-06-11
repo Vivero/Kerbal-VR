@@ -56,7 +56,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KerbalVrPlugin.cs" />
+    <Compile Include="KerbalVRPlugin.cs" />
     <Compile Include="MathUtils.cs" />
     <Compile Include="openvr_api.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
