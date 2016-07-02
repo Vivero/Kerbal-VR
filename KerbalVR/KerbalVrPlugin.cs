@@ -11,8 +11,8 @@ namespace KerbalVR
     public class KerbalVRPlugin : MonoBehaviour
     {
         private bool hmdIsInitialized = false;
-        private bool hmdIsActive = false;
-        private bool hmdIsActive_prev = false;
+        private bool hmdIsAllowed = false;
+        private bool hmdIsAllowed_prev = false;
 
         private bool renderToScreen = true;
 
@@ -164,10 +164,10 @@ namespace KerbalVR
         void Update()
         {
             // do nothing unless we are in IVA
-            hmdIsActive = (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
+            hmdIsAllowed = (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
 
             // start HMD using the N key
-            if (Input.GetKeyDown(KeyCode.N) && hmdIsActive)
+            if (Input.GetKeyDown(KeyCode.N) && hmdIsAllowed)
             {
                 if (!hmdIsInitialized)
                 {
@@ -185,7 +185,7 @@ namespace KerbalVR
             }
 
             // perform regular updates if HMD is initialized
-            if (hmdIsActive && hmdIsInitialized)
+            if (hmdIsAllowed && hmdIsInitialized)
             {
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
 
@@ -389,7 +389,7 @@ namespace KerbalVR
             }
 
             // if we are exiting VR, restore the cameras
-            if (!hmdIsActive && hmdIsActive_prev)
+            if (!hmdIsAllowed && hmdIsAllowed_prev)
             {
                 foreach (CameraProperties camStruct in camerasToRender)
                 {
@@ -399,12 +399,12 @@ namespace KerbalVR
                 }
             }
 
-            hmdIsActive_prev = hmdIsActive;
+            hmdIsAllowed_prev = hmdIsAllowed;
         }
 
         public void VesselControl(FlightCtrlState s)
         {
-            if (hmdIsActive && hmdIsInitialized)
+            if (hmdIsAllowed && hmdIsInitialized)
             {
 
                 // handle left controller inputs
