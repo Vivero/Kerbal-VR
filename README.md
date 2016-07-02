@@ -20,7 +20,7 @@ This is an early WIP mod to allow the use of the HTC Vive (and potentially any H
 - Intel Core i5-6600K (overclocked to 4.1GHz)
 - EVGA GeForce GTX 970 4GB GDDR5 (04G-P4-3975-KR)
 - 16GB DDR4 (PC4-17000)
-- SteamVR / OpenVR SDK
+- SteamVR / OpenVR SDK (beta version 1467410709)
 
 This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. However, rendering is slow, even on a decent rig that I'm testing with. Maybe needs some code re-work to reduce inefficiencies. But even with all graphics settings set to low, I can only get about 40-60 fps, which makes for a nauseating VR experience.
 
