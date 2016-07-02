@@ -5,7 +5,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ### FOLLOW the installation instructions below, this is not like other KSP mods
 
-**Built for KSP v1.1.2**
+**Built for KSP v1.1.3**
 
 ----
 
@@ -45,12 +45,12 @@ Should look something like this:
 ```
 +-- Game Data
 |   +-- KerbalVR
-|   |   +-- KerbalVR.dll
+|   |   +-- KerbalVR.dll                     <-- MAKE SURE THIS IS HERE
 |   +-- Squad
 |   +-- <other mods>
 +-- KSP.exe
 +-- KSP_x64.exe
-+-- openvr_api.dll
++-- openvr_api.dll                           <-- MAKE SURE THIS IS HERE
 +-- <other KSP files/directories>
 ```
 

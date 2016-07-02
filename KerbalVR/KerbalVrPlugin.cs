@@ -91,7 +91,11 @@ namespace KerbalVR
 
         // list of cameras to render (Camera objects)
         private List<CameraProperties> camerasToRender;
-        
+
+        private GameObject uiScreen;
+        private Material uiScreenMaterial;
+        private Camera uiCamera;
+        private RenderTexture uiTexture;
 
         /// <summary>
         /// Overrides the Start method for a MonoBehaviour plugin.
@@ -99,7 +103,19 @@ namespace KerbalVR
         void Start()
         {
             Debug.Log("[KerbalVR] KerbalVrPlugin started.");
-            
+
+            uiScreenMaterial = new Material(Shader.Find("Unlit/Texture"));
+
+            uiScreen = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            //uiScreen = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            uiScreen.GetComponent<Renderer>().enabled = true;
+            uiScreen.GetComponent<Collider>().enabled = false;
+            uiScreen.transform.localScale = new Vector3(0.2f, 0.2f, 0.1f);
+            uiScreen.GetComponent<Renderer>().material = uiScreenMaterial;
+            uiTexture = new RenderTexture(1000, 1000, 24, RenderTextureFormat.ARGB32);
+            uiTexture.Create();
+            uiScreen.GetComponent<Renderer>().material.mainTexture = uiTexture;
+
             // define what cameras to render to HMD
             cameraNamesToRender = new List<string>();
             cameraNamesToRender.Add(cameraNames[0]); // renders the galaxy
@@ -243,6 +259,12 @@ namespace KerbalVR
                     camStruct.camera.Render();
                 }
 
+                var origTex = uiCamera.targetTexture;
+                uiCamera.targetTexture = uiTexture;
+                RenderTexture.active = uiTexture;
+                uiCamera.Render();
+                uiCamera.targetTexture = origTex;
+                RenderTexture.active = null;
 
 
                 // Set camera position to an HMD-centered position (for regular screen rendering)
@@ -260,10 +282,12 @@ namespace KerbalVR
                     FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
                     FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
                 }
+                
 
 
                 // Set position of the hand controller props
                 //--------------------------------------------------------------
+
                 if (propLeftHand != null)
                 {
                     propLeftHand.transform.position = InternalCamera.Instance.transform.parent.position;
@@ -271,6 +295,10 @@ namespace KerbalVR
                     propLeftHand.transform.Translate(ctrlPoseLeft.pos);
                     propLeftHand.transform.rotation *= ctrlPoseLeft.rot;
                     propLeftHandRenderer.enabled = vrDevicePoses[ctrlIndexLeft].bDeviceIsConnected;
+
+                    uiScreen.transform.position = InternalSpace.InternalToWorld(propLeftHand.transform.position);
+                    uiScreen.transform.rotation = InternalSpace.InternalToWorld(propLeftHand.transform.rotation);
+                    uiScreen.transform.Rotate(90f, 0f, 0f);
                 }
 
                 if (propRightHand != null)
@@ -297,6 +325,8 @@ namespace KerbalVR
                         }
                     }
                 }
+
+
 
                 /*
                 if (closestProp != null && closestDistanceSqr < 0.005f)
@@ -347,27 +377,15 @@ namespace KerbalVR
                     Debug.Log("[KerbalVR] POSITION InternalCamera.Instance.transform.rel : " + InternalCamera.Instance.transform.localPosition.x + ", " + InternalCamera.Instance.transform.localPosition.y + ", " + InternalCamera.Instance.transform.localPosition.z);
                     //Debug.Log("[KerbalVR] POSITION myprop.transform : " + testProp.transform.position.x + ", " + testProp.transform.position.y + ", " + testProp.transform.position.z);
 
-                    /*foreach (Camera c in Camera.allCameras)
+                    uiScreen.layer = (uiScreen.layer == 31) ? 0 : uiScreen.layer + 1;
+                    Debug.Log("[KerbalVR] prop layer = " + propLeftHand.gameObject.layer + ", screen obj layer = " + uiScreen.layer);
+
+                    foreach (Camera c in Camera.allCameras)
                     {
-                        Debug.Log("[KerbalVR] Camera: " + c.name);
+                        Debug.Log("[KerbalVR] Camera: " + c.name + ", cullingMask = " + c.cullingMask);
                     }
-                    Debug.Log("[KerbalVR] FlightCamera: " + FlightCamera.fetch.mainCamera.name);*/
 
                 }
-
-                /* debug
-                if (Input.GetKeyDown(KeyCode.I))
-                {
-                    counter += 0.2f;
-                    Debug.Log("[KerbalVR] Counter = " + counter);
-                }
-
-                    if (Input.GetKeyDown(KeyCode.K))
-                {
-                    counter -= 0.2f;
-                    Debug.Log("[KerbalVR] Counter = " + counter);
-                }
-                */
             }
 
             // if we are exiting VR, restore the cameras
@@ -425,14 +443,14 @@ namespace KerbalVR
                     }
 
                     // brake with the trigger
-                    if ((ctrlStateRight.ulButtonPressed & CONTROLLER_BUTTON_MASK_TRIGGER) > 0)
+                    /*if ((ctrlStateRight.ulButtonPressed & CONTROLLER_BUTTON_MASK_TRIGGER) > 0)
                     {
                         FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Brakes, true);
                     }
                     else
                     {
                         FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.Brakes, false);
-                    }
+                    }*/
 
                     ctrlStateRight_lastPacketNum = ctrlStateRight.unPacketNum;
                 }
@@ -516,9 +534,10 @@ namespace KerbalVR
             //renderTextureWidth /= 2;
             //renderTextureHeight /= 2;
 
-            //Debug.Log("[KerbalVR] Render Texture size: " + renderTextureWidth + " x " + renderTextureHeight);
+            Debug.Log("[KerbalVR] Render Texture size: " + renderTextureWidth + " x " + renderTextureHeight);
 
             hmdLeftEyeRenderTexture = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 24, RenderTextureFormat.ARGB32);
+            hmdLeftEyeRenderTexture.antiAliasing = 1;
             hmdLeftEyeRenderTexture.Create();
 
             hmdRightEyeRenderTexture = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 24, RenderTextureFormat.ARGB32);
@@ -547,6 +566,8 @@ namespace KerbalVR
             vrHiddenAreaMesh = vrSystem.GetHiddenAreaMesh(EVREye.Eye_Right);
             hmdHiddenAreaMeshRight = SteamVR_Utils.CreateHiddenAreaMesh(vrHiddenAreaMesh, hmdTextureBounds);
 
+            // TODO: Need to understand better how to create render targets and incorporate hidden area mask mesh
+
             // search for camera objects to render
             foreach (string cameraName in cameraNamesToRender)
             {
@@ -563,6 +584,14 @@ namespace KerbalVR
                         camerasToRender.Add(new CameraProperties(camera, camera.projectionMatrix, MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft), MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
                         break;
                     }
+                }
+            }
+
+            foreach (Camera camera in Camera.allCameras)
+            {
+                if (cameraNames[5].Equals(camera.name))
+                {
+                    uiCamera = camera;
                 }
             }
 
