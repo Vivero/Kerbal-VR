@@ -62,6 +62,6 @@ Instructions:
 
 1. Start SteamVR
 2. Start up KSP with the "-force-opengl" flag
-5. During flight, enter IVA, and press the 'N' key to initialize the HMD
-6. You can press 'N' again to reset the default position
+5. During flight, enter IVA, and press the 'Y' key to initialize the HMD
+6. You can press 'Y' again to reset the default position
 7. Any errors should come up in the Debug log (press Alt-F12)

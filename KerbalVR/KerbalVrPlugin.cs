@@ -166,8 +166,8 @@ namespace KerbalVR
             // do nothing unless we are in IVA
             hmdIsAllowed = (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
 
-            // start HMD using the N key
-            if (Input.GetKeyDown(KeyCode.N) && hmdIsAllowed)
+            // start HMD using the Y key
+            if (Input.GetKeyDown(KeyCode.Y) && hmdIsAllowed)
             {
                 if (!hmdIsInitialized)
                 {
@@ -366,7 +366,7 @@ namespace KerbalVR
 
 
                 // DEBUG
-                if (Input.GetKeyDown(KeyCode.H))
+                if (Input.GetKeyDown(KeyCode.O))
                 {
                     Debug.Log("[KerbalVR] POSITION hmdTransform : " + hmdTransform.pos.x + ", " + hmdTransform.pos.y + ", " + hmdTransform.pos.z);
                     Debug.Log("[KerbalVR] POSITION hmdLTransform : " + hmdLeftEyeTransform.pos.x + ", " + hmdLeftEyeTransform.pos.y + ", " + hmdLeftEyeTransform.pos.z);
