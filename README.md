@@ -5,7 +5,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ### FOLLOW the installation instructions below, this is not like other KSP mods
 
-**Built for KSP v1.2**
+**Built for KSP v1.1.3** (still working on KSP 1.2 compatibility)
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
