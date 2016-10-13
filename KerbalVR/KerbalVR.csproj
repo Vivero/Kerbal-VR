@@ -103,10 +103,10 @@
   <PropertyGroup>
     <PostBuildEvent>if $(PlatformName) == x86 (
   copy /Y "$(TargetPath)" C:\KSP_win\GameData\KerbalVR\
-  copy /Y "$(ProjectDir)"\lib\win32\openvr_api.dll C:\Games\KSP_win\
+  copy /Y "$(ProjectDir)"\lib\win32\openvr_api.dll C:\KSP_win\
 ) ELSE (
   copy /Y "$(TargetPath)" C:\KSP_win64\GameData\KerbalVR\
-  copy /Y "$(ProjectDir)"\lib\win64\openvr_api.dll C:\Games\KSP_win64\
+  copy /Y "$(ProjectDir)"\lib\win64\openvr_api.dll C:\KSP_win64\
 )
 
 mkdir "$(TargetDir)"\rel\GameData\KerbalVR\
@@ -124,4 +124,7 @@ copy /Y "$(ProjectDir)"\LICENSE-openvr "$(TargetDir)"\rel\openvr</PostBuildEvent
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="AfterClean">
+    <Exec Command="rmdir $(TargetDir)\rel /s /q" />
+  </Target>
 </Project>
