@@ -5,7 +5,9 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ### FOLLOW the installation instructions below, this is not like other KSP mods
 
-**Built for KSP v1.1.3** (KSP 1.2+ introduced some breaking changes that make this mod unusable, issue #7)
+**Built for KSP v1.1.3**
+
+*This mod does not work on KSP 1.2, or 1.3, due to some breaking changes in the engine. See [issue #7](https://github.com/Vivero/Kerbal-VR/issues/7).*
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
