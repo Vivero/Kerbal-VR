@@ -1,9 +1,11 @@
 # Kerbal-VR
-An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset (HTC Vive, Oculus Rift, etc), as supported by OpenVR.
-
-### This mod is currently only tested with the HTC Vive, in "seated" mode
+An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset (HTC Vive, Oculus Rift, etc), as supported by OpenVR. This mod is currently only tested with the HTC Vive, in "seated" mode.
 
 ### FOLLOW the installation instructions below, this is not like other KSP mods
+
+**And if these instructions look too complicated, maybe some pictures will help: [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide)**
+
+----
 
 **Built for KSP v1.1.3**
 
