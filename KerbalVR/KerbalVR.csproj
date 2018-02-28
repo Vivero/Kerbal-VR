@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>KerbalVR</RootNamespace>
     <AssemblyName>KerbalVR</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -92,30 +93,51 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KerbalVRPlugin.cs" />
-    <Compile Include="MathUtils.cs" />
-    <Compile Include="openvr_api.cs" />
+    <Compile Include="KerbalVrPlugin.cs" />
+    <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SteamVR.cs" />
-    <Compile Include="SteamVR_Utils.cs" />
+    <Compile Include="SteamVR\Plugins\openvr_api.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Camera.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_CameraFlip.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_CameraMask.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Controller.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_ControllerManager.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Ears.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Events.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_ExternalCamera.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Fade.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Frustum.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_GameView.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_IK.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_LoadLevel.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Menu.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Overlay.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_PlayArea.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Render.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_RenderModel.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Skybox.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_SphericalProjection.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Stats.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_TestController.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_TrackedCamera.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_TrackedObject.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_UpdatePoses.cs" />
+    <Compile Include="SteamVR\Scripts\SteamVR_Utils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if $(PlatformName) == x86 (
-  copy /Y "$(TargetPath)" C:\KSP_win\GameData\KerbalVR\
-  copy /Y "$(ProjectDir)"\lib\win32\openvr_api.dll C:\KSP_win\
-) ELSE (
-  copy /Y "$(TargetPath)" C:\KSP_win64\GameData\KerbalVR\
-  copy /Y "$(ProjectDir)"\lib\win64\openvr_api.dll C:\KSP_win64\
+    <PostBuildEvent>mkdir "$(TargetDir)rel\GameData\KerbalVR\openvr"
+copy /Y "$(TargetDir)"\"$(TargetFileName)" "$(TargetDir)\rel\GameData\KerbalVR\"
+copy /Y "$(SolutionDir)"\LICENSE "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"
+robocopy "$(ProjectDir)lib" "$(TargetDir)\rel\GameData\KerbalVR\openvr" /E
+
+if $(PlatformName) == x64 (
+  robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win64\GameData\KerbalVR" /E
 )
 
-mkdir "$(TargetDir)"\rel\GameData\KerbalVR\
-mkdir "$(TargetDir)"\rel\openvr
-copy /Y "$(TargetDir)"\"$(TargetFileName)" "$(TargetDir)"\rel\GameData\KerbalVR\
-copy /Y "$(SolutionDir)"\LICENSE "$(TargetDir)"\rel\
-copy /Y "$(SolutionDir)"\README.md "$(TargetDir)"\rel\
-robocopy "$(ProjectDir)\lib" "$(TargetDir)\rel\openvr" /E
-copy /Y "$(ProjectDir)"\LICENSE-openvr "$(TargetDir)"\rel\openvr</PostBuildEvent>
+copy /Y "$(ProjectDir)\LICENSE-openvr" "$(TargetDir)\rel\openvr"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

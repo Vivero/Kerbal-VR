@@ -10,9 +10,22 @@ namespace KerbalVR
 {
     // Start plugin on entering the Flight scene
     //
-    [KSPAddon(KSPAddon.Startup.Instantly, false)]
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KerbalVRPlugin : MonoBehaviour
     {
+        // this function allows importing DLLs from a given path
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool SetDllDirectory(string lpPathName);
+
+        // define location of OpenVR library
+        public static string OpenVRDllPath {
+            get {
+                string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string openVrPath = Path.Combine(currentPath, "openvr");
+                return Path.Combine(openVrPath, Utils.Is64BitProcess ? "win64" : "win32");
+            }
+        }
+
         private bool hmdIsInitialized = false;
         private bool hmdIsAllowed = false;
         private bool hmdIsAllowed_prev = false;
@@ -21,7 +34,6 @@ namespace KerbalVR
 
         private CVRSystem vrSystem;
         private CVRCompositor vrCompositor;
-        private IVRCompositor vrCompositor2;
         private TrackedDevicePose_t[] vrDevicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrRenderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrGamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
@@ -35,8 +47,6 @@ namespace KerbalVR
         private Texture_t hmdLeftEyeTexture, hmdRightEyeTexture;
         private VRTextureBounds_t hmdTextureBounds;
         private RenderTexture hmdLeftEyeRenderTexture, hmdRightEyeRenderTexture;
-
-        private System.Timers.Timer initTmr = new System.Timers.Timer(1000);
 
         // define controller button masks
         //--------------------------------------------------------------
@@ -108,17 +118,8 @@ namespace KerbalVR
             // define the vessel to control
             //Vessel activeVessel = FlightGlobals.ActiveVessel;
             //activeVessel.OnFlyByWire += VesselControl;
-
-            initTmr.Elapsed += InitTmr_Elapsed;
-
-            InitHMD();
+            
             DontDestroyOnLoad(this);
-        }
-
-        private void InitTmr_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            initTmr.Stop();
-            hmdIsInitialized = true;
         }
 
         /// <summary>
@@ -327,7 +328,7 @@ namespace KerbalVR
 
                 // handle left controller inputs
                 //--------------------------------------------------------------
-                bool ctrlStateOk = vrSystem.GetControllerState(ctrlIndexLeft, ref ctrlStateLeft);
+                bool ctrlStateOk = vrSystem.GetControllerState(ctrlIndexLeft, ref ctrlStateLeft, 1);
                 if (ctrlStateOk && ctrlStateLeft.unPacketNum != ctrlStateLeft_lastPacketNum)
                 {
                     // activate next stage with app menu button
@@ -348,7 +349,7 @@ namespace KerbalVR
 
                 // handle right controller inputs
                 //--------------------------------------------------------------
-                ctrlStateOk = vrSystem.GetControllerState(ctrlIndexRight, ref ctrlStateRight);
+                ctrlStateOk = vrSystem.GetControllerState(ctrlIndexRight, ref ctrlStateRight, 1);
                 if (ctrlStateOk && ctrlStateRight.unPacketNum != ctrlStateRight_lastPacketNum)
                 {
                     // control pitch and roll by touching the touchpad (no need to click)
@@ -385,14 +386,9 @@ namespace KerbalVR
         void OnDestroy()
         {
           log("KerbalVrPlugin OnDestroy");
-            vrSystem.ReleaseInputFocus();
             OpenVR.Shutdown();
             hmdIsInitialized = false;
         }
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool SetDllDirectory(string lpPathName);
-
 
         /// <summary>
         /// Initialize HMD using OpenVR API calls.
@@ -408,10 +404,8 @@ namespace KerbalVR
                 return true;
             }
 
-            bool is64bit = (IntPtr.Size == 8);
-            string mypath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            log("OpenVR path set to " + Path.Combine(mypath, is64bit ? "win64" : "win32"));
-            SetDllDirectory(Path.Combine(mypath, is64bit ? "win64" : "win32"));
+            // set the location of the OpenVR DLL
+            SetDllDirectory(OpenVRDllPath);
 
             // check if HMD is connected on the system
             retVal = OpenVR.IsHmdPresent();
@@ -482,14 +476,15 @@ namespace KerbalVR
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3:
-                    hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
-                    hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_OpenGL;
+                    hmdLeftEyeTexture.eType = ETextureType.OpenGL;
+                    hmdRightEyeTexture.eType = ETextureType.OpenGL;
                     break; //doesnt work in unity 5.4 with current SteamVR (12/2016)
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D9:
                     throw (new Exception("DirectX9 not supported"));
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
-                    hmdLeftEyeTexture.eType = EGraphicsAPIConvention.API_DirectX;
-                    hmdRightEyeTexture.eType = EGraphicsAPIConvention.API_DirectX;
+                case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
+                    hmdLeftEyeTexture.eType = ETextureType.DirectX;
+                    hmdRightEyeTexture.eType = ETextureType.DirectX;
                     break;
                 default:
                     throw (new Exception(SystemInfo.graphicsDeviceType.ToString() + " not supported"));
@@ -518,11 +513,11 @@ namespace KerbalVR
                     {
                         float nearClipPlane = (camera.name.Equals(cameraNames[3])) ? 0.05f : camera.nearClipPlane;
 
-                        HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
-                        HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_OpenGL);
+                        HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, camera.farClipPlane);
+                        HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, camera.farClipPlane);
                         //HmdMatrix44_t projLeft = vrSystem.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
                         //HmdMatrix44_t projRight = vrSystem.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, camera.farClipPlane, EGraphicsAPIConvention.API_DirectX); // this doesn't seem to work
-                        camerasToRender.Add(new CameraProperties(camera, camera.projectionMatrix, MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft), MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
+                        camerasToRender.Add(new CameraProperties(camera, camera.projectionMatrix, Utils.Matrix4x4_OpenVr2UnityFormat(ref projLeft), Utils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
                         break;
                     }
                 }
@@ -540,13 +535,8 @@ namespace KerbalVR
                     ctrlIndexRight = idx;
                 }
             }
-            bool ctrlFocusCaptured = vrSystem.CaptureInputFocus();
-            if (!ctrlFocusCaptured)
-            {
-                warn("Controller input focus was not captured");
-            }
 
-            initTmr.Start();
+            hmdIsInitialized = true;
 
             return retVal;
         }
