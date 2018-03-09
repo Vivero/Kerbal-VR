@@ -129,13 +129,26 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(TargetDir)rel\GameData\KerbalVR\openvr"
+
 copy /Y "$(TargetDir)"\"$(TargetFileName)" "$(TargetDir)\rel\GameData\KerbalVR\"
+
 copy /Y "$(SolutionDir)"\LICENSE "$(TargetDir)\rel\"
+
 copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"
+
 robocopy "$(ProjectDir)lib" "$(TargetDir)\rel\GameData\KerbalVR\openvr" /E
 
+
+
 if $(PlatformName) == x64 (
+
   robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win64\GameData\KerbalVR" /E
+
+)
+
+ else (
+  robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win\GameData\KerbalVR" /E
+
 )
 
 copy /Y "$(ProjectDir)\LICENSE-openvr" "$(TargetDir)\rel\openvr"</PostBuildEvent>
