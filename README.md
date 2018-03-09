@@ -7,7 +7,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
-**Built for KSP v1.3.1**
+**Built for KSP v1.4**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
@@ -23,7 +23,7 @@ This is an early WIP mod to allow the use of the HTC Vive (and potentially any H
 - GeForce GTX 1070 8GB GDDR5
 - Nvidia Driver 388.31
 - 32GB RAM
-- SteamVR beta version 1519673958
+- SteamVR beta version 1520469824
 
 This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. However, rendering is slow, even on a decent rig that I'm testing with. Maybe needs some code re-work to reduce inefficiencies. But even with all graphics settings set to low, I can only get about 40-60 fps, which makes for a nauseating VR experience.
 
@@ -34,7 +34,7 @@ While in VR, your viewpoint is not limited to being inside the cockpit. If you h
 VR will only work with KSP using Direct3D 12, i.e. you need to use the "-force-d3d12" flag on the executable. It will not work if you try to run KSP normally. To enable the Direct3D 12 flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append "-force-d3d12" to the Target, e.g.:
 
 ```
-Target: C:\Games\KSP_win\KSP_x64.exe -force-d3d12
+Target: C:\Games\KSP_win64\KSP_x64.exe -force-d3d12
 ```
 
 ----
@@ -48,12 +48,13 @@ Should look something like this:
 
 ```
 +-- Game Data
-|   +-- KerbalVR
-|   |   +-- KerbalVR.dll                     <-- MAKE SURE THIS IS HERE
-|   |   +-- openvr                           <-- MAKE SURE THIS IS HERE
-|   |   +-- openvr\win32                     <-- MAKE SURE THIS IS HERE
-|   |   +-- openvr\win64                     <-- MAKE SURE THIS IS HERE
-|   |   +-- openvr\win64\openvr.dll          <-- MAKE SURE THIS IS HERE
+|   +-- KerbalVR                       <-- MAKE SURE THIS IS HERE
+|   |   +-- KerbalVR.dll               <-- MAKE SURE THIS IS HERE
+|   |   +-- openvr                     <-- MAKE SURE THIS IS HERE
+|   |   |   +-- win32                  <-- MAKE SURE THIS IS HERE
+|   |   |   |   +-- openvr.dll         <-- MAKE SURE THIS IS HERE
+|   |   |   +-- win64                  <-- MAKE SURE THIS IS HERE
+|   |   |   |   +-- openvr.dll         <-- MAKE SURE THIS IS HERE
 |   +-- Squad
 |   +-- <other mods>
 +-- KSP.exe
