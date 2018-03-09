@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using Valve.VR;
 
 namespace KerbalVR
 {
-    class MathUtils
+    public class MathUtils
     {
         /// <summary>
         /// Converts a pose matrix provided by OpenVR to a set of Euler angles, in radians.
         /// </summary>
         /// <param name="poseMatrix">OpenVR pose matrix</param>
         /// <returns>Vector3 containing [pitch, yaw, roll] (in radians).</returns>
-        public static Vector3 PoseMatrix2RotationEuler(ref HmdMatrix34_t poseMatrix)
-        {
+        public static Vector3 PoseMatrix2RotationEuler(ref HmdMatrix34_t poseMatrix) {
             Vector2 vector_r32_r33 = new Vector2(poseMatrix.m9, poseMatrix.m10);
             float eulerPitch = Mathf.Atan2(poseMatrix.m9, poseMatrix.m10);
             float eulerYaw = Mathf.Atan2(-poseMatrix.m8, vector_r32_r33.magnitude);
@@ -29,8 +23,7 @@ namespace KerbalVR
         /// </summary>
         /// <param name="poseMatrix">OpenVR pose matrix</param>
         /// <returns>Quaternion representing the pose matrix rotation.</returns>
-        public static Quaternion PoseMatrix2RotationQuaternion(ref HmdMatrix34_t poseMatrix)
-        {
+        public static Quaternion PoseMatrix2RotationQuaternion(ref HmdMatrix34_t poseMatrix) {
             // Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
             Quaternion q = new Quaternion();
             q.w = Mathf.Sqrt(Mathf.Max(0, 1 + poseMatrix.m0 + poseMatrix.m5 + poseMatrix.m10)) / 2;
@@ -48,8 +41,7 @@ namespace KerbalVR
         /// </summary>
         /// <param name="poseMatrix">OpenVR pose matrix</param>
         /// <returns>Vector3 with [x,y,z] position of pose matrix.</returns>
-        public static Vector3 PoseMatrix2Position(ref HmdMatrix34_t poseMatrix)
-        {
+        public static Vector3 PoseMatrix2Position(ref HmdMatrix34_t poseMatrix) {
             return new Vector3(poseMatrix.m3, poseMatrix.m7, poseMatrix.m11);
         }
 
@@ -59,8 +51,7 @@ namespace KerbalVR
         /// <param name="poseMatrix">OpenVR pose matrix</param>
         /// <param name="position">Output position vector</param>
         /// <param name="rotation">Output rotation vector [pitch, yaw, roll] in radians</param>
-        public static void PoseMatrix2PositionAndRotation(ref HmdMatrix34_t poseMatrix, ref Vector3 position, ref Vector3 rotation)
-        {
+        public static void PoseMatrix2PositionAndRotation(ref HmdMatrix34_t poseMatrix, ref Vector3 position, ref Vector3 rotation) {
             // return position
             position = PoseMatrix2Position(ref poseMatrix);
 
@@ -74,8 +65,7 @@ namespace KerbalVR
         /// <param name="poseMatrix">OpenVR pose matrix</param>
         /// <param name="position">Output position vector</param>
         /// <param name="rotation">Output rotation quaternion</param>
-        public static void PoseMatrix2PositionAndRotation(ref HmdMatrix34_t poseMatrix, ref Vector3 position, ref Quaternion rotation)
-        {
+        public static void PoseMatrix2PositionAndRotation(ref HmdMatrix34_t poseMatrix, ref Vector3 position, ref Quaternion rotation) {
             // return position
             position = PoseMatrix2Position(ref poseMatrix);
 
@@ -83,8 +73,7 @@ namespace KerbalVR
             rotation = PoseMatrix2RotationQuaternion(ref poseMatrix);
         }
 
-        public static Matrix4x4 Matrix4x4_OpenVr2UnityFormat(ref HmdMatrix44_t mat44_openvr)
-        {
+        public static Matrix4x4 Matrix4x4_OpenVr2UnityFormat(ref HmdMatrix44_t mat44_openvr) {
             Matrix4x4 mat44_unity = Matrix4x4.identity;
             mat44_unity.m00 = mat44_openvr.m0;
             mat44_unity.m01 = mat44_openvr.m1;
