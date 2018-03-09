@@ -447,8 +447,8 @@ namespace KerbalVR
             // I assume min=0.0 and max=1.0 renders to the full extent of the texture
             hmdTextureBounds.uMin = 0.0f;
             hmdTextureBounds.uMax = 1.0f;
-            hmdTextureBounds.vMin = 0.0f;
-            hmdTextureBounds.vMax = 1.0f;
+            hmdTextureBounds.vMin = 1.0f; // flip the vertical coordinate for some reason
+            hmdTextureBounds.vMax = 0.0f;
 
             // TODO: Need to understand better how to create render targets and incorporate hidden area mask mesh
 
