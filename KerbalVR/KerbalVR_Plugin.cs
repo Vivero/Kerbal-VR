@@ -262,17 +262,16 @@ namespace KerbalVR
 
                     // DEBUG
                     if (Input.GetKeyDown(KeyCode.O)) {
-                        Utils.LogInfo("POSITION hmdTransform : " + hmdTransform.pos.x + ", " + hmdTransform.pos.y + ", " + hmdTransform.pos.z);
-                        Utils.LogInfo("POSITION hmdLTransform : " + hmdLeftEyeTransform.pos.x + ", " + hmdLeftEyeTransform.pos.y + ", " + hmdLeftEyeTransform.pos.z);
-                        Utils.LogInfo("POSITION hmdRTransform : " + hmdRightEyeTransform.pos.x + ", " + hmdRightEyeTransform.pos.y + ", " + hmdRightEyeTransform.pos.z);
-                        Utils.LogInfo("POSITION ctrlPoseRight : " + ctrlPoseRight.pos.x + ", " + ctrlPoseRight.pos.y + ", " + ctrlPoseRight.pos.z);
+                        Utils.LogInfo("POSITION hmdTransform : " + hmdTransform.pos.ToString("F3"));
+                        Utils.LogInfo("POSITION hmdLTransform : " + hmdLeftEyeTransform.pos.ToString("F3"));
+                        Utils.LogInfo("POSITION hmdRTransform : " + hmdRightEyeTransform.pos.ToString("F3"));
 
-                        Utils.LogInfo("POSITION InternalCamera.Instance.transform.abs : " + InternalCamera.Instance.transform.position.x + ", " + InternalCamera.Instance.transform.position.y + ", " + InternalCamera.Instance.transform.position.z);
-                        Utils.LogInfo("POSITION InternalCamera.Instance.transform.rel : " + InternalCamera.Instance.transform.localPosition.x + ", " + InternalCamera.Instance.transform.localPosition.y + ", " + InternalCamera.Instance.transform.localPosition.z);
+                        Utils.LogInfo("POSITION InternalCamera.transform.abs : " + InternalCamera.Instance.transform.position.ToString("F3"));
+                        Utils.LogInfo("POSITION InternalCamera.transform.rel : " + InternalCamera.Instance.transform.localPosition.ToString("F3"));
 
-                        foreach (Camera c in Camera.allCameras) {
+                        /*foreach (Camera c in Camera.allCameras) {
                             Utils.LogInfo("Camera: " + c.name + ", cullingMask = " + c.cullingMask);
-                        }
+                        }*/
 
                     }
                 }
