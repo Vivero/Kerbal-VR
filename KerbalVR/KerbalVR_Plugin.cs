@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -284,11 +284,11 @@ namespace KerbalVR
                     }
                 }
 
-                hmdIsAllowed_prev = hmdIsAllowed;
-
             } catch (Exception e) {
                 Utils.LogError(e.ToString());
             }
+
+            hmdIsAllowed_prev = hmdIsAllowed;
         }
 
         public void VesselControl(FlightCtrlState s) {
@@ -426,7 +426,6 @@ namespace KerbalVR
 
 
             switch (SystemInfo.graphicsDeviceType) {
-                case UnityEngine.Rendering.GraphicsDeviceType.OpenGL2:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3:
