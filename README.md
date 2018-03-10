@@ -25,28 +25,28 @@ This is an early WIP mod to allow the use of the HTC Vive (and potentially any H
 - 32GB RAM
 - SteamVR beta version 1520469824
 
-This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. It is possible to get 90 FPS by following the **Performance Tips** below, and setting low graphics.
+This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. It is possible to get 90 FPS by following the **Performance Tips** below.
 
-I'd also recommend installing the [RasterPropMonitor mod](http://forum.kerbalspaceprogram.com/index.php?/topic/105821-112-rasterpropmonitor-still-putting-the-a-in-iva-v0260-30-april-2016/) to make it easier to navigate your craft in IVA.
+The [RasterPropMonitor mod](http://forum.kerbalspaceprogram.com/index.php?/topic/105821-112-rasterpropmonitor-still-putting-the-a-in-iva-v0260-30-april-2016/) makes it easier to navigate your craft in IVA, but I've noticed the game takes a performance hit while using it (lose about 20 or 30 fps).
 
 **You may experience random crashes while using the mod. You have been warned.**
 
-While in VR, your viewpoint is not limited to being inside the cockpit. If you have the proper setup and space to move around irl, you can actually "walk" outside your craft and see it from outside (and it's way cooler than what I can describe here).
+While in VR, your viewpoint is not limited to being inside the cockpit. If you have the space to physically move around, you can actually "walk" outside your craft and see it from outside (and it's way cooler than what I can describe here).
 
-VR will only work with KSP using Direct3D 12, i.e. you need to use the "-force-d3d12" flag on the executable. It will not work if you try to run KSP normally. To enable the Direct3D 12 flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append "-force-d3d12" to the Target. Follow the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide) if you're having trouble.
+VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d3d12` flag on the executable. It will not work if you try to run KSP normally. To enable the Direct3D 12 flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append `-force-d3d12` to the Target. Follow the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide) if you're having trouble.
 
 ----
 
 ## Installation
 
-Please see the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide),
+Please see the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide).
 
 ## Usage
 
 Instructions:
 
 1. Start SteamVR
-2. Start up KSP with the "-force-d3d12" flag
+2. Start up KSP with the `-force-d3d12` flag
 3. During flight, enter IVA, and press the 'Y' key to initialize the HMD
 4. You can press 'Y' again to turn off VR
 5. Any errors should come up in the Debug log (press Alt-F12)
@@ -55,11 +55,11 @@ Instructions:
 
 ## Performance Tips
 
-For best performance, start with these Graphics settings. Then experiment with the rest of the settings as you see fit.
-
-Go to your KSP settings, and under the Graphics tab, set:
+For best performance, go to the Settings menu in Kerbal Space Program, and under the Graphics tab, set:
 
 - **Screen Resolution:** 1024 x 768
 - **Full Screen:** unchecked
 - **V-Sync:** Don't Sync
 - **Frame Limit:** 100 FPS (or higher)
+
+It is important to set V-Sync and Frame Limit as described above so that the Vive is able to render the game at 90 FPS. Experiment with the rest of the settings as you see fit.
