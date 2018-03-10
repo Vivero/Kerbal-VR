@@ -9,6 +9,8 @@ namespace KerbalVR
 {
     class Utils
     {
+        private static readonly string LOG_PREFIX = "[KerbalVR] ";
+
         // define location of OpenVR library
         public static string OpenVRDllPath {
             get {
@@ -27,15 +29,15 @@ namespace KerbalVR
         }
 
         public static void LogInfo(object obj) {
-            Debug.Log("[KerbalVR] L:: " + obj);
+            Debug.Log(LOG_PREFIX + obj);
         }
 
         public static void LogWarning(object obj) {
-            Debug.LogWarning("[KerbalVR] W@@ " + obj);
+            Debug.LogWarning(LOG_PREFIX + obj);
         }
 
         public static void LogError(object obj) {
-            Debug.LogError("[KerbalVR] E!! " + obj);
+            Debug.LogError(LOG_PREFIX + obj);
         }
 
         public static bool Is64BitProcess {
