@@ -9,6 +9,8 @@ namespace KerbalVR
 {
     class Utils
     {
+        public static readonly string KERBALVR_ASSETS_DIR = "KerbalVR/Assets/";
+
         private static readonly string LOG_PREFIX = "[KerbalVR] ";
 
         // define location of OpenVR library

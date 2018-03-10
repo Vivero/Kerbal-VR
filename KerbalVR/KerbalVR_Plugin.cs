@@ -8,7 +8,7 @@ namespace KerbalVR
 {
     // Start plugin on entering the Flight scene
     //
-    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    [KSPAddon(KSPAddon.Startup.Instantly, false)]
     public class KerbalVR_Plugin : MonoBehaviour
     {
         // this function allows importing DLLs from a given path
@@ -30,6 +30,8 @@ namespace KerbalVR
         private Texture_t hmdLeftEyeTexture, hmdRightEyeTexture;
         private VRTextureBounds_t hmdTextureBounds;
         private RenderTexture hmdLeftEyeRenderTexture, hmdRightEyeRenderTexture;
+
+        private KerbalVR_GUI gui;
         
 
         // list of all cameras in the game
@@ -68,12 +70,17 @@ namespace KerbalVR
         // list of cameras to render (Camera objects)
         private List<CameraProperties> camerasToRender;
 
+        public void Awake() {
+            Utils.LogInfo("KerbalVrPlugin started.");
+
+            // init objects
+            gui = new KerbalVR_GUI();
+        }
+
         /// <summary>
         /// Overrides the Start method for a MonoBehaviour plugin.
         /// </summary>
         public void Start() {
-            Utils.LogInfo("KerbalVrPlugin started.");
-
             // add an event triggered when game scene changes, to handle
             // shutting off the HMD outside of Flight scene
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
@@ -84,8 +91,12 @@ namespace KerbalVR
             // don't destroy this object when switching scenes
             // TODO: investigate if we really want this behavior
             DontDestroyOnLoad(this);
-        }
 
+            // when ready for a GUI, load it
+            GameEvents.onGUIApplicationLauncherReady.Add(gui.OnAppLauncherReady);
+            GameEvents.onGUIApplicationLauncherDestroyed.Add(gui.OnAppLauncherDestroyed);
+        }
+        
         /// <summary>
         /// Overrides the Update method, called every frame.
         /// </summary>
@@ -193,6 +204,10 @@ namespace KerbalVR
         /// <param name="data">The scene being switched into.</param>
         public void OnGameSceneLoadRequested(GameScenes data) {
             CloseHMD();
+        }
+
+        public void OnGUI() {
+            gui.OnGUI();
         }
 
         /// <summary>
