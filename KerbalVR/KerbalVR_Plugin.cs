@@ -15,15 +15,6 @@ namespace KerbalVR
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool SetDllDirectory(string lpPathName);
 
-        // define location of OpenVR library
-        public static string OpenVRDllPath {
-            get {
-                string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string openVrPath = Path.Combine(currentPath, "openvr");
-                return Path.Combine(openVrPath, Utils.Is64BitProcess ? "win64" : "win32");
-            }
-        }
-
         private bool hmdIsInitialized = false;
         private bool hmdIsAllowed = false;
         private bool hmdIsAllowed_prev = false;
