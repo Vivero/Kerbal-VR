@@ -71,3 +71,14 @@ Instructions:
 5. During flight, enter IVA, and press the 'Y' key to initialize the HMD
 6. You can press 'Y' again to reset the default position
 7. Any errors should come up in the Debug log (press Alt-F12)
+
+## Performance Tips
+
+For best performance, start with these Graphics settings. Then experiment with the rest of the settings as you see fit.
+
+Go to your KSP settings, and under the Graphics tab, set:
+
+- **Screen Resolution:** 1024 x 768
+- **Full Screen:** unchecked
+- **V-Sync:** Don't Sync
+- **Frame Limit:** 100 FPS (or higher)
