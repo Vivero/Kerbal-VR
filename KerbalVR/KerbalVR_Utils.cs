@@ -1,14 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
+using System.Reflection;
 using UnityEngine;
-using Valve.VR;
 
 namespace KerbalVR
 {
     class Utils
     {
+        // define location of OpenVR library
+        public static string OpenVRDllPath {
+            get {
+                string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string openVrPath = Path.Combine(currentPath, "openvr");
+                return Path.Combine(openVrPath, Utils.Is64BitProcess ? "win64" : "win32");
+            }
+        }
+
         public static Component GetOrAddComponent<T>(GameObject obj) where T : Component {
             Component c = obj.GetComponent<T>();
             if (c == null) {

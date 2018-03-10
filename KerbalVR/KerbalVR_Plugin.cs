@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using Valve.VR;
@@ -365,7 +363,7 @@ namespace KerbalVR
             }
 
             // set the location of the OpenVR DLL
-            SetDllDirectory(OpenVRDllPath);
+            SetDllDirectory(Utils.OpenVRDllPath);
 
             // check if HMD is connected on the system
             retVal = OpenVR.IsHmdPresent();
