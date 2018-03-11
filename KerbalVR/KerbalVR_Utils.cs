@@ -46,6 +46,60 @@ namespace KerbalVR
             get { return (IntPtr.Size == 8); }
         }
 
+        public static GameObject CreateGizmo() {
+            GameObject gizmo = new GameObject("gizmo");
+            gizmo.transform.localScale = Vector3.one;
+
+            GameObject gizmoX = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            UnityEngine.Object.Destroy(gizmoX.GetComponent<BoxCollider>());
+            gizmoX.transform.SetParent(gizmo.transform);
+            gizmoX.transform.localScale = new Vector3(.1f, .01f, .01f);
+            gizmoX.transform.localPosition = new Vector3(.05f, 0f, 0f);
+            gizmoX.GetComponent<MeshRenderer>().material.color = Color.red;
+            gizmoX.layer = 20;
+
+            GameObject gizmoY = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            UnityEngine.Object.Destroy(gizmoY.GetComponent<BoxCollider>());
+            gizmoY.transform.SetParent(gizmo.transform);
+            gizmoY.transform.localScale = new Vector3(.01f, .1f, .01f);
+            gizmoY.transform.localPosition = new Vector3(.0f, .05f, 0f);
+            gizmoY.GetComponent<MeshRenderer>().material.color = Color.green;
+            gizmoY.layer = 20;
+
+            GameObject gizmoZ = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            UnityEngine.Object.Destroy(gizmoZ.GetComponent<BoxCollider>());
+            gizmoZ.transform.SetParent(gizmo.transform);
+            gizmoZ.transform.localScale = new Vector3(.01f, .01f, .1f);
+            gizmoZ.transform.localPosition = new Vector3(.0f, 0f, .05f);
+            gizmoZ.GetComponent<MeshRenderer>().material.color = Color.blue;
+            gizmoZ.layer = 20;
+
+            GameObject gizmoPivot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            UnityEngine.Object.Destroy(gizmoPivot.GetComponent<SphereCollider>());
+            gizmoPivot.transform.SetParent(gizmo.transform);
+            gizmoPivot.transform.localScale = new Vector3(.02f, .02f, .02f);
+            gizmoPivot.transform.localPosition = Vector3.zero;
+            gizmoPivot.GetComponent<MeshRenderer>().material.color = Color.gray;
+            gizmoPivot.layer = 20;
+
+            return gizmo;
+        }
+
+        public static GameObject CreateGizmoAtPosition(Transform location) {
+            return CreateGizmoAtPosition(location.position, location.rotation);
+        }
+
+        public static GameObject CreateGizmoAtPosition(Vector3 position) {
+            return CreateGizmoAtPosition(position, Quaternion.identity);
+        }
+
+        public static GameObject CreateGizmoAtPosition(Vector3 position, Quaternion rotation) {
+            GameObject gizmo = CreateGizmo();
+            gizmo.transform.position = position;
+            gizmo.transform.rotation = rotation;
+            return gizmo;
+        }
+
         public static Mesh CreateHiddenAreaMesh(HiddenAreaMesh_t src, VRTextureBounds_t bounds) {
             if (src.unTriangleCount == 0)
                 return null;
