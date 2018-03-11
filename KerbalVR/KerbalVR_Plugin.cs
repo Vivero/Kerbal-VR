@@ -11,6 +11,10 @@ namespace KerbalVR
     [KSPAddon(KSPAddon.Startup.Instantly, false)]
     public class KerbalVR_Plugin : MonoBehaviour
     {
+
+        private uint controlIndexL = 0;
+        private uint controlIndexR = 0;
+
         // this function allows importing DLLs from a given path
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool SetDllDirectory(string lpPathName);
@@ -153,6 +157,16 @@ namespace KerbalVR
 
                     // TODO: investigate if we should really be capturing poses in LateUpdate
 
+                    // detect controllers
+                    //--------------------------------------------------------------
+                    for (uint idx = 0; idx < OpenVR.k_unMaxTrackedDeviceCount; idx++) {
+                        if ((controlIndexL == 0) && (vrSystem.GetTrackedDeviceClass(idx) == ETrackedDeviceClass.Controller)) {
+                            controlIndexL = idx;
+                        } else if ((controlIndexR == 0) && (vrSystem.GetTrackedDeviceClass(idx) == ETrackedDeviceClass.Controller)) {
+                            controlIndexR = idx;
+                        }
+                    }
+
                     // get latest HMD pose
                     //--------------------------------------------------------------
                     vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, PoseDelay, vrDevicePoses);
@@ -168,6 +182,10 @@ namespace KerbalVR
                     var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
                     var hmdLeftEyeTransform = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                     var hmdRightEyeTransform = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
+
+                    if (controlIndexL > 0) {
+                        SteamVR_Utils.RigidTransform ctrlPoseLeft = new SteamVR_Utils.RigidTransform(vrDevicePoses[controlIndexL].mDeviceToAbsoluteTracking);
+                    }
 
                     // Render the LEFT eye
                     //--------------------------------------------------------------
