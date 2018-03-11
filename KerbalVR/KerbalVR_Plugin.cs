@@ -43,6 +43,17 @@ namespace KerbalVR
         private TrackedDevicePose_t[] vrDevicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrRenderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrGamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+
+        private float _poseDelay;
+        public float PoseDelay {
+            get {
+                return _poseDelay;
+            }
+            set {
+                _poseDelay = value;
+                Utils.LogInfo("Set Pose Delay to: " + _poseDelay.ToString("F3"));
+            }
+        }
         
         private Texture_t hmdLeftEyeTexture, hmdRightEyeTexture;
         private VRTextureBounds_t hmdTextureBounds;
@@ -97,6 +108,7 @@ namespace KerbalVR
             gui = new KerbalVR_GUI(this);
             _hmdIsEnabled = false;
             HmdIsAllowed = false;
+            PoseDelay = 0f;
         }
 
         /// <summary>
@@ -143,7 +155,7 @@ namespace KerbalVR
 
                     // get latest HMD pose
                     //--------------------------------------------------------------
-                    vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, 0.0f, vrDevicePoses);
+                    vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, PoseDelay, vrDevicePoses);
                     HmdMatrix34_t vrLeftEyeTransform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Left);
                     HmdMatrix34_t vrRightEyeTransform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Right);
                     vrCompositorError = vrCompositor.WaitGetPoses(vrRenderPoses, vrGamePoses);
@@ -198,6 +210,7 @@ namespace KerbalVR
                 foreach (CameraProperties camStruct in camerasToRender) {
                     camStruct.camera.targetTexture = null;
                     camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
+                    camStruct.camera.enabled = true;
                 }
             }
             
@@ -397,6 +410,7 @@ namespace KerbalVR
                             camera.projectionMatrix,
                             MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft),
                             MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
+                        camera.enabled = false;
                         break;
                     }
                 }
