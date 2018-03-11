@@ -1,21 +1,39 @@
 using UnityEngine;
 using KSP.UI.Screens;
+using Valve.VR;
 
 namespace KerbalVR
 {
     public class KerbalVR_GUI
     {
+        // CONSTANTS
+        //
         public static string AppButtonLogo {
             get {
                 return Utils.KERBALVR_ASSETS_DIR + "app_button_logo";
             }
         }
 
+        private static string BUTTON_STRING_ENABLE_VR = "Enable VR";
+        private static string BUTTON_STRING_DISABLE_VR = "Disable VR";
+
+        private static string LABEL_STRING_VR_ACTIVE = "ACTIVE";
+        private static string LABEL_STRING_VR_INACTIVE = "INACTIVE";
+
+        private static readonly int APP_GUI_ID = 186012;
+
+        // store the interface to the KerbalVR plugin
+        private KerbalVR_Plugin kerbalVr;
+
         private ApplicationLauncherButton appButton;
         private bool appButtonGuiActive = false;
 
-        private static readonly int appGuiId = 186012;
-        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 400, 400);
+        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 140);
+
+
+        public KerbalVR_GUI(KerbalVR_Plugin kerbalVr) {
+            this.kerbalVr = kerbalVr;
+        }
 
         /// <summary>
         /// This GameEvent is registered with GameEvents.onGUIApplicationLauncherReady,
@@ -74,18 +92,53 @@ namespace KerbalVR
 
         public void OnGUI() {
             if (appButtonGuiActive) {
-                appGuiWindowRect = GUILayout.Window(appGuiId, appGuiWindowRect, GenerateGUI, "KerbalVR");
+                appGuiWindowRect = GUILayout.Window(
+                    APP_GUI_ID,
+                    appGuiWindowRect,
+                    GenerateGUI,
+                    "KerbalVR",
+                    HighLogic.Skin.window);
             }
         }
 
         private void GenerateGUI(int windowId) {
-            GUILayout.BeginVertical("box");
-            GUILayout.Label("KerbalVR PlaceHolder GUI");
-            if (GUILayout.Button("Close this Window", GUILayout.Width(200f))) {
-                OnToggleFalse();
+            string buttonStringToggleVr = BUTTON_STRING_ENABLE_VR;
+            string labelStringVrActive = LABEL_STRING_VR_INACTIVE;
+            GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
+            labelStyleVrActive.normal.textColor = Color.red;
+
+            if (kerbalVr.HmdIsEnabled) {
+                buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
+                labelStringVrActive = LABEL_STRING_VR_ACTIVE;
+                labelStyleVrActive.normal.textColor = Color.green;
             }
-            GUILayout.Label("Can this display?");
+
+            GUILayout.BeginVertical();
+
+            // VR toggle button
+            GUI.enabled = kerbalVr.HmdIsAllowed;
+            if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
+                if (kerbalVr.HmdIsEnabled) {
+                    kerbalVr.HmdIsEnabled = false;
+                } else {
+                    kerbalVr.HmdIsEnabled = true;
+                }
+            }
+
+            if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
+                kerbalVr.ResetInitialHmdPosition();
+            }
+            GUI.enabled = true;
+
+            // VR status
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("VR Status:", HighLogic.Skin.label);
+            GUILayout.Label(labelStringVrActive, labelStyleVrActive);
+            GUILayout.EndHorizontal();
+
             GUILayout.EndVertical();
+
+            // allow dragging the window
             GUI.DragWindow();
         }
     }
