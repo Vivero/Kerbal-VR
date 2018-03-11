@@ -129,40 +129,25 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "$(TargetDir)rel\GameData\KerbalVR\openvr"
-
-
+    <PostBuildEvent>:: Create a release folder
+mkdir "$(TargetDir)rel\GameData\KerbalVR\openvr"
+mkdir "$(TargetDir)rel\GameData\KerbalVR\Assets"
 copy /Y "$(TargetDir)"\"$(TargetFileName)" "$(TargetDir)\rel\GameData\KerbalVR\"
 copy /Y "$(SolutionDir)"\LICENSE "$(TargetDir)\rel\"
-
-
 copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"
-
-
 robocopy "$(ProjectDir)lib" "$(TargetDir)\rel\GameData\KerbalVR\openvr" /E
+robocopy "$(ProjectDir)Assets" "$(TargetDir)\rel\GameData\KerbalVR\Assets" /E
 
-
-
-
-
+:: Copy release into KSP directory
 if $(PlatformName) == x64 (
-
-
   robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win64\GameData\KerbalVR" /E
-
-
-)
-
- else (
-
+) else (
   robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win\GameData\KerbalVR" /E
-
-
 )
 
-
-
-copy /Y "$(ProjectDir)\LICENSE-openvr" "$(TargetDir)\rel\GameData\KerbalVR\openvr"</PostBuildEvent>
+:: robocopy gives a bad return value. Leave this copy as the last step.
+copy /Y "$(ProjectDir)\LICENSE-openvr" "$(TargetDir)\rel\GameData\KerbalVR\openvr"
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
