@@ -103,7 +103,8 @@ namespace KerbalVR
         }
 
         // list of cameras to render (Camera objects)
-        private List<CameraProperties> camerasToRender = new List<CameraProperties>();
+        private CameraProperties[] camerasToRender;
+        private int numCamerasToRender;
 
         public void Awake() {
             Utils.LogInfo("KerbalVrPlugin started.");
@@ -278,14 +279,16 @@ namespace KerbalVR
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
 
             // render the set of cameras
-            foreach (CameraProperties camStruct in camerasToRender) {
+            for (int i = 0; i < numCamerasToRender; i++) {
+                CameraProperties camProperties = camerasToRender[i];
+
                 // set projection matrix
-                camStruct.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
-                    camStruct.hmdLeftProjMatrix : camStruct.hmdRightProjMatrix;
+                camProperties.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
+                    camProperties.hmdLeftProjMatrix : camProperties.hmdRightProjMatrix;
 
                 // set texture to render to, then render
-                camStruct.camera.targetTexture = hmdEyeRenderTexture;
-                camStruct.camera.Render();
+                camProperties.camera.targetTexture = hmdEyeRenderTexture;
+                camProperties.camera.Render();
             }
 
             // Submit frames to HMD
@@ -415,23 +418,27 @@ namespace KerbalVR
             }*/
 
             // search for camera objects to render
-            camerasToRender.Clear();
+            numCamerasToRender = cameraNames.Length;
+            camerasToRender = new CameraProperties[numCamerasToRender];
             for (int i = 0; i < cameraNames.Length; i++) {
-                foreach (Camera camera in Camera.allCameras) {
-                    if (cameraNames[i].Equals(camera.name)) {
-                        float nearClipPlane = (camera.name.Equals("Camera 01")) ? 0.05f : camera.nearClipPlane;
 
-                        HmdMatrix44_t projLeft = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, camera.farClipPlane);
-                        HmdMatrix44_t projRight = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, camera.farClipPlane);
-                        camerasToRender.Add(new CameraProperties(
-                            camera,
-                            camera.projectionMatrix,
-                            MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft),
-                            MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight)));
-                        camera.enabled = false;
-                        break;
-                    }
+                Camera foundCamera = Array.Find(Camera.allCameras, cam => cam.name.Equals(cameraNames[i]));
+                if (foundCamera == null) {
+                    Utils.LogError("Could not find camera \"" + cameraNames[i] + "\" in the scene!");
+
+                } else {
+
+                    float nearClipPlane = (foundCamera.name.Equals("Camera 01")) ? 0.05f : foundCamera.nearClipPlane;
+                    HmdMatrix44_t projLeft = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, foundCamera.farClipPlane);
+                    HmdMatrix44_t projRight = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, foundCamera.farClipPlane);
+
+                    camerasToRender[i] = new CameraProperties(
+                        foundCamera,
+                        foundCamera.projectionMatrix,
+                        MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft),
+                        MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight));
                 }
+                
             }
 
             // capture the initial viewpoint position
