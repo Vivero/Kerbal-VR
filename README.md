@@ -37,21 +37,11 @@ VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d
 
 ----
 
-## Installation
+## Installation & Usage
 
 Please see the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide).
 
-## Usage
-
-Instructions:
-
-1. Start SteamVR
-2. Start up KSP with the `-force-d3d12` flag
-3. During flight, enter IVA, and press the 'Y' key to initialize the HMD
-4. You can press 'Y' again to turn off VR
-5. Any errors should come up in the Debug log (press Alt-F12)
-
-**NOTE:** While in IVA using VR, the game screen on your PC will appear locked up. This is by design and intended to improve the performance (higher FPS). Once you exit VR (by pressing 'Y'), the regular game screen *should* return to normal.
+**NOTE:** While in IVA using VR, the game screen on your PC will appear locked up. This is by design and intended to improve the performance (higher FPS). Once you disable VR, the regular game screen *should* return to normal.
 
 ## Performance Tips
 
