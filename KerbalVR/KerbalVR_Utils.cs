@@ -22,6 +22,22 @@ namespace KerbalVR
             }
         }
 
+        // struct to keep track of Camera properties
+        public struct CameraData
+        {
+            public Camera camera;
+            public Matrix4x4 originalProjMatrix;
+            public Matrix4x4 hmdLeftProjMatrix;
+            public Matrix4x4 hmdRightProjMatrix;
+
+            public CameraData(Camera camera, Matrix4x4 originalProjMatrix, Matrix4x4 hmdLeftProjMatrix, Matrix4x4 hmdRightProjMatrix) {
+                this.camera = camera;
+                this.originalProjMatrix = originalProjMatrix;
+                this.hmdLeftProjMatrix = hmdLeftProjMatrix;
+                this.hmdRightProjMatrix = hmdRightProjMatrix;
+            }
+        }
+
         public static Component GetOrAddComponent<T>(GameObject obj) where T : Component {
             Component c = obj.GetComponent<T>();
             if (c == null) {
