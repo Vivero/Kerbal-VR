@@ -141,20 +141,6 @@ namespace KerbalVR
             GUIStyle labelStyleHeader = new GUIStyle(HighLogic.Skin.label);
             labelStyleHeader.fontStyle = FontStyle.Bold;
             GUILayout.Label("Options", labelStyleHeader);
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Pose Delay (ms):", HighLogic.Skin.label);
-            int poseDelayMS = (int)(kerbalVr.PoseDelay * 1000f);
-            string poseDelayStr = poseDelayMS.ToString();
-            poseDelayStr = GUILayout.TextField(poseDelayStr, HighLogic.Skin.textField);
-            if (GUI.changed) {
-                if (System.Int32.TryParse(poseDelayStr, out poseDelayMS)) {
-                    kerbalVr.PoseDelay = poseDelayMS * 0.001f;
-                } else {
-                    kerbalVr.PoseDelay = 0f;
-                }
-            }
-            GUILayout.EndHorizontal();
 #endif
 
             GUILayout.EndVertical();

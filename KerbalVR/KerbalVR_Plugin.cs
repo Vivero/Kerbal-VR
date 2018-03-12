@@ -44,12 +44,6 @@ namespace KerbalVR
         private TrackedDevicePose_t[] vrDevicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrRenderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private TrackedDevicePose_t[] vrGamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-
-        private float _poseDelay;
-        public float PoseDelay {
-            get { return _poseDelay; }
-            set { _poseDelay = value; }
-        }
         
         private Texture_t hmdLeftEyeTexture, hmdRightEyeTexture;
         private VRTextureBounds_t hmdTextureBounds;
@@ -89,7 +83,6 @@ namespace KerbalVR
             gui = new KerbalVR_GUI(this);
             _hmdIsEnabled = false;
             HmdIsAllowed = false;
-            PoseDelay = 0f;
         }
 
         /// <summary>
