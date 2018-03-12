@@ -101,8 +101,6 @@ namespace KerbalVR
             }
         }
 
-        //int poseDelayMS = 0;
-
         private void GenerateGUI(int windowId) {
             string buttonStringToggleVr = BUTTON_STRING_ENABLE_VR;
             string labelStringVrActive = LABEL_STRING_VR_INACTIVE;
@@ -139,7 +137,6 @@ namespace KerbalVR
             GUILayout.EndHorizontal();
 
 #if DEBUG
-
             // settings
             GUIStyle labelStyleHeader = new GUIStyle(HighLogic.Skin.label);
             labelStyleHeader.fontStyle = FontStyle.Bold;
@@ -158,7 +155,6 @@ namespace KerbalVR
                 }
             }
             GUILayout.EndHorizontal();
-
 #endif
 
             GUILayout.EndVertical();

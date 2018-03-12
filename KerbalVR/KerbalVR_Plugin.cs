@@ -11,7 +11,6 @@ namespace KerbalVR
     [KSPAddon(KSPAddon.Startup.Instantly, false)]
     public class KerbalVR_Plugin : MonoBehaviour
     {
-
         private uint controlIndexL = 0;
         private uint controlIndexR = 0;
 
@@ -29,8 +28,6 @@ namespace KerbalVR
             get { return _hmdIsEnabled; }
             set {
                 _hmdIsEnabled = value;
-
-                Utils.LogInfo("HMD " + (value ? "enabled" : "disabled"));
 
                 if (_hmdIsEnabled) {
                     InitVRScene();
@@ -50,13 +47,8 @@ namespace KerbalVR
 
         private float _poseDelay;
         public float PoseDelay {
-            get {
-                return _poseDelay;
-            }
-            set {
-                _poseDelay = value;
-                Utils.LogInfo("Set Pose Delay to: " + _poseDelay.ToString("F3"));
-            }
+            get { return _poseDelay; }
+            set { _poseDelay = value; }
         }
         
         private Texture_t hmdLeftEyeTexture, hmdRightEyeTexture;
@@ -85,25 +77,9 @@ namespace KerbalVR
             //"Camera",
             //"velocity camera",
         };
-        
-        // struct to keep track of Camera properties
-        private struct CameraProperties
-        {
-            public Camera camera;
-            public Matrix4x4 originalProjMatrix;
-            public Matrix4x4 hmdLeftProjMatrix;
-            public Matrix4x4 hmdRightProjMatrix;
-
-            public CameraProperties(Camera camera, Matrix4x4 originalProjMatrix, Matrix4x4 hmdLeftProjMatrix, Matrix4x4 hmdRightProjMatrix) {
-                this.camera = camera;
-                this.originalProjMatrix = originalProjMatrix;
-                this.hmdLeftProjMatrix = hmdLeftProjMatrix;
-                this.hmdRightProjMatrix = hmdRightProjMatrix;
-            }
-        }
 
         // list of cameras to render (Camera objects)
-        private CameraProperties[] camerasToRender;
+        private Utils.CameraData[] camerasToRender;
         private int numCamerasToRender;
 
         public void Awake() {
@@ -155,7 +131,6 @@ namespace KerbalVR
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
 
                 try {
-
                     // TODO: investigate if we should really be capturing poses in LateUpdate
 
                     // detect controllers
@@ -226,10 +201,10 @@ namespace KerbalVR
             // reset cameras when HMD is turned off
             if (!hmdIsRunning && hmdIsRunningPrev) {
                 Utils.LogInfo("HMD is now off, resetting cameras...");
-                foreach (CameraProperties camStruct in camerasToRender) {
-                    camStruct.camera.targetTexture = null;
-                    camStruct.camera.projectionMatrix = camStruct.originalProjMatrix;
-                    camStruct.camera.enabled = true;
+                foreach (Utils.CameraData camData in camerasToRender) {
+                    camData.camera.targetTexture = null;
+                    camData.camera.projectionMatrix = camData.originalProjMatrix;
+                    camData.camera.enabled = true;
                 }
             }
             
@@ -280,15 +255,15 @@ namespace KerbalVR
 
             // render the set of cameras
             for (int i = 0; i < numCamerasToRender; i++) {
-                CameraProperties camProperties = camerasToRender[i];
+                Utils.CameraData camData = camerasToRender[i];
 
                 // set projection matrix
-                camProperties.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
-                    camProperties.hmdLeftProjMatrix : camProperties.hmdRightProjMatrix;
+                camData.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
+                    camData.hmdLeftProjMatrix : camData.hmdRightProjMatrix;
 
                 // set texture to render to, then render
-                camProperties.camera.targetTexture = hmdEyeRenderTexture;
-                camProperties.camera.Render();
+                camData.camera.targetTexture = hmdEyeRenderTexture;
+                camData.camera.Render();
             }
 
             // Submit frames to HMD
@@ -417,9 +392,9 @@ namespace KerbalVR
                 Utils.LogInfo("KSP Camera: " + camera.name);
             }*/
 
-            // search for camera objects to render
+            // search for the cameras to render
             numCamerasToRender = cameraNames.Length;
-            camerasToRender = new CameraProperties[numCamerasToRender];
+            camerasToRender = new Utils.CameraData[numCamerasToRender];
             for (int i = 0; i < cameraNames.Length; i++) {
 
                 Camera foundCamera = Array.Find(Camera.allCameras, cam => cam.name.Equals(cameraNames[i]));
@@ -432,7 +407,7 @@ namespace KerbalVR
                     HmdMatrix44_t projLeft = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, foundCamera.farClipPlane);
                     HmdMatrix44_t projRight = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, foundCamera.farClipPlane);
 
-                    camerasToRender[i] = new CameraProperties(
+                    camerasToRender[i] = new Utils.CameraData(
                         foundCamera,
                         foundCamera.projectionMatrix,
                         MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft),
