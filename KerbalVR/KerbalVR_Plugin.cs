@@ -403,16 +403,20 @@ namespace KerbalVR
                     Utils.LogError("Could not find camera \"" + cameraNames[i] + "\" in the scene!");
 
                 } else {
-
+                    // determine clip plane and new projection matrices
                     float nearClipPlane = (foundCamera.name.Equals("Camera 01")) ? 0.05f : foundCamera.nearClipPlane;
                     HmdMatrix44_t projLeft = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, foundCamera.farClipPlane);
                     HmdMatrix44_t projRight = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, foundCamera.farClipPlane);
 
+                    // store information about the camera
                     camerasToRender[i] = new Utils.CameraData(
                         foundCamera,
                         foundCamera.projectionMatrix,
                         MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projLeft),
                         MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projRight));
+
+                    // disable the camera so we can call Render directly
+                    foundCamera.enabled = false;
                 }
                 
             }
