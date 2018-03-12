@@ -145,7 +145,8 @@ namespace KerbalVR
 
                     // get latest HMD pose
                     //--------------------------------------------------------------
-                    vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, PoseDelay, vrDevicePoses);
+                    float secondsToPhotons = CalculatePredictedSecondsToPhotons();
+                    vrSystem.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, secondsToPhotons, vrDevicePoses);
                     HmdMatrix34_t vrLeftEyeTransform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Left);
                     HmdMatrix34_t vrRightEyeTransform = vrSystem.GetEyeToHeadTransform(EVREye.Eye_Right);
                     vrCompositorError = vrCompositor.WaitGetPoses(vrRenderPoses, vrGamePoses);
@@ -435,6 +436,35 @@ namespace KerbalVR
             HmdIsEnabled = false;
             OpenVR.Shutdown();
             hmdIsInitialized = false;
+        }
+
+        public float CalculatePredictedSecondsToPhotons() {
+            ETrackedPropertyError propertyError = ETrackedPropertyError.TrackedProp_Success;
+
+            float secondsSinceLastVsync = 0f;
+            ulong frameCounter = 0;
+            vrSystem.GetTimeSinceLastVsync(ref secondsSinceLastVsync, ref frameCounter);
+
+            float displayFrequency = vrSystem.GetFloatTrackedDeviceProperty(
+                OpenVR.k_unTrackedDeviceIndex_Hmd,
+                ETrackedDeviceProperty.Prop_DisplayFrequency_Float,
+                ref propertyError);
+            if (propertyError != ETrackedPropertyError.TrackedProp_Success) {
+                throw new Exception("Failed to obtain Prop_DisplayFrequency_Float: (" +
+                    (int)propertyError + ") " + propertyError.ToString());
+            }
+
+            float vsyncToPhotons = vrSystem.GetFloatTrackedDeviceProperty(
+                OpenVR.k_unTrackedDeviceIndex_Hmd,
+                ETrackedDeviceProperty.Prop_SecondsFromVsyncToPhotons_Float,
+                ref propertyError);
+            if (propertyError != ETrackedPropertyError.TrackedProp_Success) {
+                throw new Exception("Failed to obtain Prop_SecondsFromVsyncToPhotons_Float: (" +
+                    (int)propertyError + ") " + propertyError.ToString());
+            }
+
+            float frameDuration = 1f / displayFrequency;
+            return frameDuration - secondsSinceLastVsync + vsyncToPhotons;
         }
 
     } // class KerbalVR_Plugin
