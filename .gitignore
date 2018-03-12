@@ -235,5 +235,8 @@ _Pvt_Extensions
 # FAKE - F# Make
 .fake/
 
+# Windows
+Thumbs.db
+
 # KSP and Unity
 ksp_lib/
