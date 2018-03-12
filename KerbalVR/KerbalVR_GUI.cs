@@ -28,7 +28,7 @@ namespace KerbalVR
         private ApplicationLauncherButton appButton;
         private bool appButtonGuiActive = false;
 
-        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 140);
+        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
 
 
         public KerbalVR_GUI(KerbalVR_Plugin kerbalVr) {
@@ -138,6 +138,8 @@ namespace KerbalVR
             GUILayout.Label(labelStringVrActive, labelStyleVrActive);
             GUILayout.EndHorizontal();
 
+#if DEBUG
+
             // settings
             GUIStyle labelStyleHeader = new GUIStyle(HighLogic.Skin.label);
             labelStyleHeader.fontStyle = FontStyle.Bold;
@@ -156,6 +158,8 @@ namespace KerbalVR
                 }
             }
             GUILayout.EndHorizontal();
+
+#endif
 
             GUILayout.EndVertical();
 
