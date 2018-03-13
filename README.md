@@ -7,7 +7,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
-**Built for KSP v1.4**
+**Built for KSP v1.4.1**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
@@ -21,7 +21,7 @@ This is an early WIP mod to allow the use of the HTC Vive (and potentially any H
 - Windows 10 64-bit
 - Intel Core i5-6600K (overclocked to 4.1GHz)
 - GeForce GTX 1070 8GB GDDR5
-- Nvidia Driver 388.31
+- Nvidia Driver 391.01
 - 32GB RAM
 - SteamVR beta version 1520469824
 
