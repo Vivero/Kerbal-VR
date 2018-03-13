@@ -9,7 +9,7 @@ namespace KerbalVR
     // Start plugin on entering the Flight scene
     //
     [KSPAddon(KSPAddon.Startup.Instantly, false)]
-    public class KerbalVR_Plugin : MonoBehaviour
+    public class KerbalVR : MonoBehaviour
     {
         // this function allows importing DLLs from a given path
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -41,7 +41,7 @@ namespace KerbalVR
         #region Private Members
 
         // hold a reference to the app launcher GUI
-        private KerbalVR_GUI gui;
+        private AppGUI gui;
 
         // keep track of when the HMD is rendering images
         private bool hmdIsInitialized = false;
@@ -62,7 +62,7 @@ namespace KerbalVR
 
         // an array containing the cameras to render to the HMD
         private int numCamerasToRender;
-        private KerbalVR_Types.CameraData[] camerasToRender;
+        private global::KerbalVR.Types.CameraData[] camerasToRender;
 
         // store the tracked device poses
         private TrackedDevicePose_t[] vrDevicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
@@ -84,9 +84,9 @@ namespace KerbalVR
         /// </summary>
         void Awake() {
             Utils.LogInfo("KerbalVR plugin starting...");
-
+            
             // init objects
-            gui = new KerbalVR_GUI(this);
+            gui = new AppGUI(this);
             _hmdIsEnabled = false;
             HmdIsAllowed = false;
 
@@ -201,7 +201,7 @@ namespace KerbalVR
             // reset cameras when HMD is turned off
             if (!hmdIsRunning && hmdIsRunningPrev) {
                 Utils.LogInfo("HMD is now off, resetting cameras...");
-                foreach (KerbalVR_Types.CameraData camData in camerasToRender) {
+                foreach (global::KerbalVR.Types.CameraData camData in camerasToRender) {
                     camData.camera.targetTexture = null;
                     camData.camera.projectionMatrix = camData.originalProjectionMatrix;
                     camData.camera.enabled = true;
@@ -254,7 +254,7 @@ namespace KerbalVR
 
             // render the set of cameras
             for (int i = 0; i < numCamerasToRender; i++) {
-                KerbalVR_Types.CameraData camData = camerasToRender[i];
+                global::KerbalVR.Types.CameraData camData = camerasToRender[i];
 
                 // set projection matrix
                 camData.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
@@ -372,7 +372,7 @@ namespace KerbalVR
 
             // search for the cameras to render
             numCamerasToRender = Globals.FLIGHT_SCENE_CAMERAS.Length;
-            camerasToRender = new KerbalVR_Types.CameraData[numCamerasToRender];
+            camerasToRender = new global::KerbalVR.Types.CameraData[numCamerasToRender];
             for (int i = 0; i < numCamerasToRender; i++) {
 
                 Camera foundCamera = Array.Find(Camera.allCameras, cam => cam.name.Equals(Globals.FLIGHT_SCENE_CAMERAS[i]));
@@ -421,5 +421,5 @@ namespace KerbalVR
             hmdIsInitialized = false;
         }
 
-    } // class KerbalVR_Plugin
+    } // class KerbalVR
 } // namespace KerbalVR

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace KerbalVR
 {
-    public class KerbalVR_Types
+    public class Types
     {
         // struct to keep track of Camera properties
         public struct CameraData

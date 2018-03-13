@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace KerbalVR
 {
-    public class KerbalVR_GUI
+    public class AppGUI
     {
         // CONSTANTS
         //
@@ -23,7 +23,7 @@ namespace KerbalVR
         private static readonly int APP_GUI_ID = 186012;
 
         // store the interface to the KerbalVR plugin
-        private KerbalVR_Plugin kerbalVr;
+        private KerbalVR kerbalVr;
 
         private ApplicationLauncherButton appButton;
         private bool appButtonGuiActive = false;
@@ -31,7 +31,7 @@ namespace KerbalVR
         private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
 
 
-        public KerbalVR_GUI(KerbalVR_Plugin kerbalVr) {
+        public AppGUI(KerbalVR kerbalVr) {
             this.kerbalVr = kerbalVr;
         }
 
@@ -116,7 +116,7 @@ namespace KerbalVR
             GUILayout.BeginVertical();
 
             // VR toggle button
-            GUI.enabled = kerbalVr.HmdIsAllowed;
+            UnityEngine.GUI.enabled = kerbalVr.HmdIsAllowed;
             if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
                 if (kerbalVr.HmdIsEnabled) {
                     kerbalVr.HmdIsEnabled = false;
@@ -128,7 +128,7 @@ namespace KerbalVR
             if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
                 kerbalVr.ResetInitialHmdPosition();
             }
-            GUI.enabled = true;
+            UnityEngine.GUI.enabled = true;
 
             // VR status
             GUILayout.BeginHorizontal();
@@ -146,7 +146,7 @@ namespace KerbalVR
             GUILayout.EndVertical();
 
             // allow dragging the window
-            GUI.DragWindow();
+            UnityEngine.GUI.DragWindow();
         }
     }
 }

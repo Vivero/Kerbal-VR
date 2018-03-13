@@ -93,11 +93,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KerbalVR_DeviceManager.cs" />
     <Compile Include="KerbalVR_EventManager.cs" />
     <Compile Include="KerbalVR_Globals.cs" />
-    <Compile Include="KerbalVR_GUI.cs" />
+    <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_MathUtils.cs" />
-    <Compile Include="KerbalVR_Plugin.cs" />
+    <Compile Include="KerbalVR.cs" />
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
