@@ -15,8 +15,27 @@ namespace KerbalVR
         private uint leftControllerIndex;
         private uint rightControllerIndex;
 
-        void Awake() {
-            Utils.LogInfo("DeviceManager starting...");
+        // this is a singleton class, and there must be one EventManager in the scene
+        private static DeviceManager _instance;
+        public static DeviceManager Instance {
+            get {
+                if (_instance == null) {
+                    _instance = FindObjectOfType<DeviceManager>();
+                    if (_instance == null) {
+                        Utils.LogError("The scene needs to have one active GameObject with a DeviceManager script attached!");
+                    } else {
+                        _instance.Initialize();
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        // first-time initialization for this singleton class
+        private void Initialize() {
+            if (isDeviceConnected == null) {
+                isDeviceConnected = new bool[OpenVR.k_unMaxTrackedDeviceCount];
+            }
         }
 
         void OnEnable() {
