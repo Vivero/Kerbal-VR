@@ -94,7 +94,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="KerbalVR_DeviceManager.cs" />
-    <Compile Include="KerbalVR_EventManager.cs" />
     <Compile Include="KerbalVR_Globals.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_MathUtils.cs" />

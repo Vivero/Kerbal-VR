@@ -39,18 +39,20 @@ namespace KerbalVR
         }
 
         void OnEnable() {
-            EventManager.StartListening(EventManager.EVENT_DEVICE_POSES_READY, OnDevicePosesReady);
+            SteamVR_Events.NewPoses.Listen(OnDevicePosesReady);
+            SteamVR_Events.DeviceConnected.Listen(OnDeviceConnected);
         }
 
         void OnDisable() {
-            EventManager.StopListening(EventManager.EVENT_DEVICE_POSES_READY, OnDevicePosesReady);
+            SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
+            SteamVR_Events.DeviceConnected.Remove(OnDeviceConnected);
         }
 
         void Update() {
 
         }
 
-        private void OnDevicePosesReady() {
+        private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
             
             if (controllerObjL == null) {
                 controllerObjL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -63,18 +65,22 @@ namespace KerbalVR
             rightControllerIndex = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
 
             for (uint i = 0; i < OpenVR.k_unMaxTrackedDeviceCount; i++) {
-                bool isConnected = KerbalVR.IsDeviceConnected(i);
+                bool isConnected = devicePoses[i].bDeviceIsConnected;
                 if (isDeviceConnected[i] != isConnected) {
-                    // EventManager.TriggerEvent(EventManager.EVENT_DEVICE_CONNECTED);
+                    SteamVR_Events.DeviceConnected.Send((int)i, isConnected);
                 }
                 isDeviceConnected[i] = isConnected;
             }
 
             if (leftControllerIndex < OpenVR.k_unMaxTrackedDeviceCount) {
-                SteamVR_Utils.RigidTransform pose = KerbalVR.GetDevicePose(leftControllerIndex);
+                SteamVR_Utils.RigidTransform pose = new SteamVR_Utils.RigidTransform(devicePoses[leftControllerIndex].mDeviceToAbsoluteTracking);
                 controllerObjL.transform.position = KerbalVR.DevicePoseToWorld(pose.pos);
                 controllerObjL.transform.rotation = KerbalVR.DevicePoseToWorld(pose.rot);
             }
+        }
+
+        private void OnDeviceConnected(int deviceIndex, bool isConnected) {
+            Utils.LogInfo("Device " + deviceIndex + " is " + (isConnected ? "connected" : "disconnected"));
         }
     }
 }

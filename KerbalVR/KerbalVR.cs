@@ -91,10 +91,6 @@ namespace KerbalVR
             HmdIsAllowed = false;
 
             // init GameObjects
-            GameObject eventManager = new GameObject("VR_EventManager");
-            eventManager.AddComponent<EventManager>();
-            DontDestroyOnLoad(eventManager);
-
             GameObject deviceManager = new GameObject("VR_DeviceManager");
             deviceManager.AddComponent<DeviceManager>();
             DontDestroyOnLoad(deviceManager);
@@ -163,7 +159,7 @@ namespace KerbalVR
                     // get latest device poses
                     float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
                     OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, secondsToPhotons, devicePoses);
-                    EventManager.TriggerEvent(EventManager.EVENT_DEVICE_POSES_READY);
+                    SteamVR_Events.NewPoses.Send(devicePoses);
 
                     HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
                     HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
@@ -448,16 +444,6 @@ namespace KerbalVR
 
         public static Quaternion DevicePoseToWorld(Quaternion deviceRotation) {
             return ivaInitialRotation * deviceRotation;
-        }
-
-        public static SteamVR_Utils.RigidTransform GetDevicePose(uint deviceIndex) {
-            if (deviceIndex >= OpenVR.k_unMaxTrackedDeviceCount) {
-                throw new ArgumentOutOfRangeException(
-                    "deviceIndex",
-                    deviceIndex,
-                    "deviceIndex must be less than " + OpenVR.k_unMaxTrackedDeviceCount);
-            }
-            return new SteamVR_Utils.RigidTransform(devicePoses[deviceIndex].mDeviceToAbsoluteTracking);
         }
 
     } // class KerbalVR
