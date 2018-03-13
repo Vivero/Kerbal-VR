@@ -10,7 +10,7 @@ namespace KerbalVR
         //
         public static string AppButtonLogo {
             get {
-                return Utils.KERBALVR_ASSETS_DIR + "app_button_logo";
+                return Globals.KERBALVR_ASSETS_DIR + "app_button_logo";
             }
         }
 

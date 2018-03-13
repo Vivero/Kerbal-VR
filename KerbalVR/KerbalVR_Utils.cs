@@ -7,37 +7,11 @@ using Valve.VR;
 
 namespace KerbalVR
 {
-    class Utils
+    /// <summary>
+    /// A class to contain general utility functions.
+    /// </summary>
+    public class Utils
     {
-        public static readonly string KERBALVR_ASSETS_DIR = "KerbalVR/Assets/";
-
-        private static readonly string LOG_PREFIX = "[KerbalVR] ";
-
-        // define location of OpenVR library
-        public static string OpenVRDllPath {
-            get {
-                string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string openVrPath = Path.Combine(currentPath, "openvr");
-                return Path.Combine(openVrPath, Utils.Is64BitProcess ? "win64" : "win32");
-            }
-        }
-
-        // struct to keep track of Camera properties
-        public struct CameraData
-        {
-            public Camera camera;
-            public Matrix4x4 originalProjMatrix;
-            public Matrix4x4 hmdLeftProjMatrix;
-            public Matrix4x4 hmdRightProjMatrix;
-
-            public CameraData(Camera camera, Matrix4x4 originalProjMatrix, Matrix4x4 hmdLeftProjMatrix, Matrix4x4 hmdRightProjMatrix) {
-                this.camera = camera;
-                this.originalProjMatrix = originalProjMatrix;
-                this.hmdLeftProjMatrix = hmdLeftProjMatrix;
-                this.hmdRightProjMatrix = hmdRightProjMatrix;
-            }
-        }
-
         public static Component GetOrAddComponent<T>(GameObject obj) where T : Component {
             Component c = obj.GetComponent<T>();
             if (c == null) {
@@ -47,15 +21,15 @@ namespace KerbalVR
         }
 
         public static void LogInfo(object obj) {
-            Debug.Log(LOG_PREFIX + obj);
+            Debug.Log(Globals.LOG_PREFIX + obj);
         }
 
         public static void LogWarning(object obj) {
-            Debug.LogWarning(LOG_PREFIX + obj);
+            Debug.LogWarning(Globals.LOG_PREFIX + obj);
         }
 
         public static void LogError(object obj) {
-            Debug.LogError(LOG_PREFIX + obj);
+            Debug.LogError(Globals.LOG_PREFIX + obj);
         }
 
         public static bool Is64BitProcess {
@@ -114,6 +88,28 @@ namespace KerbalVR
             gizmo.transform.position = position;
             gizmo.transform.rotation = rotation;
             return gizmo;
+        }
+
+        public static float CalculatePredictedSecondsToPhotons() {
+            float secondsSinceLastVsync = 0f;
+            ulong frameCounter = 0;
+            OpenVR.System.GetTimeSinceLastVsync(ref secondsSinceLastVsync, ref frameCounter);
+
+            float displayFrequency = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_DisplayFrequency_Float);
+            float vsyncToPhotons = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_SecondsFromVsyncToPhotons_Float);
+            float frameDuration = 1f / displayFrequency;
+
+            return frameDuration - secondsSinceLastVsync + vsyncToPhotons;
+        }
+
+        public static float GetFloatTrackedDeviceProperty(ETrackedDeviceProperty property, uint device = OpenVR.k_unTrackedDeviceIndex_Hmd) {
+            ETrackedPropertyError propertyError = ETrackedPropertyError.TrackedProp_Success;
+            float value = OpenVR.System.GetFloatTrackedDeviceProperty(device, property, ref propertyError);
+            if (propertyError != ETrackedPropertyError.TrackedProp_Success) {
+                throw new Exception("Failed to obtain tracked device property \"" +
+                    property + "\", error: (" + (int)propertyError + ") " + propertyError.ToString());
+            }
+            return value;
         }
     }
 }
