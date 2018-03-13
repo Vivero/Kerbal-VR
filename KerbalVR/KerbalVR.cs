@@ -57,17 +57,17 @@ namespace KerbalVR
         private RenderTexture[] hmdEyeRenderTexture = new RenderTexture[2];
 
         // store the initial position when VR is started
-        private Vector3 ivaInitialPosition;
-        private Quaternion ivaInitialRotation;
+        private static Vector3 ivaInitialPosition;
+        private static Quaternion ivaInitialRotation;
 
         // an array containing the cameras to render to the HMD
         private int numCamerasToRender;
-        private global::KerbalVR.Types.CameraData[] camerasToRender;
+        private Types.CameraData[] camerasToRender;
 
         // store the tracked device poses
-        private TrackedDevicePose_t[] vrDevicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        private TrackedDevicePose_t[] vrRenderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        private TrackedDevicePose_t[] vrGamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        private static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        private static TrackedDevicePose_t[] renderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        private static TrackedDevicePose_t[] gamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
 
         #endregion
 
@@ -89,6 +89,15 @@ namespace KerbalVR
             gui = new AppGUI(this);
             _hmdIsEnabled = false;
             HmdIsAllowed = false;
+
+            // init GameObjects
+            GameObject eventManager = new GameObject("VR_EventManager");
+            eventManager.AddComponent<EventManager>();
+            DontDestroyOnLoad(eventManager);
+
+            GameObject deviceManager = new GameObject("VR_DeviceManager");
+            deviceManager.AddComponent<DeviceManager>();
+            DontDestroyOnLoad(deviceManager);
 
             // add an event triggered when game scene changes, to handle
             // shutting off the HMD outside of Flight scene
@@ -151,25 +160,27 @@ namespace KerbalVR
                         }
                     }
 
-                    // get latest HMD pose
+                    // get latest device poses
                     float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
-                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, secondsToPhotons, vrDevicePoses);
+                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, secondsToPhotons, devicePoses);
+                    EventManager.TriggerEvent(EventManager.EVENT_DEVICE_POSES_READY);
+
                     HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
                     HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
-                    vrCompositorError = OpenVR.Compositor.WaitGetPoses(vrRenderPoses, vrGamePoses);
+                    vrCompositorError = OpenVR.Compositor.WaitGetPoses(renderPoses, gamePoses);
 
                     if (vrCompositorError != EVRCompositorError.None) {
                         throw new Exception("WaitGetPoses failed: (" + (int)vrCompositorError + ") " + vrCompositorError.ToString());
                     }
 
                     // convert SteamVR poses to Unity coordinates
-                    var hmdTransform = new SteamVR_Utils.RigidTransform(vrDevicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+                    var hmdTransform = new SteamVR_Utils.RigidTransform(devicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
                     SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
                     hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                     hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
                     if (controlIndexL > 0) {
-                        SteamVR_Utils.RigidTransform ctrlPoseLeft = new SteamVR_Utils.RigidTransform(vrDevicePoses[controlIndexL].mDeviceToAbsoluteTracking);
+                        SteamVR_Utils.RigidTransform ctrlPoseLeft = new SteamVR_Utils.RigidTransform(devicePoses[controlIndexL].mDeviceToAbsoluteTracking);
                     }
 
                     // render each eye
@@ -201,7 +212,7 @@ namespace KerbalVR
             // reset cameras when HMD is turned off
             if (!hmdIsRunning && hmdIsRunningPrev) {
                 Utils.LogInfo("HMD is now off, resetting cameras...");
-                foreach (global::KerbalVR.Types.CameraData camData in camerasToRender) {
+                foreach (Types.CameraData camData in camerasToRender) {
                     camData.camera.targetTexture = null;
                     camData.camera.projectionMatrix = camData.originalProjectionMatrix;
                     camData.camera.enabled = true;
@@ -254,7 +265,7 @@ namespace KerbalVR
 
             // render the set of cameras
             for (int i = 0; i < numCamerasToRender; i++) {
-                global::KerbalVR.Types.CameraData camData = camerasToRender[i];
+                Types.CameraData camData = camerasToRender[i];
 
                 // set projection matrix
                 camData.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
@@ -372,7 +383,7 @@ namespace KerbalVR
 
             // search for the cameras to render
             numCamerasToRender = Globals.FLIGHT_SCENE_CAMERAS.Length;
-            camerasToRender = new global::KerbalVR.Types.CameraData[numCamerasToRender];
+            camerasToRender = new Types.CameraData[numCamerasToRender];
             for (int i = 0; i < numCamerasToRender; i++) {
 
                 Camera foundCamera = Array.Find(Camera.allCameras, cam => cam.name.Equals(Globals.FLIGHT_SCENE_CAMERAS[i]));
@@ -419,6 +430,34 @@ namespace KerbalVR
             HmdIsEnabled = false;
             OpenVR.Shutdown();
             hmdIsInitialized = false;
+        }
+
+        public static bool IsDeviceConnected(uint deviceIndex) {
+            if (deviceIndex >= OpenVR.k_unMaxTrackedDeviceCount) {
+                throw new ArgumentOutOfRangeException(
+                    "deviceIndex",
+                    deviceIndex,
+                    "deviceIndex must be less than " + OpenVR.k_unMaxTrackedDeviceCount);
+            }
+            return devicePoses[deviceIndex].bDeviceIsConnected;
+        }
+
+        public static Vector3 DevicePoseToWorld(Vector3 devicePosition) {
+            return ivaInitialPosition + ivaInitialRotation * devicePosition;
+        }
+
+        public static Quaternion DevicePoseToWorld(Quaternion deviceRotation) {
+            return ivaInitialRotation * deviceRotation;
+        }
+
+        public static SteamVR_Utils.RigidTransform GetDevicePose(uint deviceIndex) {
+            if (deviceIndex >= OpenVR.k_unMaxTrackedDeviceCount) {
+                throw new ArgumentOutOfRangeException(
+                    "deviceIndex",
+                    deviceIndex,
+                    "deviceIndex must be less than " + OpenVR.k_unMaxTrackedDeviceCount);
+            }
+            return new SteamVR_Utils.RigidTransform(devicePoses[deviceIndex].mDeviceToAbsoluteTracking);
         }
 
     } // class KerbalVR

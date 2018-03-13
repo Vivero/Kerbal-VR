@@ -7,6 +7,9 @@ namespace KerbalVR
 {
     public class EventManager : MonoBehaviour
     {
+        public static readonly string EVENT_DEVICE_POSES_READY = "event_device_poses_ready";
+        public static readonly string EVENT_DEVICE_CONNECTED = "event_device_connected";
+
         // store all the events available
         private Dictionary<string, UnityEvent> eventDict;
 
