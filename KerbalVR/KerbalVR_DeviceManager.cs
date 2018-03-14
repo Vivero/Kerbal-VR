@@ -16,6 +16,7 @@ namespace KerbalVR
         private uint controllerIndexL;
         private uint controllerIndexR;
 
+        #region Singleton
         // this is a singleton class, and there must be one EventManager in the scene
         private static DeviceManager _instance;
         public static DeviceManager Instance {
@@ -31,6 +32,7 @@ namespace KerbalVR
                 return _instance;
             }
         }
+        #endregion
 
         // first-time initialization for this singleton class
         private void Initialize() {
