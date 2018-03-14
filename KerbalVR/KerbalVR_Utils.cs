@@ -1,7 +1,5 @@
 using System;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
@@ -115,14 +113,34 @@ namespace KerbalVR
         public static void PrintAllCameras() {
             Utils.LogInfo("Scene: " + HighLogic.LoadedScene);
             for (int i = 0; i < Camera.allCamerasCount; i++) {
-                Utils.LogInfo("Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth);
+                string logMsg = "Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth + ", mask = [";
+                int[] cullingMaskLayers = Int32MaskToArray(Camera.allCameras[i].cullingMask);
+                string[] cullingMaskLayersStr = new string[cullingMaskLayers.Length];
+                for (int j = 0; j < cullingMaskLayers.Length; j++) {
+                    cullingMaskLayersStr[j] = cullingMaskLayers[j].ToString();
+                }
+                logMsg += String.Join(",", cullingMaskLayersStr);
+                logMsg += "], clip = (" + Camera.allCameras[i].nearClipPlane.ToString("F3");
+                logMsg += "," + Camera.allCameras[i].farClipPlane.ToString("F3") + ")";
+                Utils.LogInfo(logMsg);
             }
         }
 
         public static void PrintAllLayers() {
             for (int i = 0; i < 32; i++) {
-                Utils.LogInfo("Layer: " + LayerMask.LayerToName(i));
+                Utils.LogInfo("Layer " + i + ": " + LayerMask.LayerToName(i));
             }
+        }
+
+        public static int[] Int32MaskToArray(int mask) {
+            List<int> maskBits = new List<int>(32);
+            for (int i = 0; i < 32; i++) {
+                int checkMask = 1 << i;
+                if ((mask & checkMask) > 0) {
+                    maskBits.Add(i);
+                }
+            }
+            return maskBits.ToArray();
         }
     }
 }
