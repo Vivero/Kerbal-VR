@@ -111,5 +111,12 @@ namespace KerbalVR
             }
             return value;
         }
+
+        public static void PrintAllCameras() {
+            Utils.LogInfo("Scene: " + HighLogic.LoadedScene);
+            for (int i = 0; i < Camera.allCamerasCount; i++) {
+                Utils.LogInfo("Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth);
+            }
+        }
     }
 }

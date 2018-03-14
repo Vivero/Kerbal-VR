@@ -26,13 +26,5 @@ namespace KerbalVR
 
         // a prefix to append to every KerbalVR debug log message
         public static readonly string LOG_PREFIX = "[KerbalVR] ";
-
-        public static readonly string[] FLIGHT_SCENE_CAMERAS = {
-            "GalaxyCamera",
-            "Camera ScaledSpace",
-            "Camera 01",
-            "Camera 00",
-            "InternalCamera",
-        };
     }
 }

@@ -22,19 +22,12 @@ namespace KerbalVR
 
         private static readonly int APP_GUI_ID = 186012;
 
-        // store the interface to the KerbalVR plugin
-        private KerbalVR kerbalVr;
-
         private ApplicationLauncherButton appButton;
         private bool appButtonGuiActive = false;
         private bool appButtonGuiActiveLastState = false;
 
         private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
 
-
-        public AppGUI(KerbalVR kerbalVr) {
-            this.kerbalVr = kerbalVr;
-        }
 
         /// <summary>
         /// This GameEvent is registered with GameEvents.onGUIApplicationLauncherReady,
@@ -128,7 +121,7 @@ namespace KerbalVR
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
-            if (kerbalVr.HmdIsEnabled) {
+            if (KerbalVR.HmdIsEnabled) {
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
@@ -137,17 +130,17 @@ namespace KerbalVR
             GUILayout.BeginVertical();
 
             // VR toggle button
-            UnityEngine.GUI.enabled = kerbalVr.HmdIsAllowed;
+            UnityEngine.GUI.enabled = Scene.SceneAllowsVR();
             if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
-                if (kerbalVr.HmdIsEnabled) {
-                    kerbalVr.HmdIsEnabled = false;
+                if (KerbalVR.HmdIsEnabled) {
+                    KerbalVR.HmdIsEnabled = false;
                 } else {
-                    kerbalVr.HmdIsEnabled = true;
+                    KerbalVR.HmdIsEnabled = true;
                 }
             }
 
             if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
-                kerbalVr.ResetInitialHmdPosition();
+                KerbalVR.ResetInitialHmdPosition();
             }
             UnityEngine.GUI.enabled = true;
 

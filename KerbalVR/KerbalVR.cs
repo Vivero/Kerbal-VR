@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using Valve.VR;
 
 namespace KerbalVR
 {
-    // Start plugin on entering the Flight scene
+    // start plugin at startup
     //
     [KSPAddon(KSPAddon.Startup.Instantly, false)]
     public class KerbalVR : MonoBehaviour
@@ -19,14 +18,14 @@ namespace KerbalVR
         #region Properties
 
         // enable and disable VR functionality
-        private bool _hmdIsEnabled;
-        public bool HmdIsEnabled {
+        private static bool _hmdIsEnabled;
+        public static bool HmdIsEnabled {
             get { return _hmdIsEnabled; }
             set {
                 _hmdIsEnabled = value;
 
                 if (_hmdIsEnabled) {
-                    InitVRScene();
+                    Scene.SetupScene();
                     ResetInitialHmdPosition();
                 }
             }
@@ -34,6 +33,9 @@ namespace KerbalVR
 
         // check if VR can be enabled
         public bool HmdIsAllowed { get; private set; }
+
+        // defines the tracking method to use
+        public ETrackingUniverseOrigin TrackingSpace { get; private set; }
 
         #endregion
 
@@ -44,9 +46,9 @@ namespace KerbalVR
         private AppGUI gui;
 
         // keep track of when the HMD is rendering images
-        private bool hmdIsInitialized = false;
-        private bool hmdIsRunning = false;
-        private bool hmdIsRunningPrev = false;
+        private static bool hmdIsInitialized = false;
+        private static bool hmdIsRunning = false;
+        private static bool hmdIsRunningPrev = false;
 
         // defines the bounds to texture bounds for rendering
         private VRTextureBounds_t hmdTextureBounds;
@@ -55,14 +57,6 @@ namespace KerbalVR
         // index 0 = Left_Eye, index 1 = Right_Eye
         private Texture_t[] hmdEyeTexture = new Texture_t[2];
         private RenderTexture[] hmdEyeRenderTexture = new RenderTexture[2];
-
-        // store the initial position when VR is started
-        private static Vector3 ivaInitialPosition;
-        private static Quaternion ivaInitialRotation;
-
-        // an array containing the cameras to render to the HMD
-        private int numCamerasToRender;
-        private Types.CameraData[] camerasToRender;
 
         // store the tracked device poses
         private static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
@@ -73,8 +67,6 @@ namespace KerbalVR
 
 
         #region Debug
-        private uint controlIndexL = 0;
-        private uint controlIndexR = 0;
         #endregion
 
 
@@ -86,9 +78,10 @@ namespace KerbalVR
             Utils.LogInfo("KerbalVR plugin starting...");
             
             // init objects
-            gui = new AppGUI(this);
+            gui = new AppGUI();
             _hmdIsEnabled = false;
             HmdIsAllowed = false;
+            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
             // init GameObjects
             GameObject deviceManager = new GameObject("VR_DeviceManager");
@@ -124,7 +117,7 @@ namespace KerbalVR
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
         void OnDestroy() {
-            Utils.LogInfo("KerbalVrPlugin OnDestroy");
+            Utils.LogInfo("KerbalVR OnDestroy");
             CloseHMD();
         }
 
@@ -132,10 +125,8 @@ namespace KerbalVR
         /// Overrides the LateUpdate method, called every frame after all objects' Update.
         /// </summary>
         void LateUpdate() {
-            // do nothing unless we are in IVA
-            HmdIsAllowed = HighLogic.LoadedSceneIsFlight &&
-                (CameraManager.Instance != null) &&
-                (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
+            // check if the current scene allows VR
+            HmdIsAllowed = Scene.SceneAllowsVR();
 
             // check if we are running the HMD
             hmdIsRunning = HmdIsAllowed && hmdIsInitialized && HmdIsEnabled;
@@ -146,19 +137,10 @@ namespace KerbalVR
 
                 try {
                     // TODO: investigate if we should really be capturing poses in LateUpdate
-
-                    // detect controllers
-                    for (uint idx = 0; idx < OpenVR.k_unMaxTrackedDeviceCount; idx++) {
-                        if ((controlIndexL == 0) && (OpenVR.System.GetTrackedDeviceClass(idx) == ETrackedDeviceClass.Controller)) {
-                            controlIndexL = idx;
-                        } else if ((controlIndexR == 0) && (OpenVR.System.GetTrackedDeviceClass(idx) == ETrackedDeviceClass.Controller)) {
-                            controlIndexR = idx;
-                        }
-                    }
-
+                    
                     // get latest device poses
                     float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
-                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseSeated, secondsToPhotons, devicePoses);
+                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(TrackingSpace, secondsToPhotons, devicePoses);
                     SteamVR_Events.NewPoses.Send(devicePoses);
 
                     HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
@@ -175,10 +157,6 @@ namespace KerbalVR
                     hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                     hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
-                    if (controlIndexL > 0) {
-                        SteamVR_Utils.RigidTransform ctrlPoseLeft = new SteamVR_Utils.RigidTransform(devicePoses[controlIndexL].mDeviceToAbsoluteTracking);
-                    }
-
                     // render each eye
                     for (int i = 0; i < 2; i++) {
                         RenderHmdCameras(
@@ -188,6 +166,7 @@ namespace KerbalVR
                             hmdEyeRenderTexture[i],
                             hmdEyeTexture[i]);
                     }
+
                     OpenVR.Compositor.PostPresentHandoff();
 
                 } catch (Exception e) {
@@ -208,11 +187,12 @@ namespace KerbalVR
             // reset cameras when HMD is turned off
             if (!hmdIsRunning && hmdIsRunningPrev) {
                 Utils.LogInfo("HMD is now off, resetting cameras...");
-                foreach (Types.CameraData camData in camerasToRender) {
-                    camData.camera.targetTexture = null;
-                    camData.camera.projectionMatrix = camData.originalProjectionMatrix;
-                    camData.camera.enabled = true;
-                }
+                Scene.CloseScene();
+            }
+
+            // DEBUG
+            if (Input.GetKeyDown(KeyCode.Y)) {
+                Utils.PrintAllCameras();
             }
             
             hmdIsRunningPrev = hmdIsRunning;
@@ -239,29 +219,24 @@ namespace KerbalVR
              *      hmdTransform.y+     upwards
              *      hmdTransform.z+     towards the front
              *
-             *  ivaInitialPosition and ivaInitialRotation are the Unity world coordinates where
+             *  Scene.InitialPosition and Scene.InitialRotation are the Unity world coordinates where
              *  we initialize the VR scene, i.e. the origin of a coordinate system that maps
              *  1-to-1 with physical space.
              *
              *  1. Calculate the position of the eye in the physical coordinate system.
              *  2. Transform the calculated position into Unity world coordinates, offset from
-             *     ivaInitialPosition and ivaInitialRotation.
+             *     InitialPosition and InitialRotation.
              */
 
             // position of the eye in the VR reference frame
             Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
-            // position of the eye in the IVA reference frame
-            InternalCamera.Instance.transform.position = ivaInitialPosition + ivaInitialRotation * positionToEye;
-            InternalCamera.Instance.transform.rotation = ivaInitialRotation * hmdTransform.rot;
-
-            // move the FlightCamera to match the position of the InternalCamera (so the outside world moves accordingly)
-            FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-            FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+            // update position of the cameras
+            Scene.UpdateScene(positionToEye, hmdTransform.rot);
 
             // render the set of cameras
-            for (int i = 0; i < numCamerasToRender; i++) {
-                Types.CameraData camData = camerasToRender[i];
+            for (int i = 0; i < Scene.NumVRCameras; i++) {
+                Types.CameraData camData = Scene.VRCameras[i];
 
                 // set projection matrix
                 camData.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
@@ -271,7 +246,7 @@ namespace KerbalVR
                 camData.camera.targetTexture = hmdEyeRenderTexture;
                 camData.camera.Render();
             }
-
+            
             // Submit frames to HMD
             EVRCompositorError vrCompositorError = OpenVR.Compositor.Submit(eye, ref hmdEyeTexture, ref hmdTextureBounds, EVRSubmitFlags.Submit_Default);
             if (vrCompositorError != EVRCompositorError.None) {
@@ -372,48 +347,10 @@ namespace KerbalVR
             return retVal;
         }
 
-        private void InitVRScene() {
-            /*foreach (Camera camera in Camera.allCameras) {
-                Utils.LogInfo("KSP Camera: " + camera.name);
-            }*/
-
-            // search for the cameras to render
-            numCamerasToRender = Globals.FLIGHT_SCENE_CAMERAS.Length;
-            camerasToRender = new Types.CameraData[numCamerasToRender];
-            for (int i = 0; i < numCamerasToRender; i++) {
-
-                Camera foundCamera = Array.Find(Camera.allCameras, cam => cam.name.Equals(Globals.FLIGHT_SCENE_CAMERAS[i]));
-                if (foundCamera == null) {
-                    Utils.LogError("Could not find camera \"" + Globals.FLIGHT_SCENE_CAMERAS[i] + "\" in the scene!");
-
-                } else {
-                    // determine clip plane and new projection matrices
-                    float nearClipPlane = (foundCamera.name.Equals("Camera 01")) ? 0.05f : foundCamera.nearClipPlane;
-                    HmdMatrix44_t projectionMatrixL = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, foundCamera.farClipPlane);
-                    HmdMatrix44_t projectionMatrixR = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, foundCamera.farClipPlane);
-
-                    // store information about the camera
-                    camerasToRender[i].camera = foundCamera;
-                    camerasToRender[i].originalProjectionMatrix = foundCamera.projectionMatrix;
-                    camerasToRender[i].hmdProjectionMatrixL = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projectionMatrixL);
-                    camerasToRender[i].hmdProjectionMatrixR = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projectionMatrixR);
-
-                    // disable the camera so we can call Render directly
-                    foundCamera.enabled = false;
-                }
-                
-            }
-
-            // capture the initial viewpoint position
-            ivaInitialPosition = InternalCamera.Instance.transform.position;
-            ivaInitialRotation = InternalCamera.Instance.transform.rotation;
-            
-        }
-
         /// <summary>
         /// Sets the current real-world position of the HMD as the seated origin in IVA.
         /// </summary>
-        public void ResetInitialHmdPosition() {
+        public static void ResetInitialHmdPosition() {
             if (hmdIsInitialized) {
                 OpenVR.System.ResetSeatedZeroPose();
             }
@@ -436,14 +373,6 @@ namespace KerbalVR
                     "deviceIndex must be less than " + OpenVR.k_unMaxTrackedDeviceCount);
             }
             return devicePoses[deviceIndex].bDeviceIsConnected;
-        }
-
-        public static Vector3 DevicePoseToWorld(Vector3 devicePosition) {
-            return ivaInitialPosition + ivaInitialRotation * devicePosition;
-        }
-
-        public static Quaternion DevicePoseToWorld(Quaternion deviceRotation) {
-            return ivaInitialRotation * deviceRotation;
         }
 
     } // class KerbalVR

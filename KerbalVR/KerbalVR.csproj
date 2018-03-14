@@ -98,6 +98,7 @@
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_MathUtils.cs" />
     <Compile Include="KerbalVR.cs" />
+    <Compile Include="KerbalVR_Scene.cs" />
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

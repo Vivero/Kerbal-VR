@@ -12,8 +12,8 @@ namespace KerbalVR
         private GameObject controllerObjL;
 
         private bool[] isDeviceConnected = new bool[OpenVR.k_unMaxTrackedDeviceCount];
-        private uint leftControllerIndex;
-        private uint rightControllerIndex;
+        private uint controllerIndexL;
+        private uint controllerIndexR;
 
         // this is a singleton class, and there must be one EventManager in the scene
         private static DeviceManager _instance;
@@ -61,8 +61,6 @@ namespace KerbalVR
                 controllerObjL.transform.localScale = Vector3.one * 0.1f;
             }
 
-            leftControllerIndex = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-            rightControllerIndex = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
 
             for (uint i = 0; i < OpenVR.k_unMaxTrackedDeviceCount; i++) {
                 bool isConnected = devicePoses[i].bDeviceIsConnected;
@@ -72,15 +70,19 @@ namespace KerbalVR
                 isDeviceConnected[i] = isConnected;
             }
 
-            if (leftControllerIndex < OpenVR.k_unMaxTrackedDeviceCount) {
-                SteamVR_Utils.RigidTransform pose = new SteamVR_Utils.RigidTransform(devicePoses[leftControllerIndex].mDeviceToAbsoluteTracking);
-                controllerObjL.transform.position = KerbalVR.DevicePoseToWorld(pose.pos);
-                controllerObjL.transform.rotation = KerbalVR.DevicePoseToWorld(pose.rot);
+            if (controllerIndexL < OpenVR.k_unMaxTrackedDeviceCount) {
+                SteamVR_Utils.RigidTransform pose = new SteamVR_Utils.RigidTransform(devicePoses[controllerIndexL].mDeviceToAbsoluteTracking);
+                controllerObjL.transform.position = Scene.DevicePoseToWorld(pose.pos);
+                controllerObjL.transform.rotation = Scene.DevicePoseToWorld(pose.rot);
             }
         }
 
         private void OnDeviceConnected(int deviceIndex, bool isConnected) {
             Utils.LogInfo("Device " + deviceIndex + " is " + (isConnected ? "connected" : "disconnected"));
+
+            // re-check controller indices
+            controllerIndexL = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
+            controllerIndexR = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
         }
     }
 }
