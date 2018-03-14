@@ -40,8 +40,8 @@ namespace KerbalVR
         // The initial world position of the cameras for the current scene. This
         // position corresponds to the origin in the real world physical device
         // coordinate system.
-        public static Vector3 InitialPosition { get; private set; }
-        public static Quaternion InitialRotation { get; private set; }
+        public static Vector3 InitialPosition { get; set; }
+        public static Quaternion InitialRotation { get; set; }
 
         // defines the tracking method to use
         public static ETrackingUniverseOrigin TrackingSpace { get; private set; }

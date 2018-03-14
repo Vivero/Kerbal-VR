@@ -121,6 +121,9 @@ namespace KerbalVR
         /// Overrides the LateUpdate method, called every frame after all objects' Update.
         /// </summary>
         void LateUpdate() {
+            // dispatch any OpenVR events
+            DispatchOpenVREvents();
+
             // check if the current scene allows VR
             HmdIsAllowed = Scene.SceneAllowsVR();
 
@@ -195,6 +198,38 @@ namespace KerbalVR
 #endif
 
             hmdIsRunningPrev = hmdIsRunning;
+        }
+
+        private void DispatchOpenVREvents() {
+            // copied from SteamVR_Render
+            var vrEvent = new VREvent_t();
+            var size = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VREvent_t));
+            for (int i = 0; i < 64; i++) {
+                if (!OpenVR.System.PollNextEvent(ref vrEvent, size))
+                    break;
+
+                switch ((EVREventType)vrEvent.eventType) {
+                    case EVREventType.VREvent_InputFocusCaptured: // another app has taken focus (likely dashboard)
+                        if (vrEvent.data.process.oldPid == 0) {
+                            SteamVR_Events.InputFocus.Send(false);
+                        }
+                        break;
+                    case EVREventType.VREvent_InputFocusReleased: // that app has released input focus
+                        if (vrEvent.data.process.pid == 0) {
+                            SteamVR_Events.InputFocus.Send(true);
+                        }
+                        break;
+                    case EVREventType.VREvent_ShowRenderModels:
+                        SteamVR_Events.HideRenderModels.Send(false);
+                        break;
+                    case EVREventType.VREvent_HideRenderModels:
+                        SteamVR_Events.HideRenderModels.Send(true);
+                        break;
+                    default:
+                        SteamVR_Events.System((EVREventType)vrEvent.eventType).Send(vrEvent);
+                        break;
+                }
+            }
         }
 
         private void RenderHmdCameras(
