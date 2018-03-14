@@ -360,7 +360,7 @@ namespace KerbalVR
         /// </summary>
         /// <returns>True if seated pose can be reset.</returns>
         public static bool CanResetSeatedPose() {
-            return Scene.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated;
+            return hmdIsRunning && (Scene.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
         }
 
         /// <summary>
