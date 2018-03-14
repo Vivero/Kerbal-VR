@@ -110,7 +110,7 @@ namespace KerbalVR
                     APP_GUI_ID,
                     appGuiWindowRect,
                     GenerateGUI,
-                    "KerbalVR",
+                    Globals.KERBALVR_NAME,
                     HighLogic.Skin.window);
             }
         }

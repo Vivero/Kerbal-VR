@@ -75,7 +75,7 @@ namespace KerbalVR
         /// Initialize class members.
         /// </summary>
         void Awake() {
-            Utils.LogInfo("KerbalVR plugin starting...");
+            Utils.LogInfo(Globals.KERBALVR_NAME + " plugin starting...");
             
             // init objects
             gui = new AppGUI();
@@ -117,7 +117,7 @@ namespace KerbalVR
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
         void OnDestroy() {
-            Utils.LogInfo("KerbalVR OnDestroy");
+            Utils.LogInfo(Globals.KERBALVR_NAME + " OnDestroy");
             CloseHMD();
         }
 

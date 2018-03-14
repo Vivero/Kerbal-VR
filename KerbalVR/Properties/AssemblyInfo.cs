@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("KerbalVR")]
-[assembly: AssemblyDescription("Add-on for KSP to enable VR")]
+[assembly: AssemblyDescription("Add-on for KSP to enable virtual reality.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Vivero")]
 [assembly: AssemblyProduct("KerbalVR")]

@@ -12,6 +12,9 @@ namespace KerbalVR
     /// </summary>
     public class Globals
     {
+        // plugin name
+        public static readonly string KERBALVR_NAME = "KerbalVR";
+
         // path to the KerbalVR Assets directory
         public static readonly string KERBALVR_ASSETS_DIR = "KerbalVR/Assets/";
 
@@ -25,6 +28,6 @@ namespace KerbalVR
         }
 
         // a prefix to append to every KerbalVR debug log message
-        public static readonly string LOG_PREFIX = "[KerbalVR] ";
+        public static readonly string LOG_PREFIX = "[" + KERBALVR_NAME + "] ";
     }
 }
