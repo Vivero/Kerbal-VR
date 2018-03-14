@@ -356,6 +356,14 @@ namespace KerbalVR
         }
 
         /// <summary>
+        /// Check if we can reset the seated pose (only when in Seated Mode)
+        /// </summary>
+        /// <returns>True if seated pose can be reset.</returns>
+        public static bool CanResetSeatedPose() {
+            return Scene.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated;
+        }
+
+        /// <summary>
         /// Shuts down the OpenVR API.
         /// </summary>
         private void CloseHMD() {
