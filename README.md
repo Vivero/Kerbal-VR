@@ -53,3 +53,5 @@ For best performance, go to the Settings menu in Kerbal Space Program, and under
 - **Frame Limit:** 100 FPS (or higher)
 
 It is important to set V-Sync and Frame Limit as described above so that the Vive is able to render the game at 90 FPS. Experiment with the rest of the settings as you see fit.
+
+The **Render Quality** seems to have a large impact on performance; if it is set too high, you may experience erratic flickering while in VR (see [issue 21](https://github.com/Vivero/Kerbal-VR/issues/21)).
