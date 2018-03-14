@@ -1,17 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A26C4088-0BA7-4BB7-85B5-96D5FA719D79}</ProjectGuid>
+    <ProjectGuid>{7BC04BF6-70BE-47B5-A9E2-0FD68441CBA6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>KerbalVR</RootNamespace>
     <AssemblyName>KerbalVR</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,74 +29,26 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>ksp_lib\$(Platform)\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>ksp_lib\$(Platform)\Assembly-CSharp-firstpass.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>ksp_lib\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>ksp_lib\$(Platform)\UnityEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>ksp_lib\$(Platform)\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>ksp_lib\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KerbalVR.cs" />
+    <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_DeviceManager.cs" />
     <Compile Include="KerbalVR_Globals.cs" />
-    <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_MathUtils.cs" />
-    <Compile Include="KerbalVR.cs" />
     <Compile Include="KerbalVR_Scene.cs" />
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
@@ -131,36 +82,26 @@
     <Compile Include="SteamVR\Scripts\SteamVR_UpdatePoses.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_Utils.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>:: Create a release folder
 mkdir "$(TargetDir)rel\GameData\KerbalVR\openvr"
 mkdir "$(TargetDir)rel\GameData\KerbalVR\Assets"
 copy /Y "$(TargetDir)"\"$(TargetFileName)" "$(TargetDir)\rel\GameData\KerbalVR\"
-copy /Y "$(SolutionDir)"\LICENSE "$(TargetDir)\rel\"
-copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"
 robocopy "$(ProjectDir)lib" "$(TargetDir)\rel\GameData\KerbalVR\openvr" /E
 robocopy "$(ProjectDir)Assets" "$(TargetDir)\rel\GameData\KerbalVR\Assets" /E
 
 :: Copy release into KSP directory
-if $(PlatformName) == x64 (
+if EXIST "C:\KSP_win64\" (
   robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win64\GameData\KerbalVR" /E
-) else (
-  robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win\GameData\KerbalVR" /E
 )
 
-:: robocopy gives a bad return value. Leave this copy as the last step.
-copy /Y "$(ProjectDir)\LICENSE-openvr" "$(TargetDir)\rel\GameData\KerbalVR\openvr"
-</PostBuildEvent>
+:: Do NOT make robocopy the last command here. It gives a "bad" return value.
+:: Make these simple copy commands the last events.
+copy /Y "$(SolutionDir)\LICENSE-openvr" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\LICENSE-steamvr" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\LICENSE" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"</PostBuildEvent>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <Target Name="AfterClean">
-    <Exec Command="rmdir $(TargetDir)\rel /s /q" />
-  </Target>
 </Project>
