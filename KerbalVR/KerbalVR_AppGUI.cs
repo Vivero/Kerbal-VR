@@ -139,8 +139,10 @@ namespace KerbalVR
                 }
             }
 
-            if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
-                KerbalVR.ResetInitialHmdPosition();
+            if (KerbalVR.CanResetSeatedPose()) {
+                if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
+                    KerbalVR.ResetInitialHmdPosition();
+                }
             }
             UnityEngine.GUI.enabled = true;
 
