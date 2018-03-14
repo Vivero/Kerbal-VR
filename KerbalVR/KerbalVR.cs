@@ -34,9 +34,6 @@ namespace KerbalVR
         // check if VR can be enabled
         public bool HmdIsAllowed { get; private set; }
 
-        // defines the tracking method to use
-        public ETrackingUniverseOrigin TrackingSpace { get; private set; }
-
         #endregion
 
 
@@ -81,7 +78,6 @@ namespace KerbalVR
             gui = new AppGUI();
             _hmdIsEnabled = false;
             HmdIsAllowed = false;
-            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
             // init GameObjects
             GameObject deviceManager = new GameObject("VR_DeviceManager");
@@ -140,7 +136,7 @@ namespace KerbalVR
                     
                     // get latest device poses
                     float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
-                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(TrackingSpace, secondsToPhotons, devicePoses);
+                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.TrackingSpace, secondsToPhotons, devicePoses);
                     SteamVR_Events.NewPoses.Send(devicePoses);
 
                     HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);

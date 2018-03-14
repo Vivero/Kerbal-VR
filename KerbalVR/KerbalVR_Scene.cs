@@ -43,9 +43,15 @@ namespace KerbalVR
         public static Vector3 InitialPosition { get; private set; }
         public static Quaternion InitialRotation { get; private set; }
 
+        // defines the tracking method to use
+        public static ETrackingUniverseOrigin TrackingSpace { get; private set; }
+
+        // defines what layer to render KerbalVR objects on
+        public static int RenderLayer { get; private set; }
+
         #endregion
 
-        
+
         /// <summary>
         /// Set up the list of cameras to render for this scene and the initial position
         /// corresponding to the origin in the real world device coordinate system.
@@ -70,6 +76,12 @@ namespace KerbalVR
         }
 
         private static void SetupFlightScene() {
+            // use seated mode during IVA flight
+            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
+
+            // render KerbalVR objects on the InternalSpace layer
+            RenderLayer = 20;
+
             // generate list of cameras to render
             PopulateCameraList(FLIGHT_SCENE_CAMERAS);
 
@@ -79,12 +91,24 @@ namespace KerbalVR
         }
 
         private static void SetupEditorScene() {
+            // use room-scale in editor
+            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
+
+            // render KerbalVR objects on the default layer
+            RenderLayer = 0;
+
             // generate list of cameras to render
             PopulateCameraList(EDITOR_SCENE_CAMERAS);
 
             // set inital scene position
-            InitialPosition = EditorCamera.Instance.transform.position;
-            InitialRotation = EditorCamera.Instance.transform.rotation;
+            Vector3 forwardDir = EditorCamera.Instance.transform.rotation * Vector3.forward;
+            forwardDir.y = 0f; // make the camera point straight forward
+
+            Vector3 startingPos = EditorCamera.Instance.transform.position;
+            startingPos.y = 0f; // start at ground level
+
+            InitialPosition = startingPos;
+            InitialRotation = Quaternion.LookRotation(forwardDir, Vector3.up);
         }
 
         /// <summary>
