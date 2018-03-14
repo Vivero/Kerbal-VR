@@ -10,6 +10,7 @@ namespace KerbalVR
     public class DeviceManager : MonoBehaviour
     {
         private GameObject controllerObjL;
+        private GameObject controllerObjR;
 
         private bool[] isDeviceConnected = new bool[OpenVR.k_unMaxTrackedDeviceCount];
         private uint controllerIndexL;
@@ -53,13 +54,20 @@ namespace KerbalVR
         }
 
         private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
-            
+
             if (controllerObjL == null) {
                 controllerObjL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 controllerObjL.name = "VR_ControllerL";
-                controllerObjL.layer = 20;
                 controllerObjL.transform.localScale = Vector3.one * 0.1f;
             }
+            controllerObjL.layer = Scene.RenderLayer;
+
+            if (controllerObjR == null) {
+                controllerObjR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                controllerObjR.name = "VR_ControllerR";
+                controllerObjR.transform.localScale = Vector3.one * 0.1f;
+            }
+            controllerObjR.layer = Scene.RenderLayer;
 
 
             for (uint i = 0; i < OpenVR.k_unMaxTrackedDeviceCount; i++) {
@@ -78,7 +86,9 @@ namespace KerbalVR
         }
 
         private void OnDeviceConnected(int deviceIndex, bool isConnected) {
-            Utils.LogInfo("Device " + deviceIndex + " is " + (isConnected ? "connected" : "disconnected"));
+            Utils.LogInfo("Device " + deviceIndex + " (" +
+                OpenVR.System.GetTrackedDeviceClass((uint)deviceIndex) +
+                ") is " + (isConnected ? "connected" : "disconnected"));
 
             // re-check controller indices
             controllerIndexL = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
