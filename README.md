@@ -15,7 +15,15 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 This is an early WIP mod to allow the use of the HTC Vive (and potentially any HMD supported by the OpenVR SDK) in KSP. The primary focus is for use in IVA.
 
-**Currently testing with:**
+This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. It is possible to get 90 FPS by following the **Performance Tips** below.
+
+**You may experience random crashes while using the mod. You have been warned.**
+
+While in VR, your viewpoint is not limited to being inside the cockpit. If you have the space to physically move around, you can actually "walk" outside your craft and see it from outside (and it's way cooler than what I can describe here).
+
+VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d3d12` flag on the executable. It will not work if you try to run KSP normally. To enable the Direct3D 12 flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append `-force-d3d12` to the Target. Follow the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide) if you're having trouble.
+
+**Currently tested with:**
 
 - HTC Vive
 - Windows 10 64-bit
@@ -24,16 +32,6 @@ This is an early WIP mod to allow the use of the HTC Vive (and potentially any H
 - Nvidia Driver 391.01
 - 32GB RAM
 - SteamVR beta version 1520469824
-
-This KerbalVR plugin captures the orientation information from the HMD and translates it into head-tracking movement (position & rotation). It will also render the IVA view directly into the HMD. It is possible to get 90 FPS by following the **Performance Tips** below.
-
-The [RasterPropMonitor mod](http://forum.kerbalspaceprogram.com/index.php?/topic/105821-112-rasterpropmonitor-still-putting-the-a-in-iva-v0260-30-april-2016/) makes it easier to navigate your craft in IVA, but I've noticed the game takes a performance hit while using it (lose about 20 or 30 fps).
-
-**You may experience random crashes while using the mod. You have been warned.**
-
-While in VR, your viewpoint is not limited to being inside the cockpit. If you have the space to physically move around, you can actually "walk" outside your craft and see it from outside (and it's way cooler than what I can describe here).
-
-VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d3d12` flag on the executable. It will not work if you try to run KSP normally. To enable the Direct3D 12 flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append `-force-d3d12` to the Target. Follow the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide) if you're having trouble.
 
 ----
 
