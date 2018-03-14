@@ -118,5 +118,11 @@ namespace KerbalVR
                 Utils.LogInfo("Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth);
             }
         }
+
+        public static void PrintAllLayers() {
+            for (int i = 0; i < 32; i++) {
+                Utils.LogInfo("Layer: " + LayerMask.LayerToName(i));
+            }
+        }
     }
 }

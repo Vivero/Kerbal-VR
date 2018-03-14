@@ -190,11 +190,14 @@ namespace KerbalVR
                 Scene.CloseScene();
             }
 
-            // DEBUG
+
+#if DEBUG
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
+                Utils.PrintAllLayers();
             }
-            
+#endif
+
             hmdIsRunningPrev = hmdIsRunning;
         }
 
