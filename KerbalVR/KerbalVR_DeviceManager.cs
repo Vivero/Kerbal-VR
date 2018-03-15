@@ -96,8 +96,6 @@ namespace KerbalVR
         }
 
         private void OnTrackedDeviceRoleChanged(VREvent_t vrEvent) {
-            Utils.LogInfo("Tracked Device Role Changed");
-
             // re-check controller indices
             ControllerIndexLeft = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
             ControllerIndexRight = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
@@ -106,7 +104,7 @@ namespace KerbalVR
         }
 
         private void OnDeviceConnected(int deviceIndex, bool isConnected) {
-            Utils.LogInfo("Device " + deviceIndex + " (" +
+            Utils.Log("Device " + deviceIndex + " (" +
                 OpenVR.System.GetTrackedDeviceClass((uint)deviceIndex) +
                 ") is " + (isConnected ? "connected" : "disconnected"));
         }

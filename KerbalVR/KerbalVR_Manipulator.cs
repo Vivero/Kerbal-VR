@@ -19,7 +19,7 @@ namespace KerbalVR
         private MeshRenderer meshRenderer;
 
         void Awake() {
-            Utils.LogInfo("Manipulator alive.");
+            Utils.Log("Manipulator alive.");
             meshRenderer = GetComponent<MeshRenderer>();
         }
 
@@ -78,7 +78,7 @@ namespace KerbalVR
         }
 
         void OnDestroy() {
-            Utils.LogInfo("Manipulator " + role + " is being destroyed!");
+            Utils.Log("Manipulator " + role + " is being destroyed!");
         }
 
         void OnTriggerEnter(Collider other) {

@@ -72,7 +72,7 @@ namespace KerbalVR
         /// Initialize class members.
         /// </summary>
         void Awake() {
-            Utils.LogInfo(Globals.KERBALVR_NAME + " plugin starting...");
+            Utils.Log(Globals.KERBALVR_NAME + " plugin starting...");
             
             // init objects
             gui = new AppGUI();
@@ -114,7 +114,7 @@ namespace KerbalVR
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
         void OnDestroy() {
-            Utils.LogInfo(Globals.KERBALVR_NAME + " OnDestroy");
+            Utils.Log(Globals.KERBALVR_NAME + " OnDestroy");
             CloseHMD();
         }
 
@@ -186,7 +186,7 @@ namespace KerbalVR
 
             // reset cameras when HMD is turned off
             if (!hmdIsRunning && hmdIsRunningPrev) {
-                Utils.LogInfo("HMD is now off, resetting cameras...");
+                Utils.Log("HMD is now off, resetting cameras...");
                 Scene.CloseScene();
             }
 

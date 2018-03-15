@@ -18,7 +18,7 @@ namespace KerbalVR
             return c;
         }
 
-        public static void LogInfo(object obj) {
+        public static void Log(object obj) {
             Debug.Log(Globals.LOG_PREFIX + obj);
         }
 
@@ -111,7 +111,7 @@ namespace KerbalVR
         }
 
         public static void PrintAllCameras() {
-            Utils.LogInfo("Scene: " + HighLogic.LoadedScene);
+            Utils.Log("Scene: " + HighLogic.LoadedScene);
             for (int i = 0; i < Camera.allCamerasCount; i++) {
                 string logMsg = "Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth + ", mask = [";
                 int[] cullingMaskLayers = Int32MaskToArray(Camera.allCameras[i].cullingMask);
@@ -122,15 +122,15 @@ namespace KerbalVR
                 logMsg += String.Join(",", cullingMaskLayersStr);
                 logMsg += "], clip = (" + Camera.allCameras[i].nearClipPlane.ToString("F3");
                 logMsg += "," + Camera.allCameras[i].farClipPlane.ToString("F3") + ")";
-                Utils.LogInfo(logMsg);
+                Utils.Log(logMsg);
             }
         }
 
         public static void PrintComponents(GameObject go) {
-            LogInfo("GameObject: " + go.name + " (layer: " + go.layer + ")");
+            Log("GameObject: " + go.name + " (layer: " + go.layer + ")");
             Component[] components = go.GetComponents<Component>();
             for (int i = 0; i < components.Length; i++) {
-                LogInfo("Component: " + components[i].ToString());
+                Log("Component: " + components[i].ToString());
             }
         }
 
@@ -142,9 +142,9 @@ namespace KerbalVR
                     Collider GO_coll = GO.GetComponent<Collider>();
 
                     if (GO_coll != null) {
-                        Utils.LogInfo("GO.name = " + GO.name);
-                        Utils.LogInfo("GO.layer = " + GO.layer);
-                        Utils.LogInfo("GO.collider = " + GO_coll);
+                        Utils.Log("GO.name = " + GO.name);
+                        Utils.Log("GO.layer = " + GO.layer);
+                        Utils.Log("GO.collider = " + GO_coll);
                     }
                 }
                 
@@ -153,7 +153,7 @@ namespace KerbalVR
 
         public static void PrintAllLayers() {
             for (int i = 0; i < 32; i++) {
-                Utils.LogInfo("Layer " + i + ": " + LayerMask.LayerToName(i));
+                Utils.Log("Layer " + i + ": " + LayerMask.LayerToName(i));
             }
         }
 
