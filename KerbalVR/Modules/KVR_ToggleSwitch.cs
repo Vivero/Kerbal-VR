@@ -7,8 +7,9 @@ namespace KerbalVR.Modules
 {
     public class KVR_ToggleSwitch : InternalModule
     {
-        void OnStart() {
+        void Start() {
             Utils.Log("InternalModule Start " + gameObject.name);
+            Utils.PrintGameObject(gameObject);
         }
     }
 }

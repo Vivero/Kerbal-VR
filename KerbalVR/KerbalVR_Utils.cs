@@ -126,7 +126,7 @@ namespace KerbalVR
             }
         }
 
-        public static void PrintComponents(GameObject go) {
+        public static void PrintGameObject(GameObject go) {
             Log("GameObject: " + go.name + " (layer: " + go.layer + ")");
             Component[] components = go.GetComponents<Component>();
             for (int i = 0; i < components.Length; i++) {
