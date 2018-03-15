@@ -40,8 +40,18 @@ namespace KerbalVR
         // The initial world position of the cameras for the current scene. This
         // position corresponds to the origin in the real world physical device
         // coordinate system.
-        public static Vector3 InitialPosition { get; set; }
-        public static Quaternion InitialRotation { get; set; }
+        public static Vector3 InitialPosition { get; private set; }
+        public static Quaternion InitialRotation { get; private set; }
+
+        // The current world position of the cameras for the current scene. This
+        // position corresponds to the origin in the real world physical device
+        // coordinate system.
+        public static Vector3 CurrentPosition { get; set; }
+        public static Quaternion CurrentRotation { get; set; }
+
+        // The current position of the HMD
+        public static Vector3 HmdPosition { get; private set; }
+        public static Quaternion HmdRotation { get; private set; }
 
         // defines the tracking method to use
         public static ETrackingUniverseOrigin TrackingSpace { get; private set; }
@@ -70,9 +80,9 @@ namespace KerbalVR
                     throw new Exception("Cannot setup VR scene, current scene \"" +
                         HighLogic.LoadedScene + "\" is invalid.");
             }
-
-            Utils.LogInfo("Scene: " + HighLogic.LoadedScene);
-            Utils.LogInfo("InitialPosition = " + InitialPosition.ToString("F3"));
+            
+            CurrentPosition = InitialPosition;
+            CurrentRotation = InitialRotation;
         }
 
         private static void SetupFlightScene() {
@@ -104,11 +114,12 @@ namespace KerbalVR
             Vector3 forwardDir = EditorCamera.Instance.transform.rotation * Vector3.forward;
             forwardDir.y = 0f; // make the camera point straight forward
 
-            Vector3 startingPos = EditorCamera.Instance.transform.position;
-            startingPos.y = 0f; // start at ground level
+            //Vector3 startingPos = EditorCamera.Instance.transform.position;
+            //startingPos.y = 0f; // start at ground level
+            Vector3 startingPos = new Vector3(0f, 0f, -5f);
 
             InitialPosition = startingPos;
-            InitialRotation = Quaternion.LookRotation(forwardDir, Vector3.up);
+            InitialRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
         }
 
         /// <summary>
@@ -116,33 +127,60 @@ namespace KerbalVR
         /// </summary>
         /// <param name="eyePosition">Position of the HMD eye, in the device space coordinate system</param>
         /// <param name="eyeRotation">Rotation of the HMD eye, in the device space coordinate system</param>
-        public static void UpdateScene(Vector3 eyePosition, Quaternion eyeRotation) {
+        public static void UpdateScene(
+            SteamVR_Utils.RigidTransform hmdTransform,
+            SteamVR_Utils.RigidTransform hmdEyeTransform) {
+
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
-                    UpdateFlightScene(eyePosition, eyeRotation);
+                    UpdateFlightScene(hmdTransform, hmdEyeTransform);
                     break;
 
                 case GameScenes.EDITOR:
-                    UpdateEditorScene(eyePosition, eyeRotation);
+                    UpdateEditorScene(hmdTransform, hmdEyeTransform);
                     break;
 
                 default:
                     throw new Exception("Cannot setup VR scene, current scene \"" +
                         HighLogic.LoadedScene + "\" is invalid.");
             }
+
+            HmdPosition = InitialPosition + InitialRotation * hmdTransform.pos;
+            HmdRotation = InitialRotation * hmdTransform.rot;
         }
 
-        private static void UpdateFlightScene(Vector3 eyePosition, Quaternion eyeRotation) {
-            InternalCamera.Instance.transform.position = InitialPosition + InitialRotation * eyePosition;
-            InternalCamera.Instance.transform.rotation = InitialRotation * eyeRotation;
+        private static void UpdateFlightScene(
+            SteamVR_Utils.RigidTransform hmdTransform,
+            SteamVR_Utils.RigidTransform hmdEyeTransform) {
+
+            CurrentPosition = InitialPosition;
+            CurrentRotation = InitialRotation;
+
+            Vector3 positionToHmd = hmdTransform.pos;
+            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+
+            Vector3 updatedPosition = CurrentPosition + CurrentRotation * positionToEye;
+            Quaternion updatedRotation = CurrentRotation * hmdTransform.rot;
+
+            InternalCamera.Instance.transform.position = updatedPosition;
+            InternalCamera.Instance.transform.rotation = updatedRotation;
 
             FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
         }
 
-        private static void UpdateEditorScene(Vector3 eyePosition, Quaternion eyeRotation) {
-            EditorCamera.Instance.transform.position = InitialPosition + InitialRotation * eyePosition;
-            EditorCamera.Instance.transform.rotation = InitialRotation * eyeRotation;
+        private static void UpdateEditorScene(
+            SteamVR_Utils.RigidTransform hmdTransform,
+            SteamVR_Utils.RigidTransform hmdEyeTransform) {
+
+            Vector3 positionToHmd = hmdTransform.pos;
+            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+
+            Vector3 updatedPosition = CurrentPosition + CurrentRotation * positionToEye;
+            Quaternion updatedRotation = CurrentRotation * hmdTransform.rot;
+
+            EditorCamera.Instance.transform.position = updatedPosition;
+            EditorCamera.Instance.transform.rotation = updatedRotation;
         }
 
         /// <summary>
@@ -216,7 +254,7 @@ namespace KerbalVR
         /// <param name="devicePosition">Device position in the device space coordinate system.</param>
         /// <returns>Unity world position corresponding to the device position.</returns>
         public static Vector3 DevicePoseToWorld(Vector3 devicePosition) {
-            return InitialPosition + InitialRotation * devicePosition;
+            return CurrentPosition + CurrentRotation * devicePosition;
         }
 
         /// <summary>
@@ -225,7 +263,7 @@ namespace KerbalVR
         /// <param name="deviceRotation">Device rotation in the device space coordinate system.</param>
         /// <returns>Unity world rotation corresponding to the device rotation.</returns>
         public static Quaternion DevicePoseToWorld(Quaternion deviceRotation) {
-            return InitialRotation * deviceRotation;
+            return CurrentRotation * deviceRotation;
         }
     }
 }

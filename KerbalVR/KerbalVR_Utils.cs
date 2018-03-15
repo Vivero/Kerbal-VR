@@ -126,6 +126,31 @@ namespace KerbalVR
             }
         }
 
+        public static void PrintComponents(GameObject go) {
+            LogInfo("GameObject: " + go.name + " (layer: " + go.layer + ")");
+            Component[] components = go.GetComponents<Component>();
+            for (int i = 0; i < components.Length; i++) {
+                LogInfo("Component: " + components[i].ToString());
+            }
+        }
+
+        public static void PrintDebug() {
+            GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
+
+            foreach (GameObject GO in allObjects) {
+                if (GO.activeInHierarchy) {
+                    Collider GO_coll = GO.GetComponent<Collider>();
+
+                    if (GO_coll != null) {
+                        Utils.LogInfo("GO.name = " + GO.name);
+                        Utils.LogInfo("GO.layer = " + GO.layer);
+                        Utils.LogInfo("GO.collider = " + GO_coll);
+                    }
+                }
+                
+            }
+        }
+
         public static void PrintAllLayers() {
             for (int i = 0; i < 32; i++) {
                 Utils.LogInfo("Layer " + i + ": " + LayerMask.LayerToName(i));
@@ -142,5 +167,6 @@ namespace KerbalVR
             }
             return maskBits.ToArray();
         }
-    }
-}
+
+    } // class Utils
+} // namespace KerbalVR

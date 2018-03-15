@@ -9,12 +9,18 @@ namespace KerbalVR
 {
     public class DeviceManager : MonoBehaviour
     {
-        private GameObject controllerObjL;
-        private GameObject controllerObjR;
+        #region Properties
+        // Manipulator Game Objects
+        public GameObject ManipulatorLeft { get; private set; }
+        public GameObject ManipulatorRight { get; private set; }
 
+        // keep aliases of controller indices
+        public uint ControllerIndexLeft { get; private set; }
+        public uint ControllerIndexRight { get; private set; }
+        #endregion
+
+        // keep track of devices that are connected
         private bool[] isDeviceConnected = new bool[OpenVR.k_unMaxTrackedDeviceCount];
-        private uint controllerIndexL;
-        private uint controllerIndexR;
 
         #region Singleton
         // this is a singleton class, and there must be one EventManager in the scene
@@ -32,14 +38,17 @@ namespace KerbalVR
                 return _instance;
             }
         }
-        #endregion
 
         // first-time initialization for this singleton class
         private void Initialize() {
             if (isDeviceConnected == null) {
                 isDeviceConnected = new bool[OpenVR.k_unMaxTrackedDeviceCount];
             }
+
+            ControllerIndexLeft = OpenVR.k_unTrackedDeviceIndexInvalid;
+            ControllerIndexRight = OpenVR.k_unTrackedDeviceIndexInvalid;
         }
+        #endregion
 
         void OnEnable() {
             SteamVR_Events.NewPoses.Listen(OnDevicePosesReady);
@@ -53,12 +62,8 @@ namespace KerbalVR
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).Remove(OnTrackedDeviceRoleChanged);
         }
 
-        void Update() {
-
-        }
-
         private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
-
+            // detect devices that have (dis)connected
             for (uint i = 0; i < OpenVR.k_unMaxTrackedDeviceCount; i++) {
                 bool isConnected = devicePoses[i].bDeviceIsConnected;
                 if (isDeviceConnected[i] != isConnected) {
@@ -67,66 +72,37 @@ namespace KerbalVR
                 isDeviceConnected[i] = isConnected;
             }
 
+            // update poses for tracked devices
             SteamVR_Controller.Update();
 
+            // update Manipulator objects' state
+            if (DeviceIndexIsValid(ControllerIndexLeft)) {
+                SteamVR_Utils.RigidTransform controllerPose = new SteamVR_Utils.RigidTransform(
+                    devicePoses[ControllerIndexLeft].mDeviceToAbsoluteTracking);
+                SteamVR_Controller.Device controllerState = 
+                    SteamVR_Controller.Input((int)ControllerIndexLeft);
 
-            if (controllerObjL == null) {
-                controllerObjL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                controllerObjL.name = "VR_ControllerL";
-                controllerObjL.transform.localScale = Vector3.one * 0.1f;
-                controllerObjL.GetComponent<MeshRenderer>().material.color = Color.red;
-            }
-            controllerObjL.layer = Scene.RenderLayer;
-
-            if (controllerObjR == null) {
-                controllerObjR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                controllerObjR.name = "VR_ControllerR";
-                controllerObjR.transform.localScale = Vector3.one * 0.1f;
-                controllerObjR.GetComponent<MeshRenderer>().material.color = Color.green;
-            }
-            controllerObjR.layer = Scene.RenderLayer;
-
-            
-            if (DeviceIndexIsValid(controllerIndexL)) {
-                SteamVR_Utils.RigidTransform pose = new SteamVR_Utils.RigidTransform(devicePoses[controllerIndexL].mDeviceToAbsoluteTracking);
-                controllerObjL.transform.position = Scene.DevicePoseToWorld(pose.pos);
-                controllerObjL.transform.rotation = Scene.DevicePoseToWorld(pose.rot);
-
-                SteamVR_Controller.Device controllerL = SteamVR_Controller.Input((int)controllerIndexL);
-
-                if (controllerL.GetTouch(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                    Vector2 touchAxis = SteamVR_Controller.Input((int)controllerIndexL).GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
-                    Vector3 sceneForwardDir = Scene.InitialRotation * Vector3.forward;
-                    Vector3 sceneRightDir = Scene.InitialRotation * Vector3.right;
-                    sceneForwardDir.y = 0f;
-                    sceneRightDir.y = 0f;
-                    Scene.InitialPosition += sceneForwardDir.normalized * 2e-2f * touchAxis.y;
-                    Scene.InitialPosition += sceneRightDir.normalized * 2e-2f * touchAxis.x;
-                }
+                ManipulatorLeft.GetComponent<Manipulator>().UpdateState(controllerPose, controllerState);
             }
 
-            if (DeviceIndexIsValid(controllerIndexR)) {
-                SteamVR_Utils.RigidTransform pose = new SteamVR_Utils.RigidTransform(devicePoses[controllerIndexR].mDeviceToAbsoluteTracking);
-                controllerObjR.transform.position = Scene.DevicePoseToWorld(pose.pos);
-                controllerObjR.transform.rotation = Scene.DevicePoseToWorld(pose.rot);
-
-                SteamVR_Controller.Device controllerR = SteamVR_Controller.Input((int)controllerIndexR);
-
-                if (controllerR.GetTouch(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                    Vector2 touchAxis = SteamVR_Controller.Input((int)controllerIndexR).GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
-                    Scene.InitialPosition += Vector3.up * 2e-2f * touchAxis.y;
-                }
+            if (DeviceIndexIsValid(ControllerIndexRight)) {
+                SteamVR_Utils.RigidTransform controllerPose = new SteamVR_Utils.RigidTransform(
+                    devicePoses[ControllerIndexRight].mDeviceToAbsoluteTracking);
+                SteamVR_Controller.Device controllerState =
+                    SteamVR_Controller.Input((int)ControllerIndexRight);
+                
+                ManipulatorRight.GetComponent<Manipulator>().UpdateState(controllerPose, controllerState);
             }
-
         }
 
         private void OnTrackedDeviceRoleChanged(VREvent_t vrEvent) {
-            // re-check controller indices
-            controllerIndexL = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
-            controllerIndexR = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+            Utils.LogInfo("Tracked Device Role Changed");
 
-            Utils.LogInfo("controllerIndexL = " + controllerIndexL);
-            Utils.LogInfo("controllerIndexR = " + controllerIndexR);
+            // re-check controller indices
+            ControllerIndexLeft = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
+            ControllerIndexRight = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
+
+            ManageManipulators();
         }
 
         private void OnDeviceConnected(int deviceIndex, bool isConnected) {
@@ -136,7 +112,49 @@ namespace KerbalVR
         }
 
         private bool DeviceIndexIsValid(uint deviceIndex) {
-            return deviceIndex < OpenVR.k_unMaxTrackedDeviceCount;
+            // return deviceIndex < OpenVR.k_unMaxTrackedDeviceCount;
+            return deviceIndex != OpenVR.k_unTrackedDeviceIndexInvalid;
+        }
+
+        private GameObject CreateManipulator(ETrackedControllerRole role) {
+            // create new GameObject
+            GameObject manipulator = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            manipulator.name = "VR_Manipulator_" + role.ToString();
+            DontDestroyOnLoad(manipulator);
+
+            // define the render model
+            manipulator.transform.localScale = Vector3.one *
+                ((role == ETrackedControllerRole.RightHand) ? 0.02f : 0.08f);
+            Color manipulatorColor = (role == ETrackedControllerRole.RightHand) ? Color.green : Color.red;
+            manipulator.GetComponent<MeshRenderer>().material.color = manipulatorColor;
+
+            // define the collider
+            Rigidbody manipulatorRigidbody = manipulator.AddComponent<Rigidbody>();
+            manipulatorRigidbody.isKinematic = true;
+            SphereCollider manipulatorCollider = manipulator.GetComponent<SphereCollider>();
+            manipulatorCollider.isTrigger = true;
+
+            // define the Manipulator component
+            Manipulator manipulatorComponent = manipulator.AddComponent<Manipulator>();
+            manipulatorComponent.role = role;
+            manipulatorComponent.originalColor = manipulatorColor;
+            manipulatorComponent.activeColor = Color.yellow;
+
+            return manipulator;
+        }
+
+        private void ManageManipulators() {
+            if (DeviceIndexIsValid(ControllerIndexLeft) && ManipulatorLeft == null) {
+                ManipulatorLeft = CreateManipulator(ETrackedControllerRole.LeftHand);
+            } else if (!DeviceIndexIsValid(ControllerIndexLeft) && ManipulatorLeft != null) {
+                Destroy(ManipulatorLeft);
+            }
+
+            if (DeviceIndexIsValid(ControllerIndexRight) && ManipulatorRight == null) {
+                ManipulatorRight = CreateManipulator(ETrackedControllerRole.RightHand);
+            } else if (!DeviceIndexIsValid(ControllerIndexRight) && ManipulatorRight != null) {
+                Destroy(ManipulatorRight);
+            }
         }
     }
 }

@@ -82,6 +82,7 @@ namespace KerbalVR
             // init GameObjects
             GameObject deviceManager = new GameObject("VR_DeviceManager");
             deviceManager.AddComponent<DeviceManager>();
+            DeviceManager deviceManagerComponent = DeviceManager.Instance; // init the singleton
             DontDestroyOnLoad(deviceManager);
 
             // add an event triggered when game scene changes, to handle
@@ -194,6 +195,7 @@ namespace KerbalVR
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
                 Utils.PrintAllLayers();
+                Utils.PrintDebug();
             }
 #endif
 
@@ -266,7 +268,7 @@ namespace KerbalVR
             Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
             // update position of the cameras
-            Scene.UpdateScene(positionToEye, hmdTransform.rot);
+            Scene.UpdateScene(hmdTransform, hmdEyeTransform);
 
             // render the set of cameras
             for (int i = 0; i < Scene.NumVRCameras; i++) {
@@ -352,10 +354,11 @@ namespace KerbalVR
                     textureType = ETextureType.OpenGL;
                     break; // doesn't work
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D9:
-                    throw (new Exception("DirectX 9 not supported"));
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
-                case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
                     textureType = ETextureType.DirectX;
+                    break; // doesn't work
+                case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
+                    textureType = ETextureType.DirectX; // do not use DirectX12
                     break;
                 default:
                     throw (new Exception(SystemInfo.graphicsDeviceType.ToString() + " not supported"));
