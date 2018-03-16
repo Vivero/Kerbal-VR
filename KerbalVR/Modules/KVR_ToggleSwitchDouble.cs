@@ -3,28 +3,41 @@ using UnityEngine;
 
 namespace KerbalVR.Modules
 {
+    /// <summary>
+    /// For a Toggle Switch, use a Finite-State Machine (FSM) to determine how
+    /// to define its current operating state and how to animate the switch
+    /// being flipped.
+    /// 
+    /// Basic operation:
+    /// Assume two colliders, a switch "up" collider, and switch "down" collider.
+    /// 
+    /// When the up-collider is entered, followed by entering the down-collider,
+    /// trigger the switch to flip downwards.
+    /// 
+    /// When the down-collider is entered, followed by entering the up-collider,
+    /// trigger the switch to flip upwards.
+    /// 
+    /// This captures the gesture of swiping up/down to flip the switch.
+    /// </summary>
     public class KVR_ToggleSwitchDouble : InternalModule {
         #region Types
         public enum SwitchState {
             Up,
-            Mid,
             Down,
         }
 
         public enum SwitchStateInput {
             ColliderUpEnter,
             ColliderUpExit,
-            ColliderMidEnter,
-            ColliderMidExit,
             ColliderDownEnter,
             ColliderDownExit,
         }
 
         public enum SwitchFSMState {
-            Up,
-            WaitingForDown,
-            Down,
-            WaitingForUp,
+            IsUp,
+            IsWaitingForDown,
+            IsDown,
+            IsWaitingForUp,
         }
         #endregion
 
@@ -32,9 +45,9 @@ namespace KerbalVR.Modules
         [KSPField]
         public string animationName = string.Empty;
         [KSPField]
-        public string transformSwitchUp = string.Empty;
+        public string transformSwitchColliderUp = string.Empty;
         [KSPField]
-        public string transformSwitchDown = string.Empty;
+        public string transformSwitchColliderDown = string.Empty;
         #endregion
 
         #region Properties
@@ -71,25 +84,25 @@ namespace KerbalVR.Modules
             }
 
             // retrieve the collider GameObjects
-            Transform switchTransform = internalProp.FindModelTransform(transformSwitchUp);
+            Transform switchTransform = internalProp.FindModelTransform(transformSwitchColliderUp);
             if (switchTransform != null) {
                 switchUpGameObject = switchTransform.gameObject;
                 switchUpGameObject.AddComponent<KVR_ToggleSwitchCollider>().toggleSwitchComponent = this;
             } else {
-                Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchUp + "\"");
+                Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchColliderUp + "\"");
             }
 
-            switchTransform = internalProp.FindModelTransform(transformSwitchDown);
+            switchTransform = internalProp.FindModelTransform(transformSwitchColliderDown);
             if (switchTransform != null) {
                 switchDownGameObject = switchTransform.gameObject;
                 switchDownGameObject.AddComponent<KVR_ToggleSwitchCollider>().toggleSwitchComponent = this;
             } else {
-                Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchDown + "\"");
+                Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchColliderDown + "\"");
             }
 
             // set initial state
             targetAnimationEndTime = 0f;
-            switchFSMState = SwitchFSMState.Down;
+            switchFSMState = SwitchFSMState.IsDown;
             SetState(SwitchState.Down);
         }
 
@@ -104,32 +117,32 @@ namespace KerbalVR.Modules
 
         private void UpdateSwitchFSM(SwitchStateInput colliderInput) {
             switch (switchFSMState) {
-                case SwitchFSMState.Up:
+                case SwitchFSMState.IsUp:
                     if (colliderInput == SwitchStateInput.ColliderUpEnter) {
-                        switchFSMState = SwitchFSMState.WaitingForDown;
+                        switchFSMState = SwitchFSMState.IsWaitingForDown;
                     }
                     break;
 
-                case SwitchFSMState.WaitingForDown:
+                case SwitchFSMState.IsWaitingForDown:
                     if (colliderInput == SwitchStateInput.ColliderUpExit) {
-                        switchFSMState = SwitchFSMState.Up;
+                        switchFSMState = SwitchFSMState.IsUp;
                     } else if (colliderInput == SwitchStateInput.ColliderDownEnter) {
-                        switchFSMState = SwitchFSMState.Down;
+                        switchFSMState = SwitchFSMState.IsDown;
                         PlayToState(SwitchState.Down);
                     }
                     break;
 
-                case SwitchFSMState.Down:
+                case SwitchFSMState.IsDown:
                     if (colliderInput == SwitchStateInput.ColliderDownEnter) {
-                        switchFSMState = SwitchFSMState.WaitingForUp;
+                        switchFSMState = SwitchFSMState.IsWaitingForUp;
                     }
                     break;
 
-                case SwitchFSMState.WaitingForUp:
+                case SwitchFSMState.IsWaitingForUp:
                     if (colliderInput == SwitchStateInput.ColliderDownExit) {
-                        switchFSMState = SwitchFSMState.Down;
+                        switchFSMState = SwitchFSMState.IsDown;
                     } else if (colliderInput == SwitchStateInput.ColliderUpEnter) {
-                        switchFSMState = SwitchFSMState.Up;
+                        switchFSMState = SwitchFSMState.IsUp;
                         PlayToState(SwitchState.Up);
                     }
                     break;
@@ -195,9 +208,6 @@ namespace KerbalVR.Modules
             switch (state) {
                 case SwitchState.Up:
                     targetTime = 1f;
-                    break;
-                case SwitchState.Mid:
-                    targetTime = 0.5f;
                     break;
                 case SwitchState.Down:
                     targetTime = 0f;
