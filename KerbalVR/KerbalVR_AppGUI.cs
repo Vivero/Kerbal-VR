@@ -6,13 +6,26 @@ namespace KerbalVR
 {
     public class AppGUI
     {
-        // CONSTANTS
-        //
+        #region Constants
         public static string AppButtonLogo {
             get {
                 return Globals.KERBALVR_ASSETS_DIR + "app_button_logo";
             }
         }
+
+        public static bool SceneAllowsAppGUI {
+            get {
+                return
+#if DEBUG
+                    (HighLogic.LoadedScene == GameScenes.MAINMENU) ||
+#endif
+                    (HighLogic.LoadedScene == GameScenes.SPACECENTER) ||
+                    (HighLogic.LoadedScene == GameScenes.FLIGHT) ||
+                    (HighLogic.LoadedScene == GameScenes.EDITOR) ||
+                    (HighLogic.LoadedScene == GameScenes.TRACKSTATION);
+            }
+        }
+        #endregion
 
         private static string BUTTON_STRING_ENABLE_VR = "Enable VR";
         private static string BUTTON_STRING_DISABLE_VR = "Disable VR";
@@ -68,7 +81,7 @@ namespace KerbalVR
         }
 
         void OnShow() {
-            appButtonGuiActive = appButtonGuiActiveLastState;
+            appButtonGuiActive = appButtonGuiActiveLastState && SceneAllowsAppGUI;
         }
 
         void OnHide() {
