@@ -32,6 +32,7 @@ namespace KerbalVR
             // set the layer to render to
             gameObject.layer = Scene.RenderLayer;
 
+            // update individual manipulator states (hand controls)
             if (role == ETrackedControllerRole.LeftHand) {
                 UpdateStateLeft(pose, state);
             } else if (role == ETrackedControllerRole.RightHand) {

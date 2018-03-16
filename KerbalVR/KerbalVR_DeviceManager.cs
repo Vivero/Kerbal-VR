@@ -17,6 +17,7 @@ namespace KerbalVR
 
         // keep track of devices that are connected
         private bool[] isDeviceConnected = new bool[OpenVR.k_unMaxTrackedDeviceCount];
+        
 
         #region Singleton
         // this is a singleton class, and there must be one EventManager in the scene
@@ -120,7 +121,12 @@ namespace KerbalVR
             manipulator.transform.localScale = Vector3.one *
                 ((role == ETrackedControllerRole.RightHand) ? 0.02f : 0.08f);
             Color manipulatorColor = (role == ETrackedControllerRole.RightHand) ? Color.green : Color.red;
-            manipulator.GetComponent<MeshRenderer>().material.color = manipulatorColor;
+            MeshRenderer manipulatorRenderer = manipulator.GetComponent<MeshRenderer>();
+            manipulatorRenderer.material.color = manipulatorColor;
+
+#if !DEBUG
+            manipulatorRenderer.enabled = false;
+#endif
 
             // define the collider
             Rigidbody manipulatorRigidbody = manipulator.AddComponent<Rigidbody>();

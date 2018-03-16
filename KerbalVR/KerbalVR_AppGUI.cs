@@ -15,14 +15,14 @@ namespace KerbalVR
 
         public static bool SceneAllowsAppGUI {
             get {
-                return
+                return (
 #if DEBUG
                     (HighLogic.LoadedScene == GameScenes.MAINMENU) ||
-#endif
                     (HighLogic.LoadedScene == GameScenes.SPACECENTER) ||
+                    (HighLogic.LoadedScene == GameScenes.TRACKSTATION) ||
+#endif
                     (HighLogic.LoadedScene == GameScenes.FLIGHT) ||
-                    (HighLogic.LoadedScene == GameScenes.EDITOR) ||
-                    (HighLogic.LoadedScene == GameScenes.TRACKSTATION);
+                    (HighLogic.LoadedScene == GameScenes.EDITOR));
             }
         }
         #endregion
@@ -54,13 +54,20 @@ namespace KerbalVR
             ApplicationLauncher.AppScenes appVisibility = ApplicationLauncher.AppScenes.ALWAYS;
 #else
             ApplicationLauncher.AppScenes appVisibility =
+                ApplicationLauncher.AppScenes.FLIGHT |
+                ApplicationLauncher.AppScenes.VAB |
+                ApplicationLauncher.AppScenes.SPH;
+#endif
+
+            /*
+            ApplicationLauncher.AppScenes appVisibility =
                 ApplicationLauncher.AppScenes.SPACECENTER |
                 ApplicationLauncher.AppScenes.FLIGHT |
                 ApplicationLauncher.AppScenes.MAPVIEW |
                 ApplicationLauncher.AppScenes.VAB |
                 ApplicationLauncher.AppScenes.SPH |
                 ApplicationLauncher.AppScenes.TRACKSTATION;
-#endif
+            */
 
             // create new app button instance if it doesn't already exist
             if (appButton == null) {

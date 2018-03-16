@@ -57,6 +57,7 @@
     <Compile Include="KerbalVR_Scene.cs" />
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
+    <Compile Include="Modules\KVR_ControlStick.cs" />
     <Compile Include="Modules\KVR_ToggleSwitchCollider.cs" />
     <Compile Include="Modules\KVR_ToggleSwitchDouble.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

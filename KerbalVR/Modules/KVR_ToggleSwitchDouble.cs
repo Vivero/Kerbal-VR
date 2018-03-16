@@ -67,9 +67,6 @@ namespace KerbalVR.Modules
         /// Loads the animations and hooks into the colliders for this toggle switch.
         /// </summary>
         void Start() {
-            Utils.Log("KVR_ToggleSwitchDouble Start " + gameObject.name);
-            // Utils.PrintGameObjectTree(gameObject);
-
             // no setup needed in editor mode
             if (HighLogic.LoadedScene == GameScenes.EDITOR) return;
 
