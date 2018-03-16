@@ -78,19 +78,15 @@ namespace KerbalVR
             Utils.Log("Manipulator " + role + " is being destroyed!");
         }
 
-        void OnTriggerEnter(Collider other) {
-            // Utils.LogInfo("OnTriggerEnter " + other.name);
-        }
-
         void OnTriggerStay(Collider other) {
-            // Utils.LogInfo("OnTriggerEnter! " + other.name);
+            // Utils.Log("OnTriggerEnter! " + other.name);
 
             MeshRenderer r = gameObject.GetComponent<MeshRenderer>();
             r.sharedMaterial.color = activeColor;
         }
 
         void OnTriggerExit(Collider other) {
-            // Utils.LogInfo("OnTriggerExit! " + other.name);
+            // Utils.Log("Manipulator OnTriggerExit " + other.name);
 
             MeshRenderer r = gameObject.GetComponent<MeshRenderer>();
             r.sharedMaterial.color = originalColor;
