@@ -24,7 +24,7 @@ namespace KerbalVR
             set {
                 _hmdIsEnabled = value;
 
-                if (_hmdIsEnabled) {
+                if (_hmdIsEnabled && hmdIsInitialized) {
                     Scene.SetupScene();
                     ResetInitialHmdPosition();
                 }
@@ -32,7 +32,10 @@ namespace KerbalVR
         }
 
         // check if VR can be enabled
-        public bool HmdIsAllowed { get; private set; }
+        public static bool HmdIsAllowed { get; private set; }
+
+        // keep track of HMD running
+        public static bool HmdIsRunning { get; private set; }
 
         #endregion
 
@@ -44,7 +47,6 @@ namespace KerbalVR
 
         // keep track of when the HMD is rendering images
         private static bool hmdIsInitialized = false;
-        private static bool hmdIsRunning = false;
         private static bool hmdIsRunningPrev = false;
 
         // defines the bounds to texture bounds for rendering
@@ -123,16 +125,18 @@ namespace KerbalVR
         /// </summary>
         void LateUpdate() {
             // dispatch any OpenVR events
-            DispatchOpenVREvents();
+            if (hmdIsInitialized) {
+                DispatchOpenVREvents();
+            }
 
             // check if the current scene allows VR
             HmdIsAllowed = Scene.SceneAllowsVR();
 
             // check if we are running the HMD
-            hmdIsRunning = HmdIsAllowed && hmdIsInitialized && HmdIsEnabled;
+            HmdIsRunning = HmdIsAllowed && hmdIsInitialized && HmdIsEnabled;
 
             // perform regular updates if HMD is initialized
-            if (hmdIsRunning) {
+            if (HmdIsRunning) {
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
 
                 try {
@@ -172,7 +176,7 @@ namespace KerbalVR
                 } catch (Exception e) {
                     Utils.LogError(e);
                     HmdIsEnabled = false;
-                    hmdIsRunning = false;
+                    HmdIsRunning = false;
                 }
 
                 // disable highlighting of parts due to mouse
@@ -185,7 +189,7 @@ namespace KerbalVR
             }
 
             // reset cameras when HMD is turned off
-            if (!hmdIsRunning && hmdIsRunningPrev) {
+            if (!HmdIsRunning && hmdIsRunningPrev) {
                 Utils.Log("HMD is now off, resetting cameras...");
                 Scene.CloseScene();
             }
@@ -199,7 +203,7 @@ namespace KerbalVR
             }
 #endif
 
-            hmdIsRunningPrev = hmdIsRunning;
+            hmdIsRunningPrev = HmdIsRunning;
         }
 
         private void DispatchOpenVREvents() {
@@ -398,7 +402,7 @@ namespace KerbalVR
         /// </summary>
         /// <returns>True if seated pose can be reset.</returns>
         public static bool CanResetSeatedPose() {
-            return hmdIsRunning && (Scene.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
+            return HmdIsRunning && (Scene.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
         }
 
         /// <summary>
