@@ -124,10 +124,6 @@ namespace KerbalVR
             MeshRenderer manipulatorRenderer = manipulator.GetComponent<MeshRenderer>();
             manipulatorRenderer.material.color = manipulatorColor;
 
-#if !DEBUG
-            manipulatorRenderer.enabled = false;
-#endif
-
             // define the collider
             Rigidbody manipulatorRigidbody = manipulator.AddComponent<Rigidbody>();
             manipulatorRigidbody.isKinematic = true;
@@ -139,6 +135,12 @@ namespace KerbalVR
             manipulatorComponent.role = role;
             manipulatorComponent.originalColor = manipulatorColor;
             manipulatorComponent.activeColor = Color.yellow;
+
+#if DEBUG
+            manipulatorRenderer.enabled = true;
+#else
+            manipulatorRenderer.enabled = false;
+#endif
 
             return manipulator;
         }

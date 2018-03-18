@@ -9,19 +9,21 @@ namespace KerbalVR
         // TODO: think about these fields
         public Color originalColor = Color.white;
         public Color activeColor = Color.black;
-        public float movementVelocity = 0.2f;
+        public float movementVelocity = 1f;
 
         public ETrackedControllerRole role;
 
         private MeshRenderer meshRenderer;
 
         void Awake() {
-            Utils.Log("Manipulator alive.");
+            // Utils.Log("Manipulator alive.");
             meshRenderer = GetComponent<MeshRenderer>();
         }
 
         void Update() {
+#if DEBUG
             meshRenderer.enabled = KerbalVR.HmdIsEnabled;
+#endif
         }
 
         public void UpdateState(SteamVR_Utils.RigidTransform pose, SteamVR_Controller.Device state) {
@@ -76,7 +78,7 @@ namespace KerbalVR
         }
 
         void OnDestroy() {
-            Utils.Log("Manipulator " + role + " is being destroyed!");
+            // Utils.Log("Manipulator " + role + " is being destroyed!");
         }
 
         void OnTriggerStay(Collider other) {
