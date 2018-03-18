@@ -25,6 +25,15 @@ namespace KerbalVR
                     (HighLogic.LoadedScene == GameScenes.EDITOR));
             }
         }
+
+#if DEBUG
+        private static readonly ApplicationLauncher.AppScenes APP_VISIBILITY = ApplicationLauncher.AppScenes.ALWAYS;
+#else
+        private static readonly ApplicationLauncher.AppScenes APP_VISIBILITY =
+            ApplicationLauncher.AppScenes.FLIGHT |
+            ApplicationLauncher.AppScenes.VAB |
+            ApplicationLauncher.AppScenes.SPH;
+#endif
         #endregion
 
         private static string BUTTON_STRING_ENABLE_VR = "Enable VR";
@@ -41,7 +50,6 @@ namespace KerbalVR
 
         private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
 
-
         /// <summary>
         /// This GameEvent is registered with GameEvents.onGUIApplicationLauncherReady,
         /// at the time the plugin is loaded. It instantiates a new button on the
@@ -50,14 +58,6 @@ namespace KerbalVR
         /// </summary>
         public void OnAppLauncherReady() {
             // define where should the app button be visible
-#if DEBUG
-            ApplicationLauncher.AppScenes appVisibility = ApplicationLauncher.AppScenes.ALWAYS;
-#else
-            ApplicationLauncher.AppScenes appVisibility =
-                ApplicationLauncher.AppScenes.FLIGHT |
-                ApplicationLauncher.AppScenes.VAB |
-                ApplicationLauncher.AppScenes.SPH;
-#endif
 
             /*
             ApplicationLauncher.AppScenes appVisibility =
@@ -75,7 +75,7 @@ namespace KerbalVR
                     OnToggleTrue,
                     OnToggleFalse,
                     null, null, null, null,
-                    appVisibility,
+                    APP_VISIBILITY,
                     GameDatabase.Instance.GetTexture(AppButtonLogo, false));
 
                 // GUI is off at instantiation
@@ -88,7 +88,7 @@ namespace KerbalVR
         }
 
         void OnShow() {
-            appButtonGuiActive = appButtonGuiActiveLastState && SceneAllowsAppGUI;
+            appButtonGuiActive = appButtonGuiActiveLastState;
         }
 
         void OnHide() {
@@ -125,7 +125,7 @@ namespace KerbalVR
         }
 
         public void OnGUI() {
-            if (appButtonGuiActive) {
+            if (SceneAllowsAppGUI && appButtonGuiActive) {
                 appGuiWindowRect = GUILayout.Window(
                     APP_GUI_ID,
                     appGuiWindowRect,
