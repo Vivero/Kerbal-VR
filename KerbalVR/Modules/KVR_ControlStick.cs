@@ -6,7 +6,7 @@ namespace KerbalVR.Modules
     {
         #region KSP Config Fields
         [KSPField]
-        public string transformSwitchColliderUp = string.Empty;
+        public string transformStickCollider = string.Empty;
         #endregion
 
         private Transform stickCollider;
@@ -14,7 +14,7 @@ namespace KerbalVR.Modules
         void Start() {
             Utils.PrintGameObjectTree(gameObject);
 
-            stickCollider = internalProp.FindModelTransform(transformSwitchColliderUp);
+            stickCollider = internalProp.FindModelTransform(transformStickCollider);
             if (stickCollider != null) {
                 Utils.Log("stickCollider " + stickCollider.GetComponent<CapsuleCollider>().bounds);
             } else {
