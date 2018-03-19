@@ -3,9 +3,9 @@
 namespace KerbalVR.Modules
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class KVR_ToggleSwitchCollider : MonoBehaviour
+    public class KVR_ControlStickCollider : MonoBehaviour
     {
-        public KVR_ToggleSwitchDouble toggleSwitchComponent;
+        public KVR_ControlStick controlStickComponent;
 
         private Rigidbody componentRigidbody;
         private Collider componentCollider;
@@ -18,15 +18,13 @@ namespace KerbalVR.Modules
             componentCollider.isTrigger = true;
         }
 
-        void OnTriggerEnter(Collider other) {
-            if (toggleSwitchComponent != null) {
-                toggleSwitchComponent.SwitchColliderEntered(gameObject);
-            }
-        }
+        /*void OnTriggerEnter(Collider other) {
+            Utils.Log("KVR_ControlStickCollider enter " + other.gameObject.name);
+        }*/
 
-        void OnTriggerExit(Collider other) {
-            if (toggleSwitchComponent != null) {
-                toggleSwitchComponent.SwitchColliderExited(gameObject);
+        void OnTriggerStay(Collider other) {
+            if (controlStickComponent != null) {
+                controlStickComponent.StickColliderStayed(gameObject);
             }
         }
     }
