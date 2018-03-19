@@ -1,43 +1,15 @@
 using System;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
 namespace KerbalVR
 {
-    class Utils
+    /// <summary>
+    /// A class to contain general utility functions.
+    /// </summary>
+    public class Utils
     {
-        public static readonly string KERBALVR_ASSETS_DIR = "KerbalVR/Assets/";
-
-        private static readonly string LOG_PREFIX = "[KerbalVR] ";
-
-        // define location of OpenVR library
-        public static string OpenVRDllPath {
-            get {
-                string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string openVrPath = Path.Combine(currentPath, "openvr");
-                return Path.Combine(openVrPath, Utils.Is64BitProcess ? "win64" : "win32");
-            }
-        }
-
-        // struct to keep track of Camera properties
-        public struct CameraData
-        {
-            public Camera camera;
-            public Matrix4x4 originalProjMatrix;
-            public Matrix4x4 hmdLeftProjMatrix;
-            public Matrix4x4 hmdRightProjMatrix;
-
-            public CameraData(Camera camera, Matrix4x4 originalProjMatrix, Matrix4x4 hmdLeftProjMatrix, Matrix4x4 hmdRightProjMatrix) {
-                this.camera = camera;
-                this.originalProjMatrix = originalProjMatrix;
-                this.hmdLeftProjMatrix = hmdLeftProjMatrix;
-                this.hmdRightProjMatrix = hmdRightProjMatrix;
-            }
-        }
-
         public static Component GetOrAddComponent<T>(GameObject obj) where T : Component {
             Component c = obj.GetComponent<T>();
             if (c == null) {
@@ -46,16 +18,16 @@ namespace KerbalVR
             return c;
         }
 
-        public static void LogInfo(object obj) {
-            Debug.Log(LOG_PREFIX + obj);
+        public static void Log(object obj) {
+            Debug.Log(Globals.LOG_PREFIX + obj);
         }
 
         public static void LogWarning(object obj) {
-            Debug.LogWarning(LOG_PREFIX + obj);
+            Debug.LogWarning(Globals.LOG_PREFIX + obj);
         }
 
         public static void LogError(object obj) {
-            Debug.LogError(LOG_PREFIX + obj);
+            Debug.LogError(Globals.LOG_PREFIX + obj);
         }
 
         public static bool Is64BitProcess {
@@ -116,75 +88,93 @@ namespace KerbalVR
             return gizmo;
         }
 
-        public static Mesh CreateHiddenAreaMesh(HiddenAreaMesh_t src, VRTextureBounds_t bounds) {
-            if (src.unTriangleCount == 0)
-                return null;
+        public static float CalculatePredictedSecondsToPhotons() {
+            float secondsSinceLastVsync = 0f;
+            ulong frameCounter = 0;
+            OpenVR.System.GetTimeSinceLastVsync(ref secondsSinceLastVsync, ref frameCounter);
 
-            var data = new float[src.unTriangleCount * 3 * 2]; //HmdVector2_t
-            Marshal.Copy(src.pVertexData, data, 0, data.Length);
+            float displayFrequency = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_DisplayFrequency_Float);
+            float vsyncToPhotons = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_SecondsFromVsyncToPhotons_Float);
+            float frameDuration = 1f / displayFrequency;
 
-            var vertices = new Vector3[src.unTriangleCount * 3 + 12];
-            var indices = new int[src.unTriangleCount * 3 + 24];
-
-            var x0 = 2.0f * bounds.uMin - 1.0f;
-            var x1 = 2.0f * bounds.uMax - 1.0f;
-            var y0 = 2.0f * bounds.vMin - 1.0f;
-            var y1 = 2.0f * bounds.vMax - 1.0f;
-
-            for (int i = 0, j = 0; i < src.unTriangleCount * 3; i++) {
-                var x = SteamVR_Utils.Lerp(x0, x1, data[j++]);
-                var y = SteamVR_Utils.Lerp(y0, y1, data[j++]);
-                vertices[i] = new Vector3(x, y, 0.0f);
-                indices[i] = i;
-            }
-
-            // Add border
-            var offset = (int)src.unTriangleCount * 3;
-            var iVert = offset;
-            vertices[iVert++] = new Vector3(-1, -1, 0);
-            vertices[iVert++] = new Vector3(x0, -1, 0);
-            vertices[iVert++] = new Vector3(-1, 1, 0);
-            vertices[iVert++] = new Vector3(x0, 1, 0);
-            vertices[iVert++] = new Vector3(x1, -1, 0);
-            vertices[iVert++] = new Vector3(1, -1, 0);
-            vertices[iVert++] = new Vector3(x1, 1, 0);
-            vertices[iVert++] = new Vector3(1, 1, 0);
-            vertices[iVert++] = new Vector3(x0, y0, 0);
-            vertices[iVert++] = new Vector3(x1, y0, 0);
-            vertices[iVert++] = new Vector3(x0, y1, 0);
-            vertices[iVert++] = new Vector3(x1, y1, 0);
-
-            var iTri = offset;
-            indices[iTri++] = offset + 0;
-            indices[iTri++] = offset + 1;
-            indices[iTri++] = offset + 2;
-            indices[iTri++] = offset + 2;
-            indices[iTri++] = offset + 1;
-            indices[iTri++] = offset + 3;
-            indices[iTri++] = offset + 4;
-            indices[iTri++] = offset + 5;
-            indices[iTri++] = offset + 6;
-            indices[iTri++] = offset + 6;
-            indices[iTri++] = offset + 5;
-            indices[iTri++] = offset + 7;
-            indices[iTri++] = offset + 1;
-            indices[iTri++] = offset + 4;
-            indices[iTri++] = offset + 8;
-            indices[iTri++] = offset + 8;
-            indices[iTri++] = offset + 4;
-            indices[iTri++] = offset + 9;
-            indices[iTri++] = offset + 10;
-            indices[iTri++] = offset + 11;
-            indices[iTri++] = offset + 3;
-            indices[iTri++] = offset + 3;
-            indices[iTri++] = offset + 11;
-            indices[iTri++] = offset + 6;
-
-            var mesh = new Mesh();
-            mesh.vertices = vertices;
-            mesh.triangles = indices;
-            mesh.bounds = new Bounds(Vector3.zero, new Vector3(float.MaxValue, float.MaxValue, float.MaxValue)); // Prevent frustum culling from culling this mesh
-            return mesh;
+            return frameDuration - secondsSinceLastVsync + vsyncToPhotons;
         }
-    }
-}
+
+        public static float GetFloatTrackedDeviceProperty(ETrackedDeviceProperty property, uint device = OpenVR.k_unTrackedDeviceIndex_Hmd) {
+            ETrackedPropertyError propertyError = ETrackedPropertyError.TrackedProp_Success;
+            float value = OpenVR.System.GetFloatTrackedDeviceProperty(device, property, ref propertyError);
+            if (propertyError != ETrackedPropertyError.TrackedProp_Success) {
+                throw new Exception("Failed to obtain tracked device property \"" +
+                    property + "\", error: (" + (int)propertyError + ") " + propertyError.ToString());
+            }
+            return value;
+        }
+
+        public static void PrintAllCameras() {
+            Utils.Log("Scene: " + HighLogic.LoadedScene);
+            for (int i = 0; i < Camera.allCamerasCount; i++) {
+                string logMsg = "Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth + ", mask = [";
+                int[] cullingMaskLayers = Int32MaskToArray(Camera.allCameras[i].cullingMask);
+                string[] cullingMaskLayersStr = new string[cullingMaskLayers.Length];
+                for (int j = 0; j < cullingMaskLayers.Length; j++) {
+                    cullingMaskLayersStr[j] = cullingMaskLayers[j].ToString();
+                }
+                logMsg += String.Join(",", cullingMaskLayersStr);
+                logMsg += "], clip = (" + Camera.allCameras[i].nearClipPlane.ToString("F3");
+                logMsg += "," + Camera.allCameras[i].farClipPlane.ToString("F3") + ")";
+                Utils.Log(logMsg);
+            }
+        }
+
+        public static void PrintGameObject(GameObject go) {
+            Log("GameObject: " + go.name + " (layer: " + go.layer + ")");
+            Component[] components = go.GetComponents<Component>();
+            for (int i = 0; i < components.Length; i++) {
+                Log("Component: " + components[i].ToString());
+            }
+        }
+
+        public static void PrintGameObjectTree(GameObject go) {
+            PrintGameObject(go);
+            for (int i = 0; i < go.transform.childCount; i++) {
+                Log(go.name + " child " + i);
+                PrintGameObjectTree(go.transform.GetChild(i).gameObject);
+            }
+        }
+
+        public static void PrintDebug() {
+            GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
+
+            foreach (GameObject GO in allObjects) {
+                if (GO.activeInHierarchy) {
+                    Collider GO_coll = GO.GetComponent<Collider>();
+
+                    if (GO_coll != null) {
+                        Utils.Log("GO.name = " + GO.name);
+                        Utils.Log("GO.layer = " + GO.layer);
+                        Utils.Log("GO.collider = " + GO_coll);
+                    }
+                }
+                
+            }
+        }
+
+        public static void PrintAllLayers() {
+            for (int i = 0; i < 32; i++) {
+                Utils.Log("Layer " + i + ": " + LayerMask.LayerToName(i));
+            }
+        }
+
+        public static int[] Int32MaskToArray(int mask) {
+            List<int> maskBits = new List<int>(32);
+            for (int i = 0; i < 32; i++) {
+                int checkMask = 1 << i;
+                if ((mask & checkMask) > 0) {
+                    maskBits.Add(i);
+                }
+            }
+            return maskBits.ToArray();
+        }
+
+    } // class Utils
+} // namespace KerbalVR

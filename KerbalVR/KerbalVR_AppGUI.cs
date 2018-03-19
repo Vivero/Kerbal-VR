@@ -4,15 +4,37 @@ using System.Text.RegularExpressions;
 
 namespace KerbalVR
 {
-    public class KerbalVR_GUI
+    public class AppGUI
     {
-        // CONSTANTS
-        //
+        #region Constants
         public static string AppButtonLogo {
             get {
-                return Utils.KERBALVR_ASSETS_DIR + "app_button_logo";
+                return Globals.KERBALVR_ASSETS_DIR + "app_button_logo";
             }
         }
+
+        public static bool SceneAllowsAppGUI {
+            get {
+                return (
+#if DEBUG
+                    (HighLogic.LoadedScene == GameScenes.MAINMENU) ||
+                    (HighLogic.LoadedScene == GameScenes.SPACECENTER) ||
+                    (HighLogic.LoadedScene == GameScenes.TRACKSTATION) ||
+#endif
+                    (HighLogic.LoadedScene == GameScenes.FLIGHT) ||
+                    (HighLogic.LoadedScene == GameScenes.EDITOR));
+            }
+        }
+
+#if DEBUG
+        private static readonly ApplicationLauncher.AppScenes APP_VISIBILITY = ApplicationLauncher.AppScenes.ALWAYS;
+#else
+        private static readonly ApplicationLauncher.AppScenes APP_VISIBILITY =
+            ApplicationLauncher.AppScenes.FLIGHT |
+            ApplicationLauncher.AppScenes.VAB |
+            ApplicationLauncher.AppScenes.SPH;
+#endif
+        #endregion
 
         private static string BUTTON_STRING_ENABLE_VR = "Enable VR";
         private static string BUTTON_STRING_DISABLE_VR = "Disable VR";
@@ -22,26 +44,22 @@ namespace KerbalVR
 
         private static readonly int APP_GUI_ID = 186012;
 
-        // store the interface to the KerbalVR plugin
-        private KerbalVR_Plugin kerbalVr;
-
         private ApplicationLauncherButton appButton;
         private bool appButtonGuiActive = false;
+        private bool appButtonGuiActiveLastState = false;
 
         private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
-
-
-        public KerbalVR_GUI(KerbalVR_Plugin kerbalVr) {
-            this.kerbalVr = kerbalVr;
-        }
 
         /// <summary>
         /// This GameEvent is registered with GameEvents.onGUIApplicationLauncherReady,
         /// at the time the plugin is loaded. It instantiates a new button on the
-        /// application launcher.
+        /// application launcher. Note that this callback can be called multiple times
+        /// throughout the game.
         /// </summary>
         public void OnAppLauncherReady() {
             // define where should the app button be visible
+
+            /*
             ApplicationLauncher.AppScenes appVisibility =
                 ApplicationLauncher.AppScenes.SPACECENTER |
                 ApplicationLauncher.AppScenes.FLIGHT |
@@ -49,19 +67,32 @@ namespace KerbalVR
                 ApplicationLauncher.AppScenes.VAB |
                 ApplicationLauncher.AppScenes.SPH |
                 ApplicationLauncher.AppScenes.TRACKSTATION;
-            
-            // create new app button instance
-            if (HighLogic.LoadedScene == GameScenes.SPACECENTER &&
-                appButton == null) {
+            */
+
+            // create new app button instance if it doesn't already exist
+            if (appButton == null) {
                 appButton = ApplicationLauncher.Instance.AddModApplication(
                     OnToggleTrue,
                     OnToggleFalse,
                     null, null, null, null,
-                    appVisibility,
+                    APP_VISIBILITY,
                     GameDatabase.Instance.GetTexture(AppButtonLogo, false));
-            }
 
-            // GUI is off at instantiation
+                // GUI is off at instantiation
+                appButtonGuiActive = false;
+
+                // register callbacks when AppLauncher shows/hides (i.e. during loading screens)
+                ApplicationLauncher.Instance.AddOnShowCallback(OnShow);
+                ApplicationLauncher.Instance.AddOnHideCallback(OnHide);
+            }
+        }
+
+        void OnShow() {
+            appButtonGuiActive = appButtonGuiActiveLastState;
+        }
+
+        void OnHide() {
+            appButtonGuiActiveLastState = appButtonGuiActive;
             appButtonGuiActive = false;
         }
 
@@ -72,7 +103,10 @@ namespace KerbalVR
         /// </summary>
         public void OnAppLauncherDestroyed() {
             if (appButton != null) {
+                OnToggleFalse();
                 ApplicationLauncher.Instance.RemoveApplication(appButton);
+                ApplicationLauncher.Instance.RemoveOnShowCallback(OnShow);
+                ApplicationLauncher.Instance.RemoveOnHideCallback(OnHide);
             }
         }
 
@@ -91,12 +125,12 @@ namespace KerbalVR
         }
 
         public void OnGUI() {
-            if (appButtonGuiActive) {
+            if (SceneAllowsAppGUI && appButtonGuiActive) {
                 appGuiWindowRect = GUILayout.Window(
                     APP_GUI_ID,
                     appGuiWindowRect,
                     GenerateGUI,
-                    "KerbalVR",
+                    Globals.KERBALVR_NAME,
                     HighLogic.Skin.window);
             }
         }
@@ -107,7 +141,7 @@ namespace KerbalVR
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
-            if (kerbalVr.HmdIsEnabled) {
+            if (KerbalVR.HmdIsRunning) {
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
@@ -116,19 +150,21 @@ namespace KerbalVR
             GUILayout.BeginVertical();
 
             // VR toggle button
-            GUI.enabled = kerbalVr.HmdIsAllowed;
+            UnityEngine.GUI.enabled = Scene.SceneAllowsVR();
             if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
-                if (kerbalVr.HmdIsEnabled) {
-                    kerbalVr.HmdIsEnabled = false;
+                if (KerbalVR.HmdIsEnabled) {
+                    KerbalVR.HmdIsEnabled = false;
                 } else {
-                    kerbalVr.HmdIsEnabled = true;
+                    KerbalVR.HmdIsEnabled = true;
                 }
             }
 
-            if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
-                kerbalVr.ResetInitialHmdPosition();
+            if (KerbalVR.CanResetSeatedPose()) {
+                if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
+                    KerbalVR.ResetInitialHmdPosition();
+                }
             }
-            GUI.enabled = true;
+            UnityEngine.GUI.enabled = true;
 
             // VR status
             GUILayout.BeginHorizontal();
@@ -146,7 +182,7 @@ namespace KerbalVR
             GUILayout.EndVertical();
 
             // allow dragging the window
-            GUI.DragWindow();
+            UnityEngine.GUI.DragWindow();
         }
     }
 }
