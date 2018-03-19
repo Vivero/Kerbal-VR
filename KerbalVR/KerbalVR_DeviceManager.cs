@@ -6,18 +6,25 @@ namespace KerbalVR
     public class DeviceManager : MonoBehaviour
     {
         #region Properties
-        // Manipulator Game Objects
-        public GameObject ManipulatorLeft { get; private set; }
-        public GameObject ManipulatorRight { get; private set; }
+        // Manipulator objects
+        public Manipulator ManipulatorLeft { get; private set; }
+        public Manipulator ManipulatorRight { get; private set; }
 
         // keep aliases of controller indices
         public uint ControllerIndexLeft { get; private set; }
         public uint ControllerIndexRight { get; private set; }
         #endregion
 
+
+        #region Private Members
         // keep track of devices that are connected
         private bool[] isDeviceConnected = new bool[OpenVR.k_unMaxTrackedDeviceCount];
-        
+
+        // Manipulator Game Objects
+        private GameObject manipulatorLeft;
+        private GameObject manipulatorRight;
+        #endregion
+
 
         #region Singleton
         // this is a singleton class, and there must be one EventManager in the scene
@@ -79,7 +86,7 @@ namespace KerbalVR
                 SteamVR_Controller.Device controllerState = 
                     SteamVR_Controller.Input((int)ControllerIndexLeft);
 
-                ManipulatorLeft.GetComponent<Manipulator>().UpdateState(controllerPose, controllerState);
+                ManipulatorLeft.UpdateState(controllerPose, controllerState);
             }
 
             if (DeviceIndexIsValid(ControllerIndexRight)) {
@@ -88,7 +95,7 @@ namespace KerbalVR
                 SteamVR_Controller.Device controllerState =
                     SteamVR_Controller.Input((int)ControllerIndexRight);
                 
-                ManipulatorRight.GetComponent<Manipulator>().UpdateState(controllerPose, controllerState);
+                ManipulatorRight.UpdateState(controllerPose, controllerState);
             }
         }
 
@@ -146,16 +153,18 @@ namespace KerbalVR
         }
 
         private void ManageManipulators() {
-            if (DeviceIndexIsValid(ControllerIndexLeft) && ManipulatorLeft == null) {
-                ManipulatorLeft = CreateManipulator(ETrackedControllerRole.LeftHand);
-            } else if (!DeviceIndexIsValid(ControllerIndexLeft) && ManipulatorLeft != null) {
-                Destroy(ManipulatorLeft);
+            if (DeviceIndexIsValid(ControllerIndexLeft) && manipulatorLeft == null) {
+                manipulatorLeft = CreateManipulator(ETrackedControllerRole.LeftHand);
+                ManipulatorLeft = manipulatorLeft.GetComponent<Manipulator>();
+            } else if (!DeviceIndexIsValid(ControllerIndexLeft) && manipulatorLeft != null) {
+                Destroy(manipulatorLeft);
             }
 
-            if (DeviceIndexIsValid(ControllerIndexRight) && ManipulatorRight == null) {
-                ManipulatorRight = CreateManipulator(ETrackedControllerRole.RightHand);
-            } else if (!DeviceIndexIsValid(ControllerIndexRight) && ManipulatorRight != null) {
-                Destroy(ManipulatorRight);
+            if (DeviceIndexIsValid(ControllerIndexRight) && manipulatorRight == null) {
+                manipulatorRight = CreateManipulator(ETrackedControllerRole.RightHand);
+                ManipulatorRight = manipulatorRight.GetComponent<Manipulator>();
+            } else if (!DeviceIndexIsValid(ControllerIndexRight) && manipulatorRight != null) {
+                Destroy(manipulatorRight);
             }
         }
     }

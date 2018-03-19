@@ -6,6 +6,8 @@ namespace KerbalVR
 {
     public class Manipulator : MonoBehaviour
     {
+        public SteamVR_Controller.Device State { get; private set; }
+
         // TODO: think about these fields
         public Color originalColor = Color.white;
         public Color activeColor = Color.black;
@@ -27,6 +29,8 @@ namespace KerbalVR
         }
 
         public void UpdateState(SteamVR_Utils.RigidTransform pose, SteamVR_Controller.Device state) {
+            State = state;
+
             // position the controller object
             transform.position = Scene.DevicePoseToWorld(pose.pos);
             transform.rotation = Scene.DevicePoseToWorld(pose.rot);
