@@ -48,6 +48,20 @@ namespace KerbalVR.Modules
         public string transformSwitchColliderUp = string.Empty;
         [KSPField]
         public string transformSwitchColliderDown = string.Empty;
+        [KSPField]
+        public string labelMainText = string.Empty;
+        [KSPField]
+        public Vector3 labelMainOffset = Vector3.zero;
+        [KSPField]
+        public string labelUpText = string.Empty;
+        [KSPField]
+        public Vector3 labelUpOffset = Vector3.zero;
+        [KSPField]
+        public string labelDownText = string.Empty;
+        [KSPField]
+        public Vector3 labelDownOffset = Vector3.zero;
+        [KSPField]
+        public string coloredObject = string.Empty;
         #endregion
 
         #region Properties
@@ -61,6 +75,8 @@ namespace KerbalVR.Modules
         private GameObject switchDownGameObject;
         private SwitchFSMState switchFSMState;
         private float targetAnimationEndTime;
+
+        private GameObject coloredGameObject;
         #endregion
 
         /// <summary>
@@ -101,6 +117,20 @@ namespace KerbalVR.Modules
             targetAnimationEndTime = 0f;
             switchFSMState = SwitchFSMState.IsDown;
             SetState(SwitchState.Down);
+
+            // create labels
+            CreateLabels();
+
+            // special effects
+            Transform coloredObjectTransform = internalProp.FindModelTransform(coloredObject);
+            if (coloredObjectTransform != null) {
+                coloredGameObject = coloredObjectTransform.gameObject;
+                MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
+                Material rmat = r.sharedMaterial;
+                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.red);
+            }
+
+            Utils.PrintGameObjectTree(internalProp.gameObject);
         }
 
         void Update() {
@@ -211,6 +241,50 @@ namespace KerbalVR.Modules
                     break;
             }
             return targetTime;
+        }
+
+        private void CreateLabels() {
+            GameObject labelMainGameObject = CreateLabel(
+                "labelMain",
+                labelMainText,
+                0.2f, new Vector3(0f, 0f, -0.05f) + labelMainOffset,
+                TMPro.FontStyles.Bold);
+
+            GameObject labelUpGameObject = CreateLabel(
+                "labelUp",
+                labelUpText,
+                0.1f, new Vector3(0f, 0f, -0.035f) + labelUpOffset);
+
+            GameObject labelDownGameObject = CreateLabel(
+                "labelDown",
+                labelDownText,
+                0.1f, new Vector3(0f, 0f, 0.035f) + labelDownOffset);
+        }
+
+        private GameObject CreateLabel(
+            string name,
+            string text,
+            float fontSize,
+            Vector3 offset,
+            TMPro.FontStyles fontStyle = TMPro.FontStyles.Normal) {
+
+            Utils.Log(name + ": " + text + ", " + offset.ToString("F4"));
+
+            GameObject labelGameObject = new GameObject(internalProp.name + " " + name);
+            labelGameObject.layer = 20;
+            labelGameObject.transform.SetParent(internalProp.transform);
+
+            TMPro.TextMeshPro tmpLabel = labelGameObject.AddComponent<TMPro.TextMeshPro>();
+            tmpLabel.SetText(text);
+            tmpLabel.fontSize = fontSize;
+            tmpLabel.alignment = TMPro.TextAlignmentOptions.Center;
+            tmpLabel.fontStyle = fontStyle;
+
+            tmpLabel.rectTransform.localPosition = offset;
+            tmpLabel.rectTransform.localRotation = Quaternion.Euler(90f, 0f, 180f);
+            tmpLabel.rectTransform.sizeDelta = new Vector2(0.2f, 0.2f);
+            
+            return labelGameObject;
         }
     }
 }
