@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using Valve.VR;
 
 namespace KerbalVR.Modules
@@ -31,7 +32,7 @@ namespace KerbalVR.Modules
         private bool isCommandingControl; // stick is allowed to control the vessel
 
         void Start() {
-            // Utils.PrintGameObjectTree(gameObject);
+            // init variables
             StickAxisX = 0f;
             StickAxisY = 0f;
 

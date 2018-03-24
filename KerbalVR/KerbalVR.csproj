@@ -33,19 +33,36 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>ksp_lib\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ksp_lib\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="TextMeshPro-2017.1-1.0.56-Editor">
+      <HintPath>Plugins\TextMeshPro-2017.1-1.0.56-Editor.dll</HintPath>
+      <Aliases>TMPVendor</Aliases>
+    </Reference>
+    <Reference Include="TextMeshPro-2017.1-1.0.56-Runtime">
+      <HintPath>Plugins\TextMeshPro-2017.1-1.0.56-Runtime.dll</HintPath>
+      <Aliases>TMPVendor</Aliases>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>ksp_lib\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ksp_lib\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="KerbalVR.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
+    <Compile Include="KerbalVR_AssetLoader.cs" />
     <Compile Include="KerbalVR_DeviceManager.cs" />
     <Compile Include="KerbalVR_Globals.cs" />
     <Compile Include="KerbalVR_Manipulator.cs" />

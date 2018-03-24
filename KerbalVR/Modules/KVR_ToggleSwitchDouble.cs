@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿extern alias TMPVendor;
+
+using System;
 using UnityEngine;
 
 namespace KerbalVR.Modules
@@ -101,6 +103,40 @@ namespace KerbalVR.Modules
             targetAnimationEndTime = 0f;
             switchFSMState = SwitchFSMState.IsDown;
             SetState(SwitchState.Down);
+
+            // textmeshpro
+            GameObject labelGameObject = new GameObject("Label");
+            labelGameObject.layer = 20;
+            labelGameObject.transform.SetParent(internalProp.transform);
+            Utils.Log("go created");
+            
+            TMPro.TextMeshPro tmpLabel = labelGameObject.AddComponent<TMPro.TextMeshPro>();
+            Utils.Log("tmpro added");
+
+            TMPro.TMP_FontAsset newFont = Globals.Instance.GetFont("Product_Sans_Regular");
+            TMPro.TMP_FontAsset backupFont = tmpLabel.font;
+            try {
+                tmpLabel.font = newFont;
+            } catch (Exception e) {
+                Utils.LogError(e.ToString());
+                tmpLabel.font = backupFont;
+            }
+            
+            Utils.Log("font set");
+
+            tmpLabel.SetText("Hello Google");
+            tmpLabel.fontSize = 0.2f;
+            tmpLabel.alignment = TMPro.TextAlignmentOptions.Center;
+            tmpLabel.rectTransform.localPosition = new Vector3(0f, 0.02f, -0.05f);
+            tmpLabel.rectTransform.localRotation = Quaternion.Euler(90f, 0f, 180f);
+            // tmpLabel.rectTransform.localRotation = Quaternion.identity;
+            tmpLabel.rectTransform.sizeDelta = new Vector2(0.1f, 0.02f);
+
+            Utils.Log("label created");
+
+            GameObject tmpGizmo = Utils.CreateGizmoAtPosition(labelGameObject.transform);
+            tmpGizmo.transform.localScale = Vector3.one * 0.1f;
+            Utils.PrintGameObjectTree(labelGameObject);
         }
 
         void Update() {

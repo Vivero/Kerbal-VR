@@ -87,6 +87,11 @@ namespace KerbalVR
             DeviceManager deviceManagerComponent = DeviceManager.Instance; // init the singleton
             DontDestroyOnLoad(deviceManager);
 
+            GameObject globals = new GameObject("VR_Globals");
+            deviceManager.AddComponent<Globals>();
+            Globals globalsComponent = Globals.Instance; // init the singleton
+            DontDestroyOnLoad(globalsComponent);
+
             // add an event triggered when game scene changes, to handle
             // shutting off the HMD outside of Flight scene
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
