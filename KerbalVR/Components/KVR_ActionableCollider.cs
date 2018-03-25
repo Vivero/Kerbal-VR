@@ -38,11 +38,11 @@ namespace KerbalVR.Components
             }
         }
 
-        void OnTriggerStay(Collider other) {
+        /*void OnTriggerStay(Collider other) {
             if (module != null) {
                 module.OnColliderStayed(componentCollider, other);
             }
-        }
+        }*/
 
         void OnTriggerExit(Collider other) {
             if (module != null) {

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using Valve.VR;
 using KerbalVR.Components;
 
@@ -28,8 +29,14 @@ namespace KerbalVR.Modules
 
         private Transform stickColliderTransform;
         private GameObject stickColliderGameObject;
+
+        private bool isManipulatorInsideStickCollider;
         private bool isUnderControl; // stick is being operated by manipulator
         private bool isCommandingControl; // stick is allowed to control the vessel
+
+        // implement a button de-bounce
+        private bool isInteractable = true;
+        private float buttonCooldownTime = 0.3f;
 
         void Start() {
             // Utils.PrintGameObjectTree(gameObject);
@@ -58,6 +65,7 @@ namespace KerbalVR.Modules
             // define the active vessel to control
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
 
+            isManipulatorInsideStickCollider = false;
             isUnderControl = false;
             isCommandingControl = false;
         }
@@ -66,7 +74,36 @@ namespace KerbalVR.Modules
             FlightGlobals.ActiveVessel.OnFlyByWire -= VesselControl;
         }
 
+        void OnEnable() {
+            SteamVR_Events.NewPoses.Listen(OnDevicePosesReady);
+        }
+
+        void OnDisable() {
+            SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
+        }
+
+        private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
+            // detect when the Grip button has been pressed (this "grabs" the stick)
+            if (isInteractable &&
+                DeviceManager.Instance.ManipulatorRight != null &&
+                DeviceManager.Instance.ManipulatorRight.State.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+
+                if (isManipulatorInsideStickCollider && !isUnderControl) {
+                    isUnderControl = true;
+
+                    // cool-down for button de-bounce
+                    isInteractable = false;
+                    StartCoroutine(ButtonCooldown());
+
+                } else if (isUnderControl) {
+                    isUnderControl = false;
+                }
+
+            }
+        }
+
         void Update() {
+            // keep track if we're actually sending commands
             isCommandingControl = false;
 
             if (isUnderControl) {
@@ -106,15 +143,6 @@ namespace KerbalVR.Modules
                     StickAxisY = yAngle / stickAxisMaxY;
                 }
 
-#if DEBUG
-                if (DeviceManager.Instance.ManipulatorRight.State.GetPressDown(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                    Utils.Log("Delta Pos = " + stickToManipulatorDeltaPos.ToString("F3"));
-                    Utils.Log("xAngle = " + xAngle.ToString("F3"));
-                    Utils.Log("yAngle = " + yAngle.ToString("F3"));
-                }
-#endif
-
-
             } else {
                 stickTransformGameObject.transform.rotation = stickInitialRotation;
                 StickAxisX = 0f;
@@ -122,31 +150,40 @@ namespace KerbalVR.Modules
             }
         }
 
-        private void UpdateStick() {
-            // detect when the Grip button has been pressed (this "grabs" the stick)
-            if (DeviceManager.Instance.ManipulatorRight != null &&
-                DeviceManager.Instance.ManipulatorRight.State.GetPressDown(EVRButtonId.k_EButton_Grip)) {
-                Utils.Log("GRIP while inside stick collider!");
+        public void OnColliderEntered(Collider thisObject, Collider otherObject) {
+            if (thisObject.gameObject == stickColliderGameObject &&
+                ((DeviceManager.Instance.ManipulatorRight != null &&
+                otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject) ||
+                (DeviceManager.Instance.ManipulatorLeft != null &&
+                otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject))) {
 
-                isUnderControl = !isUnderControl;
+                isManipulatorInsideStickCollider = true;
             }
         }
 
-        public void OnColliderEntered(Collider thisObject, Collider otherObject) { }
+        // public void OnColliderStayed(Collider thisObject, Collider otherObject) { }
 
-        public void OnColliderStayed(Collider thisObject, Collider otherObject) {
-            if (thisObject.gameObject == stickColliderGameObject) {
-                UpdateStick();
+        public void OnColliderExited(Collider thisObject, Collider otherObject) {
+            if (thisObject.gameObject == stickColliderGameObject &&
+                ((DeviceManager.Instance.ManipulatorRight != null &&
+                otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject) ||
+                (DeviceManager.Instance.ManipulatorLeft != null &&
+                otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject))) {
+
+                isManipulatorInsideStickCollider = false;
             }
         }
-
-        public void OnColliderExited(Collider thisObject, Collider otherObject) { }
 
         private void VesselControl(FlightCtrlState state) {
             if (isCommandingControl) {
                 state.yaw = StickAxisX * 0.3f;
                 state.pitch = -StickAxisY * 0.3f;
             }
+        }
+
+        private IEnumerator ButtonCooldown() {
+            yield return new WaitForSeconds(buttonCooldownTime);
+            isInteractable = true;
         }
     }
 }
