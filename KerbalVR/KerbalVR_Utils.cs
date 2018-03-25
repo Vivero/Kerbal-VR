@@ -135,16 +135,32 @@ namespace KerbalVR
         public static void PrintAllCameras() {
             Utils.Log("Scene: " + HighLogic.LoadedScene);
             for (int i = 0; i < Camera.allCamerasCount; i++) {
-                string logMsg = "Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth + ", mask = [";
+                Camera cam = Camera.allCameras[i];
+                Utils.Log("Camera: " + cam.name);
+                Utils.Log("* clearFlags: " + cam.clearFlags);
+                Utils.Log("* backgroundColor: " + cam.backgroundColor);
+
+                string maskString = "[";
                 int[] cullingMaskLayers = Int32MaskToArray(Camera.allCameras[i].cullingMask);
                 string[] cullingMaskLayersStr = new string[cullingMaskLayers.Length];
                 for (int j = 0; j < cullingMaskLayers.Length; j++) {
                     cullingMaskLayersStr[j] = cullingMaskLayers[j].ToString();
                 }
-                logMsg += String.Join(",", cullingMaskLayersStr);
-                logMsg += "], clip = (" + Camera.allCameras[i].nearClipPlane.ToString("F3");
-                logMsg += "," + Camera.allCameras[i].farClipPlane.ToString("F3") + ")";
-                Utils.Log(logMsg);
+                maskString += String.Join(",", cullingMaskLayersStr);
+                maskString += "]";
+
+                Utils.Log("* cullingMask: " + maskString);
+                Utils.Log("* orthographic? " + cam.orthographic);
+                Utils.Log("* fieldOfView: " + cam.fieldOfView.ToString("F3"));
+                Utils.Log("* nearClipPlane: " + cam.nearClipPlane.ToString("F3"));
+                Utils.Log("* farClipPlane: " + cam.farClipPlane.ToString("F3"));
+                Utils.Log("* rect: " + cam.rect.ToString("F3"));
+                Utils.Log("* depth: " + cam.depth.ToString("F1"));
+                Utils.Log("* renderingPath: " + cam.renderingPath);
+                Utils.Log("* useOcclusionCulling? " + cam.useOcclusionCulling);
+                Utils.Log("* allowHDR? " + cam.allowHDR);
+                Utils.Log("* allowMSAA? " + cam.allowMSAA);
+                Utils.Log("* depthTextureMode: " + cam.depthTextureMode);
             }
         }
 
