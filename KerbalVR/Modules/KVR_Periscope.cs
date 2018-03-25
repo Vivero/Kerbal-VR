@@ -21,25 +21,34 @@ namespace KerbalVR.Modules
         private Quaternion cameraRot = Quaternion.Euler(270f, 90f, 270f);
         private GameObject crosshair1;
 
-        void Awake() {
+        void Start() {
             // create a camera
             scopeCameraGameObject = new GameObject(gameObject.name + " PeriscopeCamera");
             scopeCamera = scopeCameraGameObject.AddComponent<KVR_ExternalCamera>();
+
+            Utils.Log("stuck1");
 
             // obtain the viewfinder
             viewfinderTransform = internalProp.FindModelTransform(transformViewfinder);
             if (viewfinderTransform != null) {
                 viewfinderGameObject = viewfinderTransform.gameObject;
+                Utils.Log("stuck2");
                 MeshRenderer viewfinderMeshRenderer = viewfinderGameObject.GetComponent<MeshRenderer>();
-
+                Utils.Log("stuck3");
+                
                 Material viewfinderMaterial = new Material(Shader.Find("KSP/Unlit"));
+                Utils.Log("stuck4");
                 viewfinderMaterial.mainTexture = scopeCamera.CameraRenderTexture;
+                Utils.Log("stuck5");
 
                 viewfinderMeshRenderer.sharedMaterial = viewfinderMaterial;
+                Utils.Log("stuck6");
             } else {
                 Utils.LogWarning("KVR_Periscope (" + gameObject.name + ") has no viewfinder \"" + transformViewfinder + "\"");
             }
-            
+
+            Utils.Log("stuck7");
+
             // DEBUG
             crosshair1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Destroy(crosshair1.GetComponent<BoxCollider>());
