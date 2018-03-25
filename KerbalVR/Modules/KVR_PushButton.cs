@@ -56,17 +56,13 @@ namespace KerbalVR.Modules
         [KSPField]
         public string transformButtonCollider = string.Empty;
         [KSPField]
-        public string labelMainText = string.Empty;
+        public string labelTopCoverText = string.Empty;
         [KSPField]
-        public Vector3 labelMainOffset = Vector3.zero;
+        public string labelTopCoverTransform = string.Empty;
         [KSPField]
         public string labelUpText = string.Empty;
         [KSPField]
-        public Vector3 labelUpOffset = Vector3.zero;
-        [KSPField]
         public string labelDownText = string.Empty;
-        [KSPField]
-        public Vector3 labelDownOffset = Vector3.zero;
         [KSPField]
         public string coloredObject = string.Empty;
         #endregion
@@ -77,6 +73,8 @@ namespace KerbalVR.Modules
         #endregion
 
         #region Private Members
+        private ConfigNode moduleConfigNode;
+
         private Animation coverAnimation;
         private AnimationState coverAnimationState;
         private GameObject coverGameObject;
@@ -156,7 +154,7 @@ namespace KerbalVR.Modules
             GoToButtonState(ButtonState.Unpressed);
 
             // create labels
-            //CreateLabels(); // TODO
+            CreateLabels();
         }
 
         public override void OnUpdate() {
@@ -366,21 +364,18 @@ namespace KerbalVR.Modules
         }
 
         private void CreateLabels() {
-            GameObject labelMainGameObject = CreateLabel(
-                "labelMain",
-                labelMainText,
-                0.2f, new Vector3(0f, 0f, -0.05f) + labelMainOffset,
+
+            moduleConfigNode = ConfigUtils.GetModuleConfigNode(internalProp.name, moduleID);
+            string[] testVals = moduleConfigNode.GetValues("oneValue");
+            Utils.Log("testVals size " + testVals.Length);
+            for (int i = 0; i < testVals.Length; i++) Utils.Log("testVals " + i + " : " + testVals[i]);
+
+            Transform labelTopCoverTransform = internalProp.FindModelTransform(this.labelTopCoverTransform);
+            GameObject labelTopCoverGameObject = CreateLabel(
+                "labelTopCover",
+                labelTopCoverText,
+                0.2f, labelTopCoverTransform.localPosition,
                 TMPro.FontStyles.Bold);
-
-            GameObject labelUpGameObject = CreateLabel(
-                "labelUp",
-                labelUpText,
-                0.1f, new Vector3(0f, 0f, -0.035f) + labelUpOffset);
-
-            GameObject labelDownGameObject = CreateLabel(
-                "labelDown",
-                labelDownText,
-                0.1f, new Vector3(0f, 0f, 0.035f) + labelDownOffset);
         }
 
         private GameObject CreateLabel(
