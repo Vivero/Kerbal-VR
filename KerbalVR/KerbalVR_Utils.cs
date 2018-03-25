@@ -88,6 +88,28 @@ namespace KerbalVR
             return gizmo;
         }
 
+        public static GameObject CreateGizmoBox(Vector3 position, Vector3 size) {
+            GameObject gizmo = new GameObject("gizmo");
+
+            GameObject gizmoPivot0 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            UnityEngine.Object.Destroy(gizmoPivot0.GetComponent<SphereCollider>());
+            gizmoPivot0.transform.SetParent(gizmo.transform);
+            gizmoPivot0.transform.localScale = Vector3.one * .05f;
+            gizmoPivot0.transform.localPosition = position + size;
+            gizmoPivot0.GetComponent<MeshRenderer>().material.color = Color.gray;
+            gizmoPivot0.layer = 20;
+
+            GameObject gizmoPivot1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            UnityEngine.Object.Destroy(gizmoPivot0.GetComponent<SphereCollider>());
+            gizmoPivot0.transform.SetParent(gizmo.transform);
+            gizmoPivot0.transform.localScale = Vector3.one * .005f;
+            gizmoPivot0.transform.localPosition = position - size;
+            gizmoPivot0.GetComponent<MeshRenderer>().material.color = Color.gray;
+            gizmoPivot0.layer = 20;
+
+            return gizmo;
+        }
+
         public static float CalculatePredictedSecondsToPhotons() {
             float secondsSinceLastVsync = 0f;
             ulong frameCounter = 0;
