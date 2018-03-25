@@ -117,4 +117,7 @@ copy /Y "$(SolutionDir)\LICENSE-steamvr" "$(TargetDir)\rel\"
 copy /Y "$(SolutionDir)\LICENSE" "$(TargetDir)\rel\"
 copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"</PostBuildEvent>
   </PropertyGroup>
+  <Target Name="AfterClean">
+    <RemoveDir Directories="$(TargetDir)\rel" />
+  </Target>
 </Project>
