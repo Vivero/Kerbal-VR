@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using KerbalVR.Components;
 
 namespace KerbalVR.Modules
 {
@@ -19,7 +19,7 @@ namespace KerbalVR.Modules
     /// 
     /// This captures the gesture of swiping up/down to flip the switch.
     /// </summary>
-    public class KVR_ToggleSwitchDouble : InternalModule {
+    public class KVR_ToggleSwitchDouble : InternalModule, IActionableCollider {
         #region Types
         public enum SwitchState {
             Up,
@@ -100,7 +100,7 @@ namespace KerbalVR.Modules
             Transform switchTransform = internalProp.FindModelTransform(transformSwitchColliderUp);
             if (switchTransform != null) {
                 switchUpGameObject = switchTransform.gameObject;
-                switchUpGameObject.AddComponent<KVR_ToggleSwitchCollider>().toggleSwitchComponent = this;
+                switchUpGameObject.AddComponent<KVR_ActionableCollider>().module = this;
             } else {
                 Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchColliderUp + "\"");
             }
@@ -108,7 +108,7 @@ namespace KerbalVR.Modules
             switchTransform = internalProp.FindModelTransform(transformSwitchColliderDown);
             if (switchTransform != null) {
                 switchDownGameObject = switchTransform.gameObject;
-                switchDownGameObject.AddComponent<KVR_ToggleSwitchCollider>().toggleSwitchComponent = this;
+                switchDownGameObject.AddComponent<KVR_ActionableCollider>().module = this;
             } else {
                 Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchColliderDown + "\"");
             }
@@ -177,18 +177,20 @@ namespace KerbalVR.Modules
             }
         }
 
-        public void SwitchColliderEntered(GameObject colliderObject) {
-            if (colliderObject == switchUpGameObject) {
+        public void OnColliderEntered(Collider thisObject, Collider otherObject) {
+            if (thisObject.gameObject == switchUpGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderUpEnter);
-            } else if (colliderObject == switchDownGameObject) {
+            } else if (thisObject.gameObject == switchDownGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderDownEnter);
             }
         }
 
-        public void SwitchColliderExited(GameObject colliderObject) {
-            if (colliderObject == switchUpGameObject) {
+        public void OnColliderStayed(Collider thisObject, Collider otherObject) { }
+
+        public void OnColliderExited(Collider thisObject, Collider otherObject) {
+            if (thisObject.gameObject == switchUpGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderUpExit);
-            } else if (colliderObject == switchDownGameObject) {
+            } else if (thisObject.gameObject == switchDownGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderDownExit);
             }
         }
