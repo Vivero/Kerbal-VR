@@ -49,7 +49,7 @@ namespace KerbalVR
         public static Vector3 CurrentPosition { get; set; }
         public static Quaternion CurrentRotation { get; set; }
 
-        // The current position of the HMD
+        // The current position of the HMD in Unity world coordinates
         public static Vector3 HmdPosition { get; private set; }
         public static Quaternion HmdRotation { get; private set; }
 
