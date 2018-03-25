@@ -113,14 +113,6 @@ namespace KerbalVR.Modules
                 Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchColliderDown + "\"");
             }
 
-            // set initial state
-            targetAnimationEndTime = 0f;
-            switchFSMState = SwitchFSMState.IsDown;
-            SetState(SwitchState.Down);
-
-            // create labels
-            CreateLabels();
-
             // special effects
             Transform coloredObjectTransform = internalProp.FindModelTransform(coloredObject);
             if (coloredObjectTransform != null) {
@@ -130,10 +122,16 @@ namespace KerbalVR.Modules
                 rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.red);
             }
 
-            Utils.PrintGameObjectTree(internalProp.gameObject);
+            // set initial state
+            targetAnimationEndTime = 0f;
+            switchFSMState = SwitchFSMState.IsDown;
+            GoToState(SwitchState.Down);
+
+            // create labels
+            CreateLabels();
         }
 
-        void Update() {
+        public override void OnUpdate() {
             if (switchAnimation.isPlaying &&
                 ((switchAnimationState.speed > 0f && switchAnimationState.normalizedTime >= targetAnimationEndTime) ||
                 (switchAnimationState.speed < 0f && switchAnimationState.normalizedTime <= targetAnimationEndTime))) {
@@ -195,8 +193,24 @@ namespace KerbalVR.Modules
             }
         }
 
-        private void SetState(SwitchState state) {
+        public void SetState(SwitchState state) {
             switchState = state;
+
+            if (state == SwitchState.Up) {
+                MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
+                Material rmat = r.sharedMaterial;
+                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.red);
+            } else if (state == SwitchState.Down) {
+                MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
+                Material rmat = r.sharedMaterial;
+                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.black);
+            }
+        }
+
+        private void GoToState(SwitchState state) {
+            SetState(state);
+
+            // switch to animation state instantly
             switchAnimationState.normalizedTime = GetNormalizedTimeForState(state);
             switchAnimationState.speed = 0f;
             switchAnimation.Play(animationName);
@@ -221,13 +235,9 @@ namespace KerbalVR.Modules
             switchAnimationState.speed =
                 Mathf.Sign(targetAnimationEndTime - switchAnimationState.normalizedTime) * 1f;
 
-            /*Utils.Log("Play to state " + state + ", current state = " + switchState +
-                ", start = " + switchAnimationState.normalizedTime.ToString("F2") +
-                ", end = " + targetAnimationEndTime.ToString("F1") +
-                ", speed = " + switchAnimationState.speed.ToString("F1"));*/
+            // play animation and actuate switch
             switchAnimation.Play(animationName);
-
-            switchState = state;
+            SetState(state);
         }
 
         private float GetNormalizedTimeForState(SwitchState state) {
@@ -267,8 +277,6 @@ namespace KerbalVR.Modules
             float fontSize,
             Vector3 offset,
             TMPro.FontStyles fontStyle = TMPro.FontStyles.Normal) {
-
-            Utils.Log(name + ": " + text + ", " + offset.ToString("F4"));
 
             GameObject labelGameObject = new GameObject(internalProp.name + " " + name);
             labelGameObject.layer = 20;
