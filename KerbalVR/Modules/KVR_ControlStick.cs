@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using Valve.VR;
+using KerbalVR.Components;
 
 namespace KerbalVR.Modules
 {
-    public class KVR_ControlStick : InternalModule
+    public class KVR_ControlStick : InternalModule, IActionableCollider
     {
         // TODO: naming scheme needs some revision
 
@@ -39,7 +40,7 @@ namespace KerbalVR.Modules
             stickColliderTransform = internalProp.FindModelTransform(transformStickCollider);
             if (stickColliderTransform != null) {
                 stickColliderGameObject = stickColliderTransform.gameObject;
-                stickColliderGameObject.AddComponent<KVR_ControlStickCollider>().controlStickComponent = this;
+                stickColliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
             } else {
                 Utils.LogWarning("KVR_ControlStick (" + gameObject.name + ") has no collider \"" + transformStickCollider + "\"");
             }
@@ -119,14 +120,6 @@ namespace KerbalVR.Modules
                 StickAxisX = 0f;
                 StickAxisY = 0f;
             }
-
-            /*if (DeviceManager.Instance.ManipulatorRight != null &&
-                DeviceManager.Instance.ManipulatorRight.State.GetPressDown(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                Utils.CreateGizmoAtPosition(stickTransformGameObject.transform.position, stickTransformGameObject.transform.rotation);
-
-                Utils.Log("StickAxisX = " + StickAxisX.ToString("F3"));
-                Utils.Log("StickAxisY = " + StickAxisY.ToString("F3"));
-            }*/
         }
 
         private void UpdateStick() {
@@ -139,18 +132,20 @@ namespace KerbalVR.Modules
             }
         }
 
-        public void StickColliderStayed(GameObject colliderObject) {
-            // Utils.Log("KVR_ControlStick inside " + colliderObject.name);
+        public void OnColliderEntered(Collider thisObject, Collider otherObject) { }
 
-            if (colliderObject == stickColliderGameObject) {
+        public void OnColliderStayed(Collider thisObject, Collider otherObject) {
+            if (thisObject.gameObject == stickColliderGameObject) {
                 UpdateStick();
             }
         }
 
+        public void OnColliderExited(Collider thisObject, Collider otherObject) { }
+
         private void VesselControl(FlightCtrlState state) {
             if (isCommandingControl) {
-                state.roll = StickAxisX * 0.6f;
-                state.pitch = -StickAxisY * 0.6f;
+                state.yaw = StickAxisX * 0.3f;
+                state.pitch = -StickAxisY * 0.3f;
             }
         }
     }

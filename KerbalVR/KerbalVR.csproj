@@ -48,6 +48,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\KVR_IActionableCollider.cs" />
     <Compile Include="KerbalVR.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
@@ -59,9 +60,9 @@
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="Modules\KVR_ControlStick.cs" />
-    <Compile Include="Modules\KVR_ControlStickCollider.cs" />
     <Compile Include="Modules\KVR_Periscope.cs" />
-    <Compile Include="Modules\KVR_ToggleSwitchCollider.cs" />
+    <Compile Include="Modules\KVR_PushButton.cs" />
+    <Compile Include="Components\KVR_ActionableCollider.cs" />
     <Compile Include="Modules\KVR_ToggleSwitchDouble.cs" />
     <Compile Include="Components\KVR_ExternalCamera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
