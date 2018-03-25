@@ -199,7 +199,7 @@ namespace KerbalVR
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
                 Utils.PrintAllLayers();
-                Utils.PrintDebug();
+                // Utils.PrintDebug();
             }
 #endif
 
