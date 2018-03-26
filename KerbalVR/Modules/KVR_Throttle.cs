@@ -14,12 +14,14 @@ namespace KerbalVR.Modules
         public string transformHandleCollider = string.Empty;
         [KSPField]
         public string transformHandle = string.Empty;
+        [KSPField]
+        public float transformHandleAngleOffset = 0f;
         #endregion
 
         public float HandleAxis { get; private set; }
 
-        private float handleAxisMin = 30f;
-        private float handleAxisMax = 60f;
+        private float handleAxisMin = 0f;
+        private float handleAxisMax = 70f;
         private float handleDeadZoneAngle = 5f;
 
         private GameObject handleTransformGameObject;
@@ -107,36 +109,30 @@ namespace KerbalVR.Modules
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 handleToManipulatorPos =
                     DeviceManager.Instance.ManipulatorRight.transform.position -
-                    handleTransformGameObject.transform.position;
+                    handleInitialPosition;
 
                 // calculate the joystick X-axis angle
                 Vector3 handleToManipulatorDeltaPos = handleInitialRotation * handleToManipulatorPos;
-                float xAngle = Mathf.Atan2(handleToManipulatorDeltaPos.x, -handleToManipulatorDeltaPos.y);
+                float xAngle = Mathf.Atan2(handleToManipulatorDeltaPos.z, -handleToManipulatorDeltaPos.y);
                 xAngle *= Mathf.Rad2Deg;
-                xAngle = Mathf.Clamp(xAngle, -handleAxisMin, handleAxisMin);
-                Quaternion xRot = Quaternion.Euler(0f, 0f, -xAngle);
-
-                // calculate the joystick Y-axis angle
-                float yAngle = Mathf.Atan2(handleToManipulatorDeltaPos.z, -handleToManipulatorDeltaPos.y);
-                yAngle *= -Mathf.Rad2Deg;
-                yAngle = Mathf.Clamp(yAngle, -handleAxisMax, handleAxisMax);
-                Quaternion yRot = Quaternion.Euler(yAngle, 0f, 0f);
+                xAngle -= transformHandleAngleOffset;
+                xAngle *= -1f;
+                xAngle = Mathf.Clamp(xAngle, handleAxisMin, handleAxisMax);
+                Quaternion xRot = Quaternion.Euler(xAngle, 0f, 0f);
 
                 // rotate the joystick into position
-                Quaternion stickRotation = handleInitialRotation * yRot * xRot;
-                handleTransformGameObject.transform.rotation = stickRotation;
+                Quaternion handleRotation = handleInitialRotation * xRot;
+                handleTransformGameObject.transform.rotation = handleRotation;
 
                 // perform vessel flight controls
                 if (Mathf.Abs(xAngle) < handleDeadZoneAngle) {
                     HandleAxis = 0f;
                 } else {
                     isCommandingControl = true;
-                    HandleAxis = xAngle / handleAxisMin;
+                    HandleAxis = (xAngle - handleAxisMin) / (handleAxisMax - handleAxisMin);
                 }
 
-            } else {
-                handleTransformGameObject.transform.rotation = handleInitialRotation;
-                HandleAxis = 0f;
+                // Utils.Log("xAngle = " + xAngle);
             }
         }
 
