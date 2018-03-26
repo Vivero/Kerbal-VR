@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using KerbalVR.Components;
 
 namespace KerbalVR.Modules
@@ -206,8 +207,6 @@ namespace KerbalVR.Modules
         }
 
         private void UpdateButtonFSM(ButtonStateInput input) {
-            Utils.Log("UpdateButtonFSM state: " + buttonFSMState + ", input: " + input);
-
             switch (buttonFSMState) {
                 case ButtonFSMState.IsUnpressed:
                     if (input == ButtonStateInput.ColliderEnter) {
@@ -241,20 +240,35 @@ namespace KerbalVR.Modules
         }
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            // Utils.Log("OnColliderEntered object: " + thisObject.name + ", other: " + otherObject.name);
-
             if ((DeviceManager.Instance.ManipulatorLeft != null &&
                 otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject) ||
                 (DeviceManager.Instance.ManipulatorRight != null &&
                 otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject)) {
 
                 if (thisObject.gameObject == coverGameObject) {
-                    UpdateCoverFSM(CoverStateInput.ColliderEnter);
+                    // when cover is closed, can only be opened from the
+                    // bottom edge of the collider on the top side.
+                    // when cover is open, can only be opened from the top
+                    // side of the collider.
+                    Vector3 manipulatorDeltaPos = coverGameObject.transform.InverseTransformPoint(
+                        otherObject.transform.position);
+                    if ((CurrentCoverState == CoverState.Closed &&
+                        manipulatorDeltaPos.z > 0f &&
+                        manipulatorDeltaPos.y > 0f) ||
+                        (CurrentCoverState == CoverState.Open &&
+                        manipulatorDeltaPos.y > 0f &&
+                        manipulatorDeltaPos.y > 0f))
+                        UpdateCoverFSM(CoverStateInput.ColliderEnter);
 
                 } else if (CurrentCoverState == CoverState.Open &&
                     thisObject.gameObject == buttonGameObject) {
-                    // button is pressed while cover is OPEN
-                    UpdateButtonFSM(ButtonStateInput.ColliderEnter);
+                    // button is pressed while cover is OPEN, and collider
+                    // has entered from the top side of the button
+                    Vector3 manipulatorDeltaPos = buttonGameObject.transform.InverseTransformPoint(
+                        otherObject.transform.position);
+
+                    if (manipulatorDeltaPos.y > 0f)
+                        UpdateButtonFSM(ButtonStateInput.ColliderEnter);
                 }
             }
         }
@@ -366,37 +380,63 @@ namespace KerbalVR.Modules
         private void CreateLabels() {
 
             moduleConfigNode = ConfigUtils.GetModuleConfigNode(internalProp.name, moduleID);
-            string[] testVals = moduleConfigNode.GetValues("oneValue");
-            Utils.Log("testVals size " + testVals.Length);
-            for (int i = 0; i < testVals.Length; i++) Utils.Log("testVals " + i + " : " + testVals[i]);
+            ConfigNode[] labelNodes = moduleConfigNode.GetNodes("KVR_LABEL");
+            for (int i = 0; i < labelNodes.Length; i++) {
+                CreateLabelFromConfig(labelNodes[i], i);
+            }
+        }
 
-            Transform labelTopCoverTransform = internalProp.FindModelTransform(this.labelTopCoverTransform);
-            GameObject labelTopCoverGameObject = CreateLabel(
-                "labelTopCover",
-                labelTopCoverText,
-                0.2f, labelTopCoverTransform.localPosition,
-                TMPro.FontStyles.Bold);
+        private void CreateLabelFromConfig(ConfigNode cfgLabelNode, int id = 0) {
+            string labelText = "";
+            bool success = cfgLabelNode.TryGetValue("text", ref labelText);
+
+            string cfgLabelTransform = "";
+            success = cfgLabelNode.TryGetValue("transform", ref cfgLabelTransform);
+            if (!success) throw new ArgumentException("Transform not specified for label " + labelText + " (" + cfgLabelNode.id + ")");
+
+            Transform labelTransform = internalProp.FindModelTransform(cfgLabelTransform);
+            if (labelTransform == null) throw new ArgumentException("Transform not found for label " + labelText + " (prop: " + internalProp.name + ")");
+
+            float labelFontSize = 0.14f;
+            success = cfgLabelNode.TryGetValue("fontSize", ref labelFontSize);
+
+            TMPro.FontStyles labelFontStyle = TMPro.FontStyles.Normal;
+            success = cfgLabelNode.TryGetEnum("fontStyle", ref labelFontStyle, TMPro.FontStyles.Normal);
+
+            TMPro.TextAlignmentOptions labelAlignment = TMPro.TextAlignmentOptions.Center;
+            success = cfgLabelNode.TryGetEnum("alignment", ref labelAlignment, TMPro.TextAlignmentOptions.Center);
+
+            Vector2 labelPivot = new Vector2(0.5f, 0.5f);
+            success = cfgLabelNode.TryGetValue("pivot", ref labelPivot);
+
+            CreateLabel(id, labelText, labelFontSize, labelFontStyle, labelAlignment, labelTransform, labelPivot);
         }
 
         private GameObject CreateLabel(
-            string name,
+            int id,
             string text,
             float fontSize,
-            Vector3 offset,
-            TMPro.FontStyles fontStyle = TMPro.FontStyles.Normal) {
+            TMPro.FontStyles fontStyle,
+            TMPro.TextAlignmentOptions alignment,
+            Transform labelTransform,
+            Vector2 rectPivot) {
 
-            GameObject labelGameObject = new GameObject(internalProp.name + " " + name);
+            string labelName = internalProp.name + "-" + internalProp.propID + "-" + id;
+            Utils.Log("Creating KVR_LABEL: \"" + labelName + "\"");
+
+            GameObject labelGameObject = new GameObject(labelName);
             labelGameObject.layer = 20;
-            labelGameObject.transform.SetParent(internalProp.transform);
+            labelGameObject.transform.SetParent(labelTransform);
 
             TMPro.TextMeshPro tmpLabel = labelGameObject.AddComponent<TMPro.TextMeshPro>();
             tmpLabel.SetText(text);
             tmpLabel.fontSize = fontSize;
-            tmpLabel.alignment = TMPro.TextAlignmentOptions.Center;
             tmpLabel.fontStyle = fontStyle;
+            tmpLabel.alignment = alignment;
 
-            tmpLabel.rectTransform.localPosition = offset;
-            tmpLabel.rectTransform.localRotation = Quaternion.Euler(90f, 0f, 180f);
+            tmpLabel.rectTransform.pivot = rectPivot;
+            tmpLabel.rectTransform.localPosition = Vector3.zero;
+            tmpLabel.rectTransform.localRotation = Quaternion.identity;
             tmpLabel.rectTransform.sizeDelta = new Vector2(0.2f, 0.2f);
             
             return labelGameObject;
