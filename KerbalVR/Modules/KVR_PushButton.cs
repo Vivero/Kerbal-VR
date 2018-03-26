@@ -57,14 +57,6 @@ namespace KerbalVR.Modules
         [KSPField]
         public string transformButtonCollider = string.Empty;
         [KSPField]
-        public string labelTopCoverText = string.Empty;
-        [KSPField]
-        public string labelTopCoverTransform = string.Empty;
-        [KSPField]
-        public string labelUpText = string.Empty;
-        [KSPField]
-        public string labelDownText = string.Empty;
-        [KSPField]
         public string coloredObject = string.Empty;
         #endregion
 
@@ -105,7 +97,7 @@ namespace KerbalVR.Modules
                 coverAnimationState = coverAnimation[coverAnimationName];
                 coverAnimationState.wrapMode = WrapMode.Once;
             } else {
-                Utils.LogWarning("KVR_PushButtonCover (" + gameObject.name + ") has no animation \"" + coverAnimationName + "\"");
+                Utils.LogWarning("KVR_PushButton (" + gameObject.name + ") has no animation \"" + coverAnimationName + "\"");
             }
 
             animations = internalProp.FindModelAnimators(buttonAnimationName);
@@ -114,7 +106,7 @@ namespace KerbalVR.Modules
                 buttonAnimationState = buttonAnimation[buttonAnimationName];
                 buttonAnimationState.wrapMode = WrapMode.Once;
             } else {
-                Utils.LogWarning("KVR_PushButtonCover (" + gameObject.name + ") has no animation \"" + buttonAnimationName + "\"");
+                Utils.LogWarning("KVR_PushButton (" + gameObject.name + ") has no animation \"" + buttonAnimationName + "\"");
             }
 
             // retrieve the collider GameObjects
@@ -123,7 +115,7 @@ namespace KerbalVR.Modules
                 coverGameObject = colliderTransform.gameObject;
                 coverGameObject.AddComponent<KVR_ActionableCollider>().module = this;
             } else {
-                Utils.LogWarning("KVR_PushButtonCover (" + gameObject.name + ") has no cover collider \"" + transformCoverCollider + "\"");
+                Utils.LogWarning("KVR_PushButton (" + gameObject.name + ") has no cover collider \"" + transformCoverCollider + "\"");
             }
 
             colliderTransform = internalProp.FindModelTransform(transformButtonCollider);
@@ -131,7 +123,7 @@ namespace KerbalVR.Modules
                 buttonGameObject = colliderTransform.gameObject;
                 buttonGameObject.AddComponent<KVR_ActionableCollider>().module = this;
             } else {
-                Utils.LogWarning("KVR_PushButtonCover (" + gameObject.name + ") has no button collider \"" + transformButtonCollider + "\"");
+                Utils.LogWarning("KVR_PushButton (" + gameObject.name + ") has no button collider \"" + transformButtonCollider + "\"");
             }
 
             // special effects
@@ -378,7 +370,7 @@ namespace KerbalVR.Modules
         }
 
         private void CreateLabels() {
-
+            // create labels from the module configuration
             moduleConfigNode = ConfigUtils.GetModuleConfigNode(internalProp.name, moduleID);
             ConfigNode[] labelNodes = moduleConfigNode.GetNodes("KVR_LABEL");
             for (int i = 0; i < labelNodes.Length; i++) {
@@ -387,9 +379,11 @@ namespace KerbalVR.Modules
         }
 
         private void CreateLabelFromConfig(ConfigNode cfgLabelNode, int id = 0) {
+            // label text
             string labelText = "";
             bool success = cfgLabelNode.TryGetValue("text", ref labelText);
 
+            // label transform (where to place the label)
             string cfgLabelTransform = "";
             success = cfgLabelNode.TryGetValue("transform", ref cfgLabelTransform);
             if (!success) throw new ArgumentException("Transform not specified for label " + labelText + " (" + cfgLabelNode.id + ")");
@@ -397,19 +391,37 @@ namespace KerbalVR.Modules
             Transform labelTransform = internalProp.FindModelTransform(cfgLabelTransform);
             if (labelTransform == null) throw new ArgumentException("Transform not found for label " + labelText + " (prop: " + internalProp.name + ")");
 
+            // position offset from the transform
+            Vector3 labelPositionOffset = Vector3.zero;
+            success = cfgLabelNode.TryGetValue("transformPositionOffset", ref labelPositionOffset);
+
+            // rotation offset from the transform
+            Quaternion labelRotationOffset = Quaternion.identity;
+            success = cfgLabelNode.TryGetValue("transformRotationOffset", ref labelRotationOffset);
+
+            // font size
             float labelFontSize = 0.14f;
             success = cfgLabelNode.TryGetValue("fontSize", ref labelFontSize);
 
+            // font style (bold, italics, etc)
             TMPro.FontStyles labelFontStyle = TMPro.FontStyles.Normal;
             success = cfgLabelNode.TryGetEnum("fontStyle", ref labelFontStyle, TMPro.FontStyles.Normal);
 
+            // font alignment
             TMPro.TextAlignmentOptions labelAlignment = TMPro.TextAlignmentOptions.Center;
             success = cfgLabelNode.TryGetEnum("alignment", ref labelAlignment, TMPro.TextAlignmentOptions.Center);
 
+            // canvas pivot (anchor point on the canvas)
             Vector2 labelPivot = new Vector2(0.5f, 0.5f);
             success = cfgLabelNode.TryGetValue("pivot", ref labelPivot);
 
-            CreateLabel(id, labelText, labelFontSize, labelFontStyle, labelAlignment, labelTransform, labelPivot);
+            // size of the label canvas
+            Vector2 labelSize = new Vector2(0.2f, 0.2f);
+            success = cfgLabelNode.TryGetValue("canvasSize", ref labelSize);
+
+            CreateLabel(id, labelText, labelFontSize, labelFontStyle,
+                labelAlignment, labelTransform, labelPositionOffset,
+                labelRotationOffset, labelPivot, labelSize);
         }
 
         private GameObject CreateLabel(
@@ -419,10 +431,13 @@ namespace KerbalVR.Modules
             TMPro.FontStyles fontStyle,
             TMPro.TextAlignmentOptions alignment,
             Transform labelTransform,
-            Vector2 rectPivot) {
+            Vector3 labelPositionOffset,
+            Quaternion labelRotationOffset,
+            Vector2 rectPivot,
+            Vector2 rectSize) {
 
             string labelName = internalProp.name + "-" + internalProp.propID + "-" + id;
-            Utils.Log("Creating KVR_LABEL: \"" + labelName + "\"");
+            // Utils.Log("Creating KVR_LABEL: \"" + labelName + "\"");
 
             GameObject labelGameObject = new GameObject(labelName);
             labelGameObject.layer = 20;
@@ -435,10 +450,10 @@ namespace KerbalVR.Modules
             tmpLabel.alignment = alignment;
 
             tmpLabel.rectTransform.pivot = rectPivot;
-            tmpLabel.rectTransform.localPosition = Vector3.zero;
-            tmpLabel.rectTransform.localRotation = Quaternion.identity;
-            tmpLabel.rectTransform.sizeDelta = new Vector2(0.2f, 0.2f);
-            
+            tmpLabel.rectTransform.localPosition = labelPositionOffset;
+            tmpLabel.rectTransform.localRotation = labelRotationOffset;
+            tmpLabel.rectTransform.sizeDelta = rectSize;
+
             return labelGameObject;
         }
     }
