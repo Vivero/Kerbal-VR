@@ -23,13 +23,7 @@ namespace KerbalVR
         }
 
         private void LoadAssets() {
-            fontLoader = FindObjectOfType<FontLoader>();
 
-            Utils.Log("font count: " + fontLoader.LoadedFonts.Count);
-            for (int i = 0; i < fontLoader.LoadedFonts.Count; i++) {
-                Utils.Log("font: " + fontLoader.LoadedFonts[i].name);
-            }
-            
         }
     }
 }
