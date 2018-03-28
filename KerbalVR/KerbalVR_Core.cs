@@ -8,7 +8,7 @@ namespace KerbalVR
     // start plugin at startup
     //
     [KSPAddon(KSPAddon.Startup.Instantly, false)]
-    public class KerbalVR : MonoBehaviour
+    public class Core : MonoBehaviour
     {
         // this function allows importing DLLs from a given path
         [DllImport("kernel32.dll", SetLastError = true)]

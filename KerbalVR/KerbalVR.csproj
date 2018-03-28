@@ -49,7 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\KVR_IActionableCollider.cs" />
-    <Compile Include="KerbalVR.cs" />
+    <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
     <Compile Include="KerbalVR_DeviceManager.cs" />

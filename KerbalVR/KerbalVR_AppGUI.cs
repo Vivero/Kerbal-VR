@@ -141,7 +141,7 @@ namespace KerbalVR
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
-            if (KerbalVR.HmdIsRunning) {
+            if (Core.HmdIsRunning) {
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
@@ -152,16 +152,16 @@ namespace KerbalVR
             // VR toggle button
             UnityEngine.GUI.enabled = Scene.Instance.SceneAllowsVR();
             if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
-                if (KerbalVR.HmdIsEnabled) {
-                    KerbalVR.HmdIsEnabled = false;
+                if (Core.HmdIsEnabled) {
+                    Core.HmdIsEnabled = false;
                 } else {
-                    KerbalVR.HmdIsEnabled = true;
+                    Core.HmdIsEnabled = true;
                 }
             }
 
-            if (KerbalVR.CanResetSeatedPose()) {
+            if (Core.CanResetSeatedPose()) {
                 if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
-                    KerbalVR.ResetInitialHmdPosition();
+                    Core.ResetInitialHmdPosition();
                 }
             }
             UnityEngine.GUI.enabled = true;
