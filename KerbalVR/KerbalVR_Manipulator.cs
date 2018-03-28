@@ -22,10 +22,6 @@ namespace KerbalVR
         #endregion
 
 
-        // TODO: think about these fields
-        public float movementVelocity = 1f;
-
-
         void Start() {
             meshRenderer = GetComponent<MeshRenderer>();
         }

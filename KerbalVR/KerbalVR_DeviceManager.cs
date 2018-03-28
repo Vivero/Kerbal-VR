@@ -129,7 +129,7 @@ namespace KerbalVR
         private GameObject CreateManipulator(ETrackedControllerRole role) {
             // create new GameObject
             GameObject manipulator = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            manipulator.name = "VR_Manipulator_" + role.ToString();
+            manipulator.name = "KVR_Manipulator_" + role.ToString();
             DontDestroyOnLoad(manipulator);
 
             // define the render model
