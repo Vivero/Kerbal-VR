@@ -153,11 +153,12 @@ namespace KerbalVR
             PopulateCameraList(EDITOR_SCENE_CAMERAS);
 
             // set inital scene position
-            Vector3 forwardDir = EditorCamera.Instance.transform.rotation * Vector3.forward;
-            forwardDir.y = 0f; // make the camera point straight forward
 
+            //Vector3 forwardDir = EditorCamera.Instance.transform.rotation * Vector3.forward;
+            //forwardDir.y = 0f; // make the camera point straight forward
             //Vector3 startingPos = EditorCamera.Instance.transform.position;
             //startingPos.y = 0f; // start at ground level
+
             Vector3 startingPos = new Vector3(0f, 0f, -5f);
 
             InitialPosition = startingPos;
