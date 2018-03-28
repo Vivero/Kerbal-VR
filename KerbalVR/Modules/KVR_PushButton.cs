@@ -232,10 +232,7 @@ namespace KerbalVR.Modules
         }
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if ((DeviceManager.Instance.ManipulatorLeft != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject) ||
-                (DeviceManager.Instance.ManipulatorRight != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject)) {
+            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
 
                 if (thisObject.gameObject == coverGameObject) {
                     // when cover is closed, can only be opened from the
@@ -259,13 +256,12 @@ namespace KerbalVR.Modules
                     Vector3 manipulatorDeltaPos = buttonGameObject.transform.InverseTransformPoint(
                         otherObject.transform.position);
 
-                    if (manipulatorDeltaPos.y > 0f)
+                    if (manipulatorDeltaPos.y > 0f) {
                         UpdateButtonFSM(ButtonStateInput.ColliderEnter);
+                    }
                 }
             }
         }
-
-        public void OnColliderStayed(Collider thisObject, Collider otherObject) { }
 
         public void OnColliderExited(Collider thisObject, Collider otherObject) { }
 

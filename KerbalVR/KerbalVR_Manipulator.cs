@@ -6,6 +6,7 @@ namespace KerbalVR
 {
     public class Manipulator : MonoBehaviour
     {
+
         #region Properties
         public SteamVR_Controller.Device State { get; private set; }
         #endregion

@@ -3,8 +3,7 @@ using Valve.VR;
 
 namespace KerbalVR
 {
-    public class DeviceManager : MonoBehaviour
-    {
+    public class DeviceManager : MonoBehaviour {
         #region Properties
         // Manipulator objects
         public Manipulator ManipulatorLeft { get; private set; }
@@ -83,7 +82,7 @@ namespace KerbalVR
             if (DeviceIndexIsValid(ControllerIndexLeft)) {
                 SteamVR_Utils.RigidTransform controllerPose = new SteamVR_Utils.RigidTransform(
                     devicePoses[ControllerIndexLeft].mDeviceToAbsoluteTracking);
-                SteamVR_Controller.Device controllerState = 
+                SteamVR_Controller.Device controllerState =
                     SteamVR_Controller.Input((int)ControllerIndexLeft);
 
                 // state is stored in Manipulator object
@@ -134,7 +133,7 @@ namespace KerbalVR
 
             // define the render model
             manipulator.transform.localScale = Vector3.one *
-                ((role == ETrackedControllerRole.RightHand) ? 0.02f : 0.08f);
+                ((role == ETrackedControllerRole.RightHand) ? 0.02f : 0.04f);
             Color manipulatorColor = (role == ETrackedControllerRole.RightHand) ? Color.green : Color.red;
             MeshRenderer manipulatorRenderer = manipulator.GetComponent<MeshRenderer>();
             manipulatorRenderer.material.color = manipulatorColor;
@@ -172,6 +171,13 @@ namespace KerbalVR
             } else if (!DeviceIndexIsValid(ControllerIndexRight) && manipulatorRight != null) {
                 Destroy(manipulatorRight);
             }
+        }
+
+        public static bool IsManipulator(GameObject obj) {
+            return (Instance.manipulatorLeft != null &&
+                obj == Instance.manipulatorLeft) || 
+                (Instance.manipulatorRight != null &&
+                obj == Instance.manipulatorRight);
         }
     }
 }
