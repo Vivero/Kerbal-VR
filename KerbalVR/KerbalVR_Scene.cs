@@ -341,7 +341,7 @@ namespace KerbalVR
 
             // right menu button
             if (state.GetPressDown(EVRButtonId.k_EButton_ApplicationMenu)) {
-                KerbalVR.ResetInitialHmdPosition();
+                Core.ResetInitialHmdPosition();
             }
         }
     }

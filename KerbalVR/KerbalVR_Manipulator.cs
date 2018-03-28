@@ -28,7 +28,7 @@ namespace KerbalVR
 
         void Update() {
 #if DEBUG
-            meshRenderer.enabled = KerbalVR.HmdIsEnabled;
+            meshRenderer.enabled = Core.HmdIsEnabled;
 #endif
         }
 
