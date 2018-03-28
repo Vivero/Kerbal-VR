@@ -148,12 +148,10 @@ namespace KerbalVR
             // define the Manipulator component
             Manipulator manipulatorComponent = manipulator.AddComponent<Manipulator>();
             manipulatorComponent.role = role;
-            manipulatorComponent.originalColor = manipulatorColor;
+            manipulatorComponent.defaultColor = manipulatorColor;
             manipulatorComponent.activeColor = Color.yellow;
 
-#if DEBUG
-            manipulatorRenderer.enabled = true;
-#else
+#if !DEBUG
             manipulatorRenderer.enabled = false;
 #endif
 
