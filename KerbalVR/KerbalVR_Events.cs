@@ -1,25 +1,4 @@
-﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
-//
-// Purpose: Simple event system for SteamVR.
-//
-// Example usage:
-//
-//			void OnDeviceConnected(int i, bool connected) { ... }
-//			SteamVR_Events.DeviceConnected.Listen(OnDeviceConnected); // Usually in OnEnable
-//			SteamVR_Events.DeviceConnected.Remove(OnDeviceConnected); // Usually in OnDisable
-//
-// Alternatively, if Listening/Removing often these can be cached as follows:
-//
-//			SteamVR_Event.Action deviceConnectedAction;
-//			void OnAwake() { deviceConnectedAction = SteamVR_Event.DeviceConnectedAction(OnDeviceConnected); }
-//			void OnEnable() { deviceConnectedAction.enabled = true; }
-//			void OnDisable() { deviceConnectedAction.enabled = false; }
-//
-//=============================================================================
-
-using UnityEngine;
-using UnityEngine.Events;
-using Valve.VR;
+﻿using UnityEngine.Events;
 
 namespace KerbalVR
 {
@@ -32,8 +11,8 @@ namespace KerbalVR
     ///     KerbalVR.Events.ManipulatorLeftUpdated.Remove(OnManipulatorLeftUpdated); // Usually in OnDisable
     ///     
     /// Alternatively, if Listening/Removing often these can be cached as follows:
-    ///     KerbalVR.Event.Action manipulatorUpdatedAction;
-    ///     void OnAwake() { manipulatorUpdatedAction = KerbalVR.Event.DeviceConnectedAction(OnManipulatorLeftUpdated); }
+    ///     KerbalVR.Events.Action manipulatorUpdatedAction;
+    ///     void OnAwake() { manipulatorUpdatedAction = KerbalVR.Events.ManipulatorLeftUpdated(OnManipulatorLeftUpdated); }
     ///     void OnEnable() { manipulatorUpdatedAction.enabled = true; }
     ///     void OnDisable() { manipulatorUpdatedAction.enabled = false; }
     ///     

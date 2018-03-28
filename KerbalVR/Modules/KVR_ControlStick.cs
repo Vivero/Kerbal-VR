@@ -38,6 +38,10 @@ namespace KerbalVR.Modules
         private bool isInteractable = true;
         private float buttonCooldownTime = 0.3f;
 
+        // event listeners
+        Events.Action onManipulatorLeftUpdatedAction;
+        Events.Action onManipulatorRightUpdatedAction;
+
         void Start() {
             // Utils.PrintGameObjectTree(gameObject);
             StickAxisX = 0f;
@@ -68,6 +72,8 @@ namespace KerbalVR.Modules
             isManipulatorInsideStickCollider = false;
             isUnderControl = false;
             isCommandingControl = false;
+
+            // define events to listen
         }
 
         void OnDestroy() {
@@ -80,6 +86,18 @@ namespace KerbalVR.Modules
 
         void OnDisable() {
             SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
+        }
+
+        void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
+            OnManipulatorUpdated(state);
+        }
+
+        void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
+            OnManipulatorUpdated(state);
+        }
+
+        void OnManipulatorUpdated(SteamVR_Controller.Device state) {
+
         }
 
         private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
