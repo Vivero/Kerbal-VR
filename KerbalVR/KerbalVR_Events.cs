@@ -12,7 +12,7 @@ namespace KerbalVR
     ///     
     /// Alternatively, if Listening/Removing often these can be cached as follows:
     ///     KerbalVR.Events.Action manipulatorUpdatedAction;
-    ///     void OnAwake() { manipulatorUpdatedAction = KerbalVR.Events.ManipulatorLeftUpdated(OnManipulatorLeftUpdated); }
+    ///     void OnAwake() { manipulatorUpdatedAction = KerbalVR.Events.ManipulatorLeftUpdatedAction(OnManipulatorLeftUpdated); }
     ///     void OnEnable() { manipulatorUpdatedAction.enabled = true; }
     ///     void OnDisable() { manipulatorUpdatedAction.enabled = false; }
     ///     

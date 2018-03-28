@@ -74,6 +74,8 @@ namespace KerbalVR.Modules
             isCommandingControl = false;
 
             // define events to listen
+            onManipulatorLeftUpdatedAction = KerbalVR.Events.ManipulatorLeftUpdatedAction(OnManipulatorLeftUpdated);
+            onManipulatorRightUpdatedAction = KerbalVR.Events.ManipulatorRightUpdatedAction(OnManipulatorRightUpdated);
         }
 
         void OnDestroy() {
@@ -81,11 +83,13 @@ namespace KerbalVR.Modules
         }
 
         void OnEnable() {
-            SteamVR_Events.NewPoses.Listen(OnDevicePosesReady);
+            onManipulatorLeftUpdatedAction.enabled = true;
+            onManipulatorRightUpdatedAction.enabled = true;
         }
 
         void OnDisable() {
-            SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
+            onManipulatorLeftUpdatedAction.enabled = false;
+            onManipulatorRightUpdatedAction.enabled = false;
         }
 
         void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
@@ -97,14 +101,7 @@ namespace KerbalVR.Modules
         }
 
         void OnManipulatorUpdated(SteamVR_Controller.Device state) {
-
-        }
-
-        private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
-            // detect when the Grip button has been pressed (this "grabs" the stick)
-            if (isInteractable &&
-                DeviceManager.Instance.ManipulatorRight != null &&
-                DeviceManager.Instance.ManipulatorRight.State.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+            if (isInteractable && state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
 
                 if (isManipulatorInsideStickCollider && !isUnderControl) {
                     isUnderControl = true;
