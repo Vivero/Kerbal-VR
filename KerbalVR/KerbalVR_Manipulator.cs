@@ -45,53 +45,11 @@ namespace KerbalVR
             State = state;
 
             // position the controller object
-            transform.position = Scene.DevicePoseToWorld(pose.pos);
-            transform.rotation = Scene.DevicePoseToWorld(pose.rot);
+            transform.position = Scene.Instance.DevicePoseToWorld(pose.pos);
+            transform.rotation = Scene.Instance.DevicePoseToWorld(pose.rot);
 
             // set the layer to render to
-            gameObject.layer = Scene.RenderLayer;
-
-            // update individual manipulator states (hand controls)
-            if (role == ETrackedControllerRole.LeftHand) {
-                UpdateStateLeft(pose, state);
-            } else if (role == ETrackedControllerRole.RightHand) {
-                UpdateStateRight(pose, state);
-            } else {
-                throw new Exception("Unsupported controller role: " + role);
-            }
-        }
-
-        void UpdateStateLeft(SteamVR_Utils.RigidTransform pose, SteamVR_Controller.Device state) {
-            if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
-
-                Vector3 upDisplacement = Vector3.up * (movementVelocity * touchAxis.y) * Time.deltaTime;
-
-                Vector3 newPosition = Scene.CurrentPosition + upDisplacement;
-                if (newPosition.y < 0f) newPosition.y = 0f;
-
-                Scene.CurrentPosition = newPosition;
-            }
-        }
-
-        void UpdateStateRight(SteamVR_Utils.RigidTransform pose, SteamVR_Controller.Device state) {
-            if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
-
-                Vector3 fwdDirection = Scene.HmdRotation * Vector3.forward;
-                fwdDirection.y = 0f; // allow only planar movement
-                Vector3 fwdDisplacement = fwdDirection.normalized * (movementVelocity * touchAxis.y) * Time.deltaTime;
-
-                Vector3 rightDirection = Scene.HmdRotation * Vector3.right;
-                rightDirection.y = 0f; // allow only planar movement
-                Vector3 rightDisplacement = rightDirection.normalized * (movementVelocity * touchAxis.x) * Time.deltaTime;
-
-                Scene.CurrentPosition += fwdDisplacement + rightDisplacement;
-            }
-
-            if (state.GetPressDown(EVRButtonId.k_EButton_ApplicationMenu)) {
-                KerbalVR.ResetInitialHmdPosition();
-            }
+            gameObject.layer = Scene.Instance.RenderLayer;
         }
 
         void OnTriggerEnter(Collider other) {

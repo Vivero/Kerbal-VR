@@ -25,7 +25,7 @@ namespace KerbalVR
                 _hmdIsEnabled = value;
 
                 if (_hmdIsEnabled && hmdIsInitialized) {
-                    Scene.SetupScene();
+                    Scene.Instance.SetupScene();
                     ResetInitialHmdPosition();
                 }
             }
@@ -74,21 +74,28 @@ namespace KerbalVR
         /// Initialize class members.
         /// </summary>
         void Awake() {
+#if DEBUG
             Utils.Log(Globals.KERBALVR_NAME + " plugin starting...");
-            
+#endif
+
             // init objects
             gui = new AppGUI();
             _hmdIsEnabled = false;
             HmdIsAllowed = false;
 
             // init GameObjects
-            GameObject deviceManager = new GameObject("VR_DeviceManager");
-            deviceManager.AddComponent<DeviceManager>();
+            GameObject kvrDeviceManager = new GameObject("KVR_DeviceManager");
+            kvrDeviceManager.AddComponent<DeviceManager>();
             DeviceManager deviceManagerComponent = DeviceManager.Instance; // init the singleton
-            DontDestroyOnLoad(deviceManager);
+            DontDestroyOnLoad(kvrDeviceManager);
+
+            GameObject kvrScene = new GameObject("KVR_Scene");
+            kvrScene.AddComponent<Scene>();
+            Scene kvrSceneComponent = Scene.Instance; // init the singleton
+            DontDestroyOnLoad(kvrScene);
 
             // add an event triggered when game scene changes, to handle
-            // shutting off the HMD outside of Flight scene
+            // shutting off the HMD outside of allowed VR scenes
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
 
             // initialize the OpenVR API
@@ -130,7 +137,7 @@ namespace KerbalVR
             }
 
             // check if the current scene allows VR
-            HmdIsAllowed = Scene.SceneAllowsVR();
+            HmdIsAllowed = Scene.Instance.SceneAllowsVR();
 
             // check if we are running the HMD
             HmdIsRunning = HmdIsAllowed && hmdIsInitialized && HmdIsEnabled;
@@ -140,11 +147,9 @@ namespace KerbalVR
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
 
                 try {
-                    // TODO: investigate if we should really be capturing poses in LateUpdate
-                    
                     // get latest device poses
                     float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
-                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.TrackingSpace, secondsToPhotons, devicePoses);
+                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, secondsToPhotons, devicePoses);
                     SteamVR_Events.NewPoses.Send(devicePoses);
 
                     HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
@@ -191,7 +196,7 @@ namespace KerbalVR
             // reset cameras when HMD is turned off
             if (!HmdIsRunning && hmdIsRunningPrev) {
                 Utils.Log("HMD is now off, resetting cameras...");
-                Scene.CloseScene();
+                Scene.Instance.CloseScene();
             }
 
 
@@ -272,11 +277,11 @@ namespace KerbalVR
             Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
             // update position of the cameras
-            Scene.UpdateScene(hmdTransform, hmdEyeTransform);
+            Scene.Instance.UpdateScene(hmdTransform, hmdEyeTransform);
 
             // render the set of cameras
-            for (int i = 0; i < Scene.NumVRCameras; i++) {
-                Types.CameraData camData = Scene.VRCameras[i];
+            for (int i = 0; i < Scene.Instance.NumVRCameras; i++) {
+                Types.CameraData camData = Scene.Instance.VRCameras[i];
 
                 // set projection matrix
                 camData.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
@@ -402,7 +407,7 @@ namespace KerbalVR
         /// </summary>
         /// <returns>True if seated pose can be reset.</returns>
         public static bool CanResetSeatedPose() {
-            return HmdIsRunning && (Scene.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
+            return HmdIsRunning && (Scene.Instance.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
         }
 
         /// <summary>
@@ -412,16 +417,6 @@ namespace KerbalVR
             HmdIsEnabled = false;
             OpenVR.Shutdown();
             hmdIsInitialized = false;
-        }
-
-        public static bool IsDeviceConnected(uint deviceIndex) {
-            if (deviceIndex >= OpenVR.k_unMaxTrackedDeviceCount) {
-                throw new ArgumentOutOfRangeException(
-                    "deviceIndex",
-                    deviceIndex,
-                    "deviceIndex must be less than " + OpenVR.k_unMaxTrackedDeviceCount);
-            }
-            return devicePoses[deviceIndex].bDeviceIsConnected;
         }
 
     } // class KerbalVR

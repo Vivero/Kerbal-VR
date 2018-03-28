@@ -4,7 +4,7 @@ using Valve.VR;
 
 namespace KerbalVR
 {
-    public class Scene
+    public class Scene : MonoBehaviour
     {
         #region Constants
         public static readonly string[] FLIGHT_SCENE_CAMERAS = {
@@ -30,43 +30,81 @@ namespace KerbalVR
         };
         #endregion
 
+        #region Singleton
+        // this is a singleton class, and there must be one Scene in the scene
+        private static Scene _instance;
+        public static Scene Instance {
+            get {
+                if (_instance == null) {
+                    _instance = FindObjectOfType<Scene>();
+                    if (_instance == null) {
+                        Utils.LogError("The scene needs to have one active GameObject with a Scene script attached!");
+                    } else {
+                        _instance.Initialize();
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        // first-time initialization for this singleton class
+        private void Initialize() { }
+        #endregion
 
         #region Properties
 
         // The list of cameras to render for the current scene.
-        public static Types.CameraData[] VRCameras { get; private set; }
-        public static int NumVRCameras { get; private set; }
+        public Types.CameraData[] VRCameras { get; private set; }
+        public int NumVRCameras { get; private set; }
 
         // The initial world position of the cameras for the current scene. This
         // position corresponds to the origin in the real world physical device
         // coordinate system.
-        public static Vector3 InitialPosition { get; private set; }
-        public static Quaternion InitialRotation { get; private set; }
+        public Vector3 InitialPosition { get; private set; }
+        public Quaternion InitialRotation { get; private set; }
 
         // The current world position of the cameras for the current scene. This
         // position corresponds to the origin in the real world physical device
         // coordinate system.
-        public static Vector3 CurrentPosition { get; set; }
-        public static Quaternion CurrentRotation { get; set; }
+        public Vector3 CurrentPosition { get; set; }
+        public Quaternion CurrentRotation { get; set; }
 
         // The current position of the HMD in Unity world coordinates
-        public static Vector3 HmdPosition { get; private set; }
-        public static Quaternion HmdRotation { get; private set; }
+        public Vector3 HmdPosition { get; private set; }
+        public Quaternion HmdRotation { get; private set; }
 
         // defines the tracking method to use
-        public static ETrackingUniverseOrigin TrackingSpace { get; private set; }
+        public ETrackingUniverseOrigin TrackingSpace { get; private set; }
 
         // defines what layer to render KerbalVR objects on
-        public static int RenderLayer { get; private set; }
+        public int RenderLayer { get; private set; }
 
         #endregion
+
+
+        #region Private Members
+
+        private float editorMovementSpeed = 1f;
+
+        #endregion
+
+
+        void OnEnable() {
+            Events.ManipulatorLeftUpdated.Listen(OnManipulatorLeftUpdated);
+            Events.ManipulatorRightUpdated.Listen(OnManipulatorRightUpdated);
+        }
+
+        void OnDisable() {
+            Events.ManipulatorLeftUpdated.Remove(OnManipulatorLeftUpdated);
+            Events.ManipulatorRightUpdated.Remove(OnManipulatorRightUpdated);
+        }
 
 
         /// <summary>
         /// Set up the list of cameras to render for this scene and the initial position
         /// corresponding to the origin in the real world device coordinate system.
         /// </summary>
-        public static void SetupScene() {
+        public void SetupScene() {
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
                     SetupFlightScene();
@@ -85,7 +123,7 @@ namespace KerbalVR
             CurrentRotation = InitialRotation;
         }
 
-        private static void SetupFlightScene() {
+        private void SetupFlightScene() {
             // use seated mode during IVA flight
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
@@ -104,7 +142,7 @@ namespace KerbalVR
                 InternalSpace.Instance.transform.rotation * Vector3.back);
         }
 
-        private static void SetupEditorScene() {
+        private void SetupEditorScene() {
             // use room-scale in editor
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
 
@@ -131,7 +169,7 @@ namespace KerbalVR
         /// </summary>
         /// <param name="eyePosition">Position of the HMD eye, in the device space coordinate system</param>
         /// <param name="eyeRotation">Rotation of the HMD eye, in the device space coordinate system</param>
-        public static void UpdateScene(
+        public void UpdateScene(
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
@@ -153,7 +191,7 @@ namespace KerbalVR
             HmdRotation = InitialRotation * hmdTransform.rot;
         }
 
-        private static void UpdateFlightScene(
+        private void UpdateFlightScene(
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
@@ -173,7 +211,7 @@ namespace KerbalVR
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
         }
 
-        private static void UpdateEditorScene(
+        private void UpdateEditorScene(
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
@@ -190,7 +228,7 @@ namespace KerbalVR
         /// <summary>
         /// Resets game cameras back to their original settings
         /// </summary>
-        public static void CloseScene() {
+        public void CloseScene() {
             // reset cameras to their original settings
             if (VRCameras != null) {
                 for (int i = 0; i < VRCameras.Length; i++) {
@@ -206,7 +244,7 @@ namespace KerbalVR
         /// the current game scene.
         /// </summary>
         /// <param name="cameraNames">An array of camera names to use for this VR scene.</param>
-        private static void PopulateCameraList(string[] cameraNames) {
+        private void PopulateCameraList(string[] cameraNames) {
             // search for the cameras to render
             NumVRCameras = cameraNames.Length;
             VRCameras = new Types.CameraData[NumVRCameras];
@@ -233,7 +271,7 @@ namespace KerbalVR
             }
         }
 
-        public static bool SceneAllowsVR() {
+        public bool SceneAllowsVR() {
             bool allowed;
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
@@ -257,7 +295,7 @@ namespace KerbalVR
         /// </summary>
         /// <param name="devicePosition">Device position in the device space coordinate system.</param>
         /// <returns>Unity world position corresponding to the device position.</returns>
-        public static Vector3 DevicePoseToWorld(Vector3 devicePosition) {
+        public Vector3 DevicePoseToWorld(Vector3 devicePosition) {
             return CurrentPosition + CurrentRotation * devicePosition;
         }
 
@@ -266,8 +304,44 @@ namespace KerbalVR
         /// </summary>
         /// <param name="deviceRotation">Device rotation in the device space coordinate system.</param>
         /// <returns>Unity world rotation corresponding to the device rotation.</returns>
-        public static Quaternion DevicePoseToWorld(Quaternion deviceRotation) {
+        public Quaternion DevicePoseToWorld(Quaternion deviceRotation) {
             return CurrentRotation * deviceRotation;
+        }
+
+        public void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
+            // left touchpad
+            if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
+                Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
+
+                Vector3 upDisplacement = Vector3.up * (editorMovementSpeed * touchAxis.y) * Time.deltaTime;
+
+                Vector3 newPosition = CurrentPosition + upDisplacement;
+                if (newPosition.y < 0f) newPosition.y = 0f;
+
+                CurrentPosition = newPosition;
+            }
+        }
+
+        public void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
+            // right touchpad
+            if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
+                Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
+
+                Vector3 fwdDirection = HmdRotation * Vector3.forward;
+                fwdDirection.y = 0f; // allow only planar movement
+                Vector3 fwdDisplacement = fwdDirection.normalized * (editorMovementSpeed * touchAxis.y) * Time.deltaTime;
+
+                Vector3 rightDirection = HmdRotation * Vector3.right;
+                rightDirection.y = 0f; // allow only planar movement
+                Vector3 rightDisplacement = rightDirection.normalized * (editorMovementSpeed * touchAxis.x) * Time.deltaTime;
+
+                CurrentPosition += fwdDisplacement + rightDisplacement;
+            }
+
+            // right menu button
+            if (state.GetPressDown(EVRButtonId.k_EButton_ApplicationMenu)) {
+                KerbalVR.ResetInitialHmdPosition();
+            }
         }
     }
 }

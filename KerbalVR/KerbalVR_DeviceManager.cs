@@ -27,7 +27,7 @@ namespace KerbalVR
 
 
         #region Singleton
-        // this is a singleton class, and there must be one EventManager in the scene
+        // this is a singleton class, and there must be one DeviceManager in the scene
         private static DeviceManager _instance;
         public static DeviceManager Instance {
             get {
