@@ -12,7 +12,6 @@ namespace KerbalVR
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class AssetLoader : MonoBehaviour
     {
-        private FontLoader fontLoader;
 
         void Awake() {
             // keep this object around forever

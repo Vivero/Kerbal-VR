@@ -56,7 +56,7 @@ namespace KerbalVR.Modules
             // y - forward
             // z - upwards
             
-            Vector3 viewfinderDeltaPosition = viewfinderTransform.position - Scene.HmdPosition;
+            Vector3 viewfinderDeltaPosition = viewfinderTransform.position - Scene.Instance.HmdPosition;
             Vector3 newScopePosition = new Vector3(cameraPos.x + viewfinderDeltaPosition.x, cameraPos.y, cameraPos.z);
 
             scopeCameraGameObject.transform.position = InternalSpace.InternalToWorld(newScopePosition);

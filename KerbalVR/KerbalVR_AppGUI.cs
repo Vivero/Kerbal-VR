@@ -150,7 +150,7 @@ namespace KerbalVR
             GUILayout.BeginVertical();
 
             // VR toggle button
-            UnityEngine.GUI.enabled = Scene.SceneAllowsVR();
+            UnityEngine.GUI.enabled = Scene.Instance.SceneAllowsVR();
             if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
                 if (KerbalVR.HmdIsEnabled) {
                     KerbalVR.HmdIsEnabled = false;
