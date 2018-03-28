@@ -42,6 +42,12 @@ namespace KerbalVR.Modules
         Events.Action onManipulatorLeftUpdatedAction;
         Events.Action onManipulatorRightUpdatedAction;
 
+        void Awake() {
+            // define events to listen
+            onManipulatorLeftUpdatedAction = KerbalVR.Events.ManipulatorLeftUpdatedAction(OnManipulatorLeftUpdated);
+            onManipulatorRightUpdatedAction = KerbalVR.Events.ManipulatorRightUpdatedAction(OnManipulatorRightUpdated);
+        }
+
         void Start() {
             // Utils.PrintGameObjectTree(gameObject);
             StickAxisX = 0f;
@@ -72,10 +78,7 @@ namespace KerbalVR.Modules
             isManipulatorInsideStickCollider = false;
             isUnderControl = false;
             isCommandingControl = false;
-
-            // define events to listen
-            onManipulatorLeftUpdatedAction = KerbalVR.Events.ManipulatorLeftUpdatedAction(OnManipulatorLeftUpdated);
-            onManipulatorRightUpdatedAction = KerbalVR.Events.ManipulatorRightUpdatedAction(OnManipulatorRightUpdated);
+            
         }
 
         void OnDestroy() {

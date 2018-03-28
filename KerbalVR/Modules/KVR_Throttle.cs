@@ -39,6 +39,16 @@ namespace KerbalVR.Modules
         private bool isInteractable = true;
         private float buttonCooldownTime = 0.3f;
 
+        // event listeners
+        Events.Action onManipulatorLeftUpdatedAction;
+        Events.Action onManipulatorRightUpdatedAction;
+
+        void Awake() {
+            // define events to listen
+            onManipulatorLeftUpdatedAction = KerbalVR.Events.ManipulatorLeftUpdatedAction(OnManipulatorLeftUpdated);
+            onManipulatorRightUpdatedAction = KerbalVR.Events.ManipulatorRightUpdatedAction(OnManipulatorRightUpdated);
+        }
+
         void Start() {
             HandleAxis = 0f;
 
@@ -74,18 +84,25 @@ namespace KerbalVR.Modules
         }
 
         void OnEnable() {
-            SteamVR_Events.NewPoses.Listen(OnDevicePosesReady);
+            onManipulatorLeftUpdatedAction.enabled = true;
+            onManipulatorRightUpdatedAction.enabled = true;
         }
 
         void OnDisable() {
-            SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
+            onManipulatorLeftUpdatedAction.enabled = false;
+            onManipulatorRightUpdatedAction.enabled = false;
         }
 
-        private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
-            // detect when the Grip button has been pressed (this "grabs" the stick)
-            if (isInteractable &&
-                DeviceManager.Instance.ManipulatorRight != null &&
-                DeviceManager.Instance.ManipulatorRight.State.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+        void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
+            OnManipulatorUpdated(state);
+        }
+
+        void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
+            OnManipulatorUpdated(state);
+        }
+
+        void OnManipulatorUpdated(SteamVR_Controller.Device state) {
+            if (isInteractable && state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
 
                 if (isManipulatorInsideHandleCollider && !isUnderControl) {
                     isUnderControl = true;
@@ -131,23 +148,14 @@ namespace KerbalVR.Modules
                     isCommandingControl = true;
                     HandleAxis = (xAngle - handleAxisMin) / (handleAxisMax - handleAxisMin);
                 }
-
-                // Utils.Log("xAngle = " + xAngle);
             }
         }
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (thisObject.gameObject == handleColliderGameObject &&
-                ((DeviceManager.Instance.ManipulatorRight != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject) ||
-                (DeviceManager.Instance.ManipulatorLeft != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject))) {
-
+            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
                 isManipulatorInsideHandleCollider = true;
             }
         }
-
-        // public void OnColliderStayed(Collider thisObject, Collider otherObject) { }
 
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
             if (thisObject.gameObject == handleColliderGameObject &&
