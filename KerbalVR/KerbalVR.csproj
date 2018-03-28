@@ -96,6 +96,7 @@
     <Compile Include="SteamVR\Scripts\SteamVR_TrackedObject.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_UpdatePoses.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_Utils.cs" />
+    <Compile Include="KerbalVR_Events.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
