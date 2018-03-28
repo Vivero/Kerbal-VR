@@ -19,7 +19,7 @@ namespace KerbalVR.Modules
         // DEBUG
         private Vector3 cameraPos = new Vector3(-0.6091f, 0.5731f, -0.3286f);
         private Quaternion cameraRot = Quaternion.Euler(270f, 90f, 270f);
-        private GameObject crosshair1;
+        //private GameObject crosshair1;
 
         void Start() {
             // create a camera
@@ -41,13 +41,13 @@ namespace KerbalVR.Modules
             }
 
             // DEBUG
-            crosshair1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            /*crosshair1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Destroy(crosshair1.GetComponent<BoxCollider>());
             crosshair1.transform.localScale = new Vector3(0.02f, 0.02f, 0.2f);
             crosshair1.transform.position = cameraPos + new Vector3(0f, 1f, 0f);
             Material crosshair1Mat = new Material(Shader.Find("KSP/Unlit"));
             crosshair1Mat.color = Color.cyan;
-            crosshair1.GetComponent<MeshRenderer>().sharedMaterial = crosshair1Mat;
+            crosshair1.GetComponent<MeshRenderer>().sharedMaterial = crosshair1Mat;*/
         }
 
         public override void OnUpdate() {
@@ -63,8 +63,8 @@ namespace KerbalVR.Modules
             scopeCameraGameObject.transform.rotation = InternalSpace.InternalToWorld(cameraRot);
 
             // DEBUG
-            crosshair1.transform.position = InternalSpace.InternalToWorld(cameraPos + new Vector3(0f, 1f, 0f));
-            crosshair1.transform.rotation = InternalSpace.InternalToWorld(Quaternion.identity);
+            //crosshair1.transform.position = InternalSpace.InternalToWorld(cameraPos + new Vector3(0f, 1f, 0f));
+            //crosshair1.transform.rotation = InternalSpace.InternalToWorld(Quaternion.identity);
         }
     }
 }
