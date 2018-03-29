@@ -17,12 +17,23 @@ namespace KerbalVR.Modules
         public float fontSize = 0.2f;
         [KSPField]
         public string font = "LiberationSans SDF";
+
+        [KSPField]
+        public string inputSignal = string.Empty;
         #endregion
 
         #region Private Members
         private GameObject displayGameObject;
+        private TMPro.TextMeshPro displayTextLabel;
+
+        private Events.Action avionicsUpdatedAction;
         #endregion
 
+        void Awake() {
+            if (!string.IsNullOrEmpty(inputSignal)) {
+                avionicsUpdatedAction = KerbalVR.Events.AvionicsAction(inputSignal, OnAvionicsInput);
+            }
+        }
 
         void Start() {
             // no setup needed in editor mode
@@ -40,11 +51,29 @@ namespace KerbalVR.Modules
             CreateLabels();
         }
 
+        void OnEnable() {
+            if (avionicsUpdatedAction != null) {
+                avionicsUpdatedAction.enabled = true;
+            }
+        }
+
+        void OnDisable() {
+            if (avionicsUpdatedAction != null) {
+                avionicsUpdatedAction.enabled = false;
+            }
+        }
+
+        void OnAvionicsInput(float input) {
+            displayTextLabel.text = input.ToString("F3");
+        }
+
         private void CreateLabels() {
             GameObject displayTextGameObject = CreateLabel(
-                0, "00123", fontSize, TMPro.FontStyles.Normal,
+                0, "0", fontSize, TMPro.FontStyles.Normal,
                 TMPro.TextAlignmentOptions.Left, displayGameObject.transform,
                 displayOffset, Quaternion.identity, displayPivot, displaySize);
+
+            displayTextLabel = displayTextGameObject.GetComponent<TMPro.TextMeshPro>();
         }
 
         private GameObject CreateLabel(

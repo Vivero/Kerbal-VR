@@ -1,4 +1,5 @@
-﻿using UnityEngine.Events;
+﻿using System.Collections.Generic;
+using UnityEngine.Events;
 
 namespace KerbalVR
 {
@@ -135,5 +136,19 @@ namespace KerbalVR
 
         public static Event<SteamVR_Controller.Device> ManipulatorRightUpdated = new Event<SteamVR_Controller.Device>();
         public static Action ManipulatorRightUpdatedAction(UnityAction<SteamVR_Controller.Device> action) { return new Action<SteamVR_Controller.Device>(ManipulatorRightUpdated, action); }
+
+        static Dictionary<string, Event<float>> avionicsEvents = new Dictionary<string, Event<float>>();
+        public static Event<float> Avionics(string eventType) {
+            Event<float> e;
+            if (!avionicsEvents.TryGetValue(eventType, out e)) {
+                e = new Event<float>();
+                avionicsEvents.Add(eventType, e);
+            }
+            return e;
+        }
+
+        public static Action AvionicsAction(string eventType, UnityAction<float> action) {
+            return new Action<float>(Avionics(eventType), action);
+        }
     }
 }
