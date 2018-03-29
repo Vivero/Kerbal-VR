@@ -61,6 +61,7 @@
     <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="KerbalVR_ConfigUtils.cs" />
     <Compile Include="Modules\KVR_ControlStick.cs" />
+    <Compile Include="Modules\KVR_DigitalIndicator.cs" />
     <Compile Include="Modules\KVR_Periscope.cs" />
     <Compile Include="Modules\KVR_PushButton.cs" />
     <Compile Include="Components\KVR_ActionableCollider.cs" />
