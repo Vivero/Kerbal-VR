@@ -120,7 +120,7 @@ namespace KerbalVR.Modules
 
         void Update() {
             // keep track if we're actually sending commands
-            isCommandingControl = false;
+            //isCommandingControl = false;
 
             if (isUnderControl) {
                 // calculate the delta position between the manipulator and the joystick
@@ -143,6 +143,7 @@ namespace KerbalVR.Modules
 
                 // perform vessel flight controls
                 if (Mathf.Abs(xAngle) < handleDeadZoneAngle) {
+                    isCommandingControl = false;
                     HandleAxis = 0f;
                 } else {
                     isCommandingControl = true;
