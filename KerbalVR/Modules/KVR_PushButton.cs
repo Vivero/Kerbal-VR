@@ -450,6 +450,12 @@ namespace KerbalVR.Modules
             tmpLabel.rectTransform.localRotation = labelRotationOffset;
             tmpLabel.rectTransform.sizeDelta = rectSize;
 
+            // find and set font
+            TMPro.TMP_FontAsset font = Resources.Load("Font/LiberationSans SDF", typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset;
+            if (font != null) {
+                tmpLabel.font = font;
+            }
+
             return labelGameObject;
         }
     }
