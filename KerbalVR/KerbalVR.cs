@@ -54,8 +54,10 @@ namespace KerbalVR
 
         // these arrays each hold one object for the corresponding eye, where
         // index 0 = Left_Eye, index 1 = Right_Eye
-        private Texture2D[] hmdEyeRenderTextures = new Texture2D[5];
+        private Texture2D[] leftEyeRenderTextures = new Texture2D[5];
+        private Texture2D[] rightEyeRenderTextures = new Texture2D[5];
         private RenderTexture[] renderTextures = new RenderTexture[5];
+
         private Texture_t openvrTexture;
 
         // store the tracked device poses
@@ -167,7 +169,7 @@ namespace KerbalVR
                             (EVREye)i,
                             hmdTransform,
                             hmdEyeTransform[i],
-                            hmdEyeRenderTextures[qualityLevel],
+                            i == 0 ? leftEyeRenderTextures[qualityLevel]:rightEyeRenderTextures[qualityLevel],
                             renderTextures[qualityLevel]);
                     }
 
@@ -289,9 +291,7 @@ namespace KerbalVR
                 camData.camera.Render();
             }
 
-            RenderTexture.active = renderTexture;
-            hmdEyeRenderTexture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height),0,0);
-            hmdEyeRenderTexture.Apply(); //this should force all rendering to finish.
+            Graphics.CopyTexture(renderTexture, hmdEyeRenderTexture);
 
             openvrTexture.handle = hmdEyeRenderTexture.GetNativeTexturePtr(); //this syncs with the render thread.
 
@@ -384,20 +384,25 @@ namespace KerbalVR
             Debug.Log("Graphics Type: " + SystemInfo.graphicsDeviceType);
 
             // initialize render textures (for displaying on HMD)
-            
-            hmdEyeRenderTextures[0] = new Texture2D((int)(renderTextureWidth * 1.5), (int)(renderTextureHeight * 1.5), TextureFormat.ARGB32, false);
+
+            rightEyeRenderTextures[0] = new Texture2D((int)(renderTextureWidth * 1.5), (int)(renderTextureHeight * 1.5), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[0] = new Texture2D((int)(renderTextureWidth * 1.5), (int)(renderTextureHeight * 1.5), TextureFormat.ARGB32, false);
             renderTextures[0] = new RenderTexture((int)(renderTextureWidth * 1.5), (int)(renderTextureHeight * 1.5), 24, RenderTextureFormat.ARGB32);
 
-            hmdEyeRenderTextures[1] = new Texture2D((int)(renderTextureWidth), (int)(renderTextureHeight), TextureFormat.ARGB32, false);
+            rightEyeRenderTextures[1] = new Texture2D((int)(renderTextureWidth), (int)(renderTextureHeight), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[1] = new Texture2D((int)(renderTextureWidth), (int)(renderTextureHeight), TextureFormat.ARGB32, false);
             renderTextures[1] = new RenderTexture((int)(renderTextureWidth), (int)(renderTextureHeight), 24, RenderTextureFormat.ARGB32);
 
-            hmdEyeRenderTextures[2] = new Texture2D((int)(renderTextureWidth * .75), (int)(renderTextureHeight * .75), TextureFormat.ARGB32, false);
+            rightEyeRenderTextures[2] = new Texture2D((int)(renderTextureWidth * .75), (int)(renderTextureHeight * .75), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[2] = new Texture2D((int)(renderTextureWidth * .75), (int)(renderTextureHeight * .75), TextureFormat.ARGB32, false);
             renderTextures[2] = new RenderTexture((int)(renderTextureWidth * .75), (int)(renderTextureHeight * .75), 24, RenderTextureFormat.ARGB32);
 
-            hmdEyeRenderTextures[3] = new Texture2D((int)(renderTextureWidth * .5), (int)(renderTextureHeight * .5), TextureFormat.ARGB32, false);
+            rightEyeRenderTextures[3] = new Texture2D((int)(renderTextureWidth * .5), (int)(renderTextureHeight * .5), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[3] = new Texture2D((int)(renderTextureWidth * .5), (int)(renderTextureHeight * .5), TextureFormat.ARGB32, false);
             renderTextures[3] = new RenderTexture((int)(renderTextureWidth * .5), (int)(renderTextureHeight * .5), 24, RenderTextureFormat.ARGB32);
 
-            hmdEyeRenderTextures[4] = new Texture2D((int)(renderTextureWidth * .25), (int)(renderTextureHeight * .25), TextureFormat.ARGB32, false);
+            rightEyeRenderTextures[4] = new Texture2D((int)(renderTextureWidth * .25), (int)(renderTextureHeight * .25), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[4] = new Texture2D((int)(renderTextureWidth * .25), (int)(renderTextureHeight * .25), TextureFormat.ARGB32, false);
             renderTextures[4] = new RenderTexture((int)(renderTextureWidth * .25), (int)(renderTextureHeight * .25), 24, RenderTextureFormat.ARGB32);
 
             // set rendering bounds on texture to render

@@ -149,7 +149,7 @@ namespace KerbalVR
             HmdRotation = InitialRotation * hmdTransform.rot;
         }
 
-        private static float kerbalScale = 2.2f;
+        private static float kerbalScale = 1.75f;
 
         private static void UpdateFlightScene(
             SteamVR_Utils.RigidTransform hmdTransform,
