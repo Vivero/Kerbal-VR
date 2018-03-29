@@ -205,6 +205,7 @@ namespace KerbalVR
                 Utils.PrintAllCameras();
                 Utils.PrintAllLayers();
                 // Utils.PrintDebug();
+                Utils.PrintFonts();
             }
 #endif
 
