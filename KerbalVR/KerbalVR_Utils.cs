@@ -203,6 +203,15 @@ namespace KerbalVR
             }
         }
 
+        public static void PrintFonts() {
+            TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
+            Utils.Log("num fonts: " + fonts.Length);
+            for (int i = 0; i < fonts.Length; i++) {
+                TMPro.TMP_FontAsset font = fonts[i];
+                Utils.Log("font name: " + font.name);
+            }
+        }
+
         public static int[] Int32MaskToArray(int mask) {
             List<int> maskBits = new List<int>(32);
             for (int i = 0; i < 32; i++) {
