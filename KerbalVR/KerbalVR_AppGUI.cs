@@ -7,14 +7,18 @@ namespace KerbalVR
     public class AppGUI
     {
         #region Constants
-        public static string AppButtonLogo {
-            get {
+        public static string AppButtonLogo
+        {
+            get
+            {
                 return Globals.KERBALVR_ASSETS_DIR + "app_button_logo";
             }
         }
 
-        public static bool SceneAllowsAppGUI {
-            get {
+        public static bool SceneAllowsAppGUI
+        {
+            get
+            {
                 return (
 #if DEBUG
                     (HighLogic.LoadedScene == GameScenes.MAINMENU) ||
@@ -56,7 +60,8 @@ namespace KerbalVR
         /// application launcher. Note that this callback can be called multiple times
         /// throughout the game.
         /// </summary>
-        public void OnAppLauncherReady() {
+        public void OnAppLauncherReady()
+        {
             // define where should the app button be visible
 
             /*
@@ -70,7 +75,8 @@ namespace KerbalVR
             */
 
             // create new app button instance if it doesn't already exist
-            if (appButton == null) {
+            if (appButton == null)
+            {
                 appButton = ApplicationLauncher.Instance.AddModApplication(
                     OnToggleTrue,
                     OnToggleFalse,
@@ -87,11 +93,13 @@ namespace KerbalVR
             }
         }
 
-        void OnShow() {
+        void OnShow()
+        {
             appButtonGuiActive = appButtonGuiActiveLastState;
         }
 
-        void OnHide() {
+        void OnHide()
+        {
             appButtonGuiActiveLastState = appButtonGuiActive;
             appButtonGuiActive = false;
         }
@@ -101,8 +109,10 @@ namespace KerbalVR
         /// at the time the plugin is loaded. It destroys the application button on the
         /// application launcher.
         /// </summary>
-        public void OnAppLauncherDestroyed() {
-            if (appButton != null) {
+        public void OnAppLauncherDestroyed()
+        {
+            if (appButton != null)
+            {
                 OnToggleFalse();
                 ApplicationLauncher.Instance.RemoveApplication(appButton);
                 ApplicationLauncher.Instance.RemoveOnShowCallback(OnShow);
@@ -113,19 +123,23 @@ namespace KerbalVR
         /// <summary>
         /// Callback when the application button is toggled on.
         /// </summary>
-        public void OnToggleTrue() {
+        public void OnToggleTrue()
+        {
             appButtonGuiActive = true;
         }
 
         /// <summary>
         /// Callback when the application button is toggled off.
         /// </summary>
-        public void OnToggleFalse() {
+        public void OnToggleFalse()
+        {
             appButtonGuiActive = false;
         }
 
-        public void OnGUI() {
-            if (SceneAllowsAppGUI && appButtonGuiActive) {
+        public void OnGUI()
+        {
+            if (SceneAllowsAppGUI && appButtonGuiActive)
+            {
                 appGuiWindowRect = GUILayout.Window(
                     APP_GUI_ID,
                     appGuiWindowRect,
@@ -135,13 +149,15 @@ namespace KerbalVR
             }
         }
 
-        private void GenerateGUI(int windowId) {
+        private void GenerateGUI(int windowId)
+        {
             string buttonStringToggleVr = BUTTON_STRING_ENABLE_VR;
             string labelStringVrActive = LABEL_STRING_VR_INACTIVE;
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
-            if (KerbalVR.HmdIsRunning) {
+            if (KerbalVR.HmdIsRunning)
+            {
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
@@ -151,23 +167,57 @@ namespace KerbalVR
 
             // VR toggle button
             UnityEngine.GUI.enabled = Scene.SceneAllowsVR();
-            if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
-                if (KerbalVR.HmdIsEnabled) {
+            if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button))
+            {
+                if (KerbalVR.HmdIsEnabled)
+                {
                     KerbalVR.HmdIsEnabled = false;
-                } else {
+                }
+                else
+                {
                     KerbalVR.HmdIsEnabled = true;
                 }
             }
 
-            if (KerbalVR.CanResetSeatedPose()) {
-                if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
+            if (KerbalVR.CanResetSeatedPose())
+            {
+                if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button))
+                {
                     KerbalVR.ResetInitialHmdPosition();
                 }
             }
 
+            string sc = "";
+            switch (KerbalVR.qualityLevel)
+            {
+                case 0:
+                    sc = "1.5x";
+                    break;
+                case 1:
+                    sc = "1x";
+                    break;
+                case 2:
+                    sc = ".75x";
+                    break;
+                case 3:
+                    sc = ".5x";
+                    break;
+                case 4:
+                    sc = ".25x";
+                    break;
+            }
+
+
+            if (GUILayout.Button("Render Scale (" + sc + ")", HighLogic.Skin.button))
+            {
+                KerbalVR.qualityLevel += 1;
+                if (KerbalVR.qualityLevel > 4)
+                    KerbalVR.qualityLevel = 0;
+            }
+
             if (HighLogic.LoadedSceneIsEditor)
             {
-                if (GUILayout.Button("Change Editor Scale (" + Scene.editorScale + ")", HighLogic.Skin.button))
+                if (GUILayout.Button("VAB/SPH World Scale (" + (int)1/Scene.editorScale + ")", HighLogic.Skin.button))
                 {
                     Scene.editorScale /= 2;
                     if (Scene.editorScale < 0.05)
