@@ -164,6 +164,17 @@ namespace KerbalVR
                     KerbalVR.ResetInitialHmdPosition();
                 }
             }
+
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                if (GUILayout.Button("Change Editor Scale (" + Scene.editorScale + ")", HighLogic.Skin.button))
+                {
+                    Scene.editorScale /= 2;
+                    if (Scene.editorScale < 0.05)
+                        Scene.editorScale = 1;
+                }
+            }
+
             UnityEngine.GUI.enabled = true;
 
             // VR status

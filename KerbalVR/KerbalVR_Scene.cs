@@ -149,6 +149,8 @@ namespace KerbalVR
             HmdRotation = InitialRotation * hmdTransform.rot;
         }
 
+        private static float kerbalScale = 2.2f;
+
         private static void UpdateFlightScene(
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
@@ -156,8 +158,8 @@ namespace KerbalVR
             CurrentPosition = InitialPosition;
             CurrentRotation = InitialRotation;
 
-            Vector3 positionToHmd = hmdTransform.pos;
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+            Vector3 positionToHmd = hmdTransform.pos * (1/kerbalScale);
+            Vector3 positionToEye = positionToHmd + hmdTransform.rot * (hmdEyeTransform.pos * (1 / kerbalScale));
 
             Vector3 updatedPosition = CurrentPosition + CurrentRotation * positionToEye;
             Quaternion updatedRotation = CurrentRotation * hmdTransform.rot;
@@ -169,12 +171,14 @@ namespace KerbalVR
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
         }
 
+        public static float editorScale = 1f;
+
         private static void UpdateEditorScene(
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
-            Vector3 positionToHmd = hmdTransform.pos;
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+            Vector3 positionToHmd = hmdTransform.pos * (1 / editorScale);
+            Vector3 positionToEye = positionToHmd + hmdTransform.rot * (hmdEyeTransform.pos * (1 / editorScale));
 
             Vector3 updatedPosition = CurrentPosition + CurrentRotation * positionToEye;
             Quaternion updatedRotation = CurrentRotation * hmdTransform.rot;
