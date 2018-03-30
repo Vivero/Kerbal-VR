@@ -31,8 +31,9 @@ namespace KerbalVR.Components
                     float apoapsis = (float)FlightGlobals.ActiveVessel.orbit.ApA;
                     Events.Avionics("apoapsis").Send(apoapsis);
 
-                    //Utils.Log("altitude = " + altitude.ToString("F3"));
-                    //Utils.Log("apoapsis = " + apoapsis.ToString("F3"));
+                    float periapsis = (float)FlightGlobals.ActiveVessel.orbit.PeA;
+                    Events.Avionics("periapsis").Send(periapsis);
+
                 }
 
                 // wait for next update
