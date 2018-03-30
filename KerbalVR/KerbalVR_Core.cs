@@ -166,6 +166,8 @@ namespace KerbalVR
                     hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                     hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
+                    Mouse.HoveredPart = null; //?
+
                     // render each eye
                     for (int i = 0; i < 2; i++) {
                         RenderHmdCameras(
@@ -186,11 +188,11 @@ namespace KerbalVR
 
                 // disable highlighting of parts due to mouse
                 // TODO: there needs to be a better way to do this. this affects the Part permanently
-                Part hoveredPart = Mouse.HoveredPart;
-                if (hoveredPart != null) {
-                    hoveredPart.HighlightActive = false;
-                    hoveredPart.highlightColor.a = 0f;
-                }
+            //    Part hoveredPart = Mouse.HoveredPart;
+                //if (hoveredPart != null) {
+                //    hoveredPart.HighlightActive = false;
+                //    hoveredPart.highlightColor.a = 0f;
+                //}
             }
 
             // reset cameras when HMD is turned off
@@ -291,7 +293,9 @@ namespace KerbalVR
                 camData.camera.targetTexture = hmdEyeRenderTexture;
                 camData.camera.Render();
             }
-            
+
+            hmdEyeTexture.handle = hmdEyeRenderTexture.GetNativeTexturePtr();
+
             // Submit frames to HMD
             EVRCompositorError vrCompositorError = OpenVR.Compositor.Submit(eye, ref hmdEyeTexture, ref hmdTextureBounds, EVRSubmitFlags.Submit_Default);
             if (vrCompositorError != EVRCompositorError.None) {

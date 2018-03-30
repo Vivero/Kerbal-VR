@@ -57,6 +57,8 @@ namespace KerbalVR
             SteamVR_Events.NewPoses.Listen(OnDevicePosesReady);
             SteamVR_Events.DeviceConnected.Listen(OnDeviceConnected);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).Listen(OnTrackedDeviceRoleChanged);
+            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceUpdated).Listen(OnTrackedDeviceRoleChanged);
+
         }
 
         void OnDisable() {
@@ -74,6 +76,8 @@ namespace KerbalVR
                 }
                 isDeviceConnected[i] = isConnected;
             }
+
+            OnTrackedDeviceRoleChanged(); //the events are NOT trustworthy!
 
             // update poses for tracked devices
             SteamVR_Controller.Update();
@@ -108,11 +112,17 @@ namespace KerbalVR
 
         private void OnTrackedDeviceRoleChanged(VREvent_t vrEvent) {
             // re-check controller indices
+            OnTrackedDeviceRoleChanged();
+        }
+
+        private void OnTrackedDeviceRoleChanged() {
+            // re-check controller indices
             ControllerIndexLeft = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.LeftHand);
             ControllerIndexRight = OpenVR.System.GetTrackedDeviceIndexForControllerRole(ETrackedControllerRole.RightHand);
 
             ManageManipulators();
         }
+
 
         private void OnDeviceConnected(int deviceIndex, bool isConnected) {
             Utils.Log("Device " + deviceIndex + " (" +
