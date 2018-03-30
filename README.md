@@ -6,7 +6,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
-**Built for KSP v1.4.1**
+**Built for KSP v1.4.2**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
