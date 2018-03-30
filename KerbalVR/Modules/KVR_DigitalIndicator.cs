@@ -5,28 +5,55 @@ namespace KerbalVR.Modules
     public class KVR_DigitalIndicator : InternalModule
     {
         #region KSP Config Fields
+
         [KSPField]
-        public string displayTransform = string.Empty;
+        public string labelDisplayText = string.Empty;
         [KSPField]
-        public Vector3 displayOffset = Vector3.zero;
+        public string labelDisplayTransform = string.Empty;
         [KSPField]
-        public Vector2 displaySize = Vector2.zero;
+        public Vector3 labelDisplayOffset = Vector3.zero;
         [KSPField]
-        public Vector2 displayPivot = Vector2.zero;
+        public Vector2 labelDisplaySize = Vector2.zero;
         [KSPField]
-        public float fontSize = 0.2f;
+        public string labelDisplayFontStyle = string.Empty;
         [KSPField]
-        public string font = "LiberationSans SDF";
+        public Vector2 labelDisplayPivot = Vector2.zero;
+        [KSPField]
+        public float labelDisplayFontSize = 0.1f;
+        [KSPField]
+        public string labelDisplayFont = "LiberationSans SDF";
+
+        [KSPField]
+        public string digitDisplayTransform = string.Empty;
+        [KSPField]
+        public Vector3 digitDisplayOffset = Vector3.zero;
+        [KSPField]
+        public Vector2 digitDisplaySize = Vector2.zero;
+        [KSPField]
+        public Vector2 digitDisplayPivot = Vector2.zero;
+        [KSPField]
+        public float digitDisplayFontSize = 0.2f;
+        [KSPField]
+        public string digitDisplayFont = "JD-LCD_rounded SDF";
 
         [KSPField]
         public string inputSignal = string.Empty;
+
         #endregion
 
+
         #region Private Members
-        private GameObject displayGameObject;
-        private TMPro.TextMeshPro displayTextLabel;
+
+        private ConfigNode moduleConfigNode;
+
+        private GameObject labelDisplayGameObject;
+        private TMPro.TextMeshPro labelDisplayTextLabel;
+
+        private GameObject digitDisplayGameObject;
+        private TMPro.TextMeshPro digitDisplayTextLabel;
 
         private Events.Action avionicsUpdatedAction;
+
         #endregion
 
         void Awake() {
@@ -39,13 +66,24 @@ namespace KerbalVR.Modules
             // no setup needed in editor mode
             if (HighLogic.LoadedScene == GameScenes.EDITOR) return;
 
+            // get configuration
+            moduleConfigNode = ConfigUtils.GetModuleConfigNode(internalProp.name, moduleID);
+
             // retrieve the display transform
-            Transform displayTransform = internalProp.FindModelTransform(this.displayTransform);
-            if (displayTransform != null) {
-                displayGameObject = displayTransform.gameObject;
+            Transform digitDisplayTransform = internalProp.FindModelTransform(this.digitDisplayTransform);
+            if (digitDisplayTransform != null) {
+                digitDisplayGameObject = digitDisplayTransform.gameObject;
             } else {
-                Utils.LogWarning("KVR_DigitalIndicator (" + gameObject.name + ") has no display transform \"" + this.displayTransform + "\"");
+                Utils.LogWarning("KVR_DigitalIndicator (" + gameObject.name + ") has no display transform \"" + this.digitDisplayTransform + "\"");
             }
+
+            Transform labelDisplayTransform = internalProp.FindModelTransform(this.labelDisplayTransform);
+            if (labelDisplayTransform != null) {
+                labelDisplayGameObject = labelDisplayTransform.gameObject;
+            } else {
+                Utils.LogWarning("KVR_DigitalIndicator (" + gameObject.name + ") has no label transform \"" + this.labelDisplayTransform + "\"");
+            }
+
 
             // create labels
             CreateLabels();
@@ -64,21 +102,35 @@ namespace KerbalVR.Modules
         }
 
         void OnAvionicsInput(float input) {
-            displayTextLabel.text = input.ToString("F3");
+            digitDisplayTextLabel.text = input.ToString("F0");
         }
 
         private void CreateLabels() {
-            GameObject displayTextGameObject = CreateLabel(
-                0, "0", fontSize, TMPro.FontStyles.Normal,
-                TMPro.TextAlignmentOptions.Left, displayGameObject.transform,
-                displayOffset, Quaternion.identity, displayPivot, displaySize);
 
-            displayTextLabel = displayTextGameObject.GetComponent<TMPro.TextMeshPro>();
+            // font style (bold, italics, etc)
+            TMPro.FontStyles labelDisplayFontStyle = TMPro.FontStyles.Normal;
+            bool success = moduleConfigNode.TryGetEnum("labelDisplayFontStyle",
+                ref labelDisplayFontStyle, TMPro.FontStyles.Normal);
+
+            // label
+            GameObject labelTextGameObject = CreateLabel(
+                0, labelDisplayText, labelDisplayFont, labelDisplayFontSize, labelDisplayFontStyle,
+                TMPro.TextAlignmentOptions.TopLeft, labelDisplayGameObject.transform,
+                labelDisplayOffset, Quaternion.identity, labelDisplayPivot, labelDisplaySize);
+            labelDisplayTextLabel = labelDisplayGameObject.GetComponent<TMPro.TextMeshPro>();
+
+            // digit display
+            GameObject displayTextGameObject = CreateLabel(
+                1, "0.0", digitDisplayFont, digitDisplayFontSize, TMPro.FontStyles.Normal,
+                TMPro.TextAlignmentOptions.TopLeft, digitDisplayGameObject.transform,
+                digitDisplayOffset, Quaternion.identity, digitDisplayPivot, digitDisplaySize);
+            digitDisplayTextLabel = displayTextGameObject.GetComponent<TMPro.TextMeshPro>();
         }
 
         private GameObject CreateLabel(
             int id,
             string text,
+            string fontName,
             float fontSize,
             TMPro.FontStyles fontStyle,
             TMPro.TextAlignmentOptions alignment,
@@ -106,7 +158,7 @@ namespace KerbalVR.Modules
             tmpLabel.rectTransform.sizeDelta = rectSize;
 
             // find and set font
-            TMPro.TMP_FontAsset tmpFont = AssetLoader.Instance.GetFont(font);
+            TMPro.TMP_FontAsset tmpFont = AssetLoader.Instance.GetFont(fontName);
             if (tmpFont != null) {
                 tmpLabel.font = tmpFont;
             } else {

@@ -30,6 +30,7 @@ namespace KerbalVR.Modules
         private Transform stickColliderTransform;
         private GameObject stickColliderGameObject;
 
+        private Manipulator attachedManipulator;
         private bool isManipulatorInsideStickCollider;
         private bool isUnderControl; // stick is being operated by manipulator
         private bool isCommandingControl; // stick is allowed to control the vessel
@@ -96,17 +97,19 @@ namespace KerbalVR.Modules
         }
 
         void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
-            OnManipulatorUpdated(state);
+            OnManipulatorUpdated(state, true);
         }
 
         void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
-            OnManipulatorUpdated(state);
+            OnManipulatorUpdated(state, false);
         }
 
-        void OnManipulatorUpdated(SteamVR_Controller.Device state) {
+        void OnManipulatorUpdated(SteamVR_Controller.Device state, bool isLeft) {
             if (isInteractable && state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
 
                 if (isManipulatorInsideStickCollider && !isUnderControl) {
+                    attachedManipulator = isLeft ? DeviceManager.Instance.ManipulatorLeft :
+                        DeviceManager.Instance.ManipulatorRight;
                     isUnderControl = true;
 
                     // cool-down for button de-bounce
@@ -114,6 +117,7 @@ namespace KerbalVR.Modules
                     StartCoroutine(ButtonCooldown());
 
                 } else if (isUnderControl) {
+                    attachedManipulator = null;
                     isUnderControl = false;
                 }
 
@@ -124,11 +128,10 @@ namespace KerbalVR.Modules
             // keep track if we're actually sending commands
             isCommandingControl = false;
 
-            if (isUnderControl) {
+            if (isUnderControl && attachedManipulator != null) {
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 stickToManipulatorPos =
-                    DeviceManager.Instance.ManipulatorRight.transform.position -
-                    stickTransformGameObject.transform.position;
+                    attachedManipulator.transform.position - stickTransformGameObject.transform.position;
 
                 // calculate the joystick X-axis angle
                 Vector3 stickToManipulatorDeltaPos = stickInitialRotation * stickToManipulatorPos;
@@ -170,23 +173,15 @@ namespace KerbalVR.Modules
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
             if (thisObject.gameObject == stickColliderGameObject &&
-                ((DeviceManager.Instance.ManipulatorRight != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject) ||
-                (DeviceManager.Instance.ManipulatorLeft != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject))) {
+                DeviceManager.IsManipulator(otherObject.gameObject)) {
 
                 isManipulatorInsideStickCollider = true;
             }
         }
 
-        // public void OnColliderStayed(Collider thisObject, Collider otherObject) { }
-
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
             if (thisObject.gameObject == stickColliderGameObject &&
-                ((DeviceManager.Instance.ManipulatorRight != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject) ||
-                (DeviceManager.Instance.ManipulatorLeft != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject))) {
+                DeviceManager.IsManipulator(otherObject.gameObject)) {
 
                 isManipulatorInsideStickCollider = false;
             }

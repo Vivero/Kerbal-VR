@@ -117,9 +117,9 @@ namespace KerbalVR.Modules
             Transform coloredObjectTransform = internalProp.FindModelTransform(coloredObject);
             if (coloredObjectTransform != null) {
                 coloredGameObject = coloredObjectTransform.gameObject;
-                MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
-                Material rmat = r.sharedMaterial;
-                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.red);
+                // MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
+                // Material rmat = r.sharedMaterial;
+                // rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.red);
             }
 
             // set initial state
@@ -201,7 +201,7 @@ namespace KerbalVR.Modules
             if (state == SwitchState.Up) {
                 MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
                 Material rmat = r.sharedMaterial;
-                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.red);
+                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.cyan);
             } else if (state == SwitchState.Down) {
                 MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
                 Material rmat = r.sharedMaterial;

@@ -31,6 +31,7 @@ namespace KerbalVR.Modules
         private Transform handleColliderTransform;
         private GameObject handleColliderGameObject;
 
+        private Manipulator attachedManipulator;
         private bool isManipulatorInsideHandleCollider;
         private bool isUnderControl; // stick is being operated by manipulator
         private bool isCommandingControl; // stick is allowed to control the vessel
@@ -94,17 +95,19 @@ namespace KerbalVR.Modules
         }
 
         void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
-            OnManipulatorUpdated(state);
+            OnManipulatorUpdated(state, true);
         }
 
         void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
-            OnManipulatorUpdated(state);
+            OnManipulatorUpdated(state, false);
         }
 
-        void OnManipulatorUpdated(SteamVR_Controller.Device state) {
+        void OnManipulatorUpdated(SteamVR_Controller.Device state, bool isLeft) {
             if (isInteractable && state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
 
                 if (isManipulatorInsideHandleCollider && !isUnderControl) {
+                    attachedManipulator = isLeft ? DeviceManager.Instance.ManipulatorLeft :
+                        DeviceManager.Instance.ManipulatorRight;
                     isUnderControl = true;
 
                     // cool-down for button de-bounce
@@ -112,6 +115,7 @@ namespace KerbalVR.Modules
                     StartCoroutine(ButtonCooldown());
 
                 } else if (isUnderControl) {
+                    attachedManipulator = null;
                     isUnderControl = false;
                 }
 
@@ -125,8 +129,7 @@ namespace KerbalVR.Modules
             if (isUnderControl) {
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 handleToManipulatorPos =
-                    DeviceManager.Instance.ManipulatorRight.transform.position -
-                    handleInitialPosition;
+                    attachedManipulator.transform.position - handleInitialPosition;
 
                 // calculate the joystick X-axis angle
                 Vector3 handleToManipulatorDeltaPos = handleInitialRotation * handleToManipulatorPos;
