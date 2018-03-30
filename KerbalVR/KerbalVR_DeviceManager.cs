@@ -173,11 +173,17 @@ namespace KerbalVR
             }
         }
 
+        public static bool IsManipulatorLeft(GameObject obj) {
+            return Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft;
+        }
+
+        public static bool IsManipulatorRight(GameObject obj) {
+            return Instance.manipulatorRight != null && obj == Instance.manipulatorRight;
+        }
+
         public static bool IsManipulator(GameObject obj) {
-            return (Instance.manipulatorLeft != null &&
-                obj == Instance.manipulatorLeft) || 
-                (Instance.manipulatorRight != null &&
-                obj == Instance.manipulatorRight);
+            return (Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft) ||
+                (Instance.manipulatorRight != null && obj == Instance.manipulatorRight);
         }
     }
 }

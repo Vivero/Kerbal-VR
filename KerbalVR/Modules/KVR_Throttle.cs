@@ -31,7 +31,9 @@ namespace KerbalVR.Modules
         private Transform handleColliderTransform;
         private GameObject handleColliderGameObject;
 
-        private bool isManipulatorInsideHandleCollider;
+        private Manipulator attachedManipulator;
+        private bool isManipulatorLeftInsideHandleCollider;
+        private bool isManipulatorRightInsideHandleCollider;
         private bool isUnderControl; // stick is being operated by manipulator
         private bool isCommandingControl; // stick is allowed to control the vessel
 
@@ -74,7 +76,8 @@ namespace KerbalVR.Modules
             // define the active vessel to control
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
 
-            isManipulatorInsideHandleCollider = false;
+            isManipulatorLeftInsideHandleCollider = false;
+            isManipulatorRightInsideHandleCollider = false;
             isUnderControl = false;
             isCommandingControl = false;
         }
@@ -94,17 +97,11 @@ namespace KerbalVR.Modules
         }
 
         void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
-            OnManipulatorUpdated(state);
-        }
+            if (isInteractable && isManipulatorLeftInsideHandleCollider &&
+                state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+                if (!isUnderControl) {
 
-        void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
-            OnManipulatorUpdated(state);
-        }
-
-        void OnManipulatorUpdated(SteamVR_Controller.Device state) {
-            if (isInteractable && state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
-
-                if (isManipulatorInsideHandleCollider && !isUnderControl) {
+                    attachedManipulator = DeviceManager.Instance.ManipulatorLeft;
                     isUnderControl = true;
 
                     // cool-down for button de-bounce
@@ -112,9 +109,28 @@ namespace KerbalVR.Modules
                     StartCoroutine(ButtonCooldown());
 
                 } else if (isUnderControl) {
+                    attachedManipulator = null;
                     isUnderControl = false;
                 }
+            }
+        }
 
+        void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
+            if (isInteractable && isManipulatorRightInsideHandleCollider &&
+                state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+                if (!isUnderControl) {
+
+                    attachedManipulator = DeviceManager.Instance.ManipulatorRight;
+                    isUnderControl = true;
+
+                    // cool-down for button de-bounce
+                    isInteractable = false;
+                    StartCoroutine(ButtonCooldown());
+
+                } else if (isUnderControl) {
+                    attachedManipulator = null;
+                    isUnderControl = false;
+                }
             }
         }
 
@@ -125,8 +141,7 @@ namespace KerbalVR.Modules
             if (isUnderControl) {
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 handleToManipulatorPos =
-                    DeviceManager.Instance.ManipulatorRight.transform.position -
-                    handleInitialPosition;
+                    attachedManipulator.transform.position - handleInitialPosition;
 
                 // calculate the joystick X-axis angle
                 Vector3 handleToManipulatorDeltaPos = handleInitialRotation * handleToManipulatorPos;
@@ -154,18 +169,15 @@ namespace KerbalVR.Modules
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
             if (DeviceManager.IsManipulator(otherObject.gameObject)) {
-                isManipulatorInsideHandleCollider = true;
+                isManipulatorLeftInsideHandleCollider = DeviceManager.IsManipulatorLeft(otherObject.gameObject);
+                isManipulatorRightInsideHandleCollider = DeviceManager.IsManipulatorRight(otherObject.gameObject);
             }
         }
 
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (thisObject.gameObject == handleColliderGameObject &&
-                ((DeviceManager.Instance.ManipulatorRight != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorRight.gameObject) ||
-                (DeviceManager.Instance.ManipulatorLeft != null &&
-                otherObject.gameObject == DeviceManager.Instance.ManipulatorLeft.gameObject))) {
-
-                isManipulatorInsideHandleCollider = false;
+            if (thisObject.gameObject == handleColliderGameObject) {
+                isManipulatorLeftInsideHandleCollider = DeviceManager.IsManipulatorLeft(otherObject.gameObject);
+                isManipulatorRightInsideHandleCollider = DeviceManager.IsManipulatorRight(otherObject.gameObject);
             }
         }
 
