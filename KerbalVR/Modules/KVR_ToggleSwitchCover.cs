@@ -45,6 +45,9 @@ namespace KerbalVR.Modules
         public string switchAnimationName = string.Empty;
         [KSPField]
         public string transformSwitchCollider = string.Empty;
+
+        [KSPField]
+        public string outputSignal = string.Empty;
         #endregion
 
 
@@ -248,6 +251,10 @@ namespace KerbalVR.Modules
 
         public void SetSwitchState(SwitchState state) {
             CurrentSwitchState = state;
+
+            if (!string.IsNullOrEmpty(outputSignal)) {
+                KerbalVR.Events.Avionics(outputSignal).Send((float)state);
+            }
         }
 
         private void GoToSwitchState(SwitchState state) {

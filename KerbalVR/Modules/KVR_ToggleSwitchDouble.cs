@@ -62,6 +62,9 @@ namespace KerbalVR.Modules
         public Vector3 labelDownOffset = Vector3.zero;
         [KSPField]
         public string coloredObject = string.Empty;
+
+        [KSPField]
+        public string outputSignal = string.Empty;
         #endregion
 
         #region Properties
@@ -78,6 +81,7 @@ namespace KerbalVR.Modules
 
         private GameObject coloredGameObject;
         #endregion
+
 
         /// <summary>
         /// Loads the animations and hooks into the colliders for this toggle switch.
@@ -206,6 +210,10 @@ namespace KerbalVR.Modules
                 MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
                 Material rmat = r.sharedMaterial;
                 rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.black);
+            }
+
+            if (!string.IsNullOrEmpty(outputSignal)) {
+                KerbalVR.Events.Avionics(outputSignal).Send((float)state);
             }
         }
 

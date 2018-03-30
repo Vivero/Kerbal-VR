@@ -10,10 +10,39 @@ namespace KerbalVR.Components
     {
         private Coroutine outputSignalsFunction;
 
+        private Events.Action stageUpdatedAction;
+        private Events.Action sasUpdatedAction;
+
         void Awake() {
             Utils.Log("KVR_AvionicsComputer booting up.");
 
             outputSignalsFunction = StartCoroutine(OutputSignals());
+
+            stageUpdatedAction = KerbalVR.Events.AvionicsAction("stage", OnStageInput);
+            sasUpdatedAction = KerbalVR.Events.AvionicsAction("sas", OnSASInput);
+        }
+
+        void Start() {
+            // define the active vessel to control
+            // FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
+        }
+
+        void OnEnable() {
+            if (stageUpdatedAction != null) {
+                stageUpdatedAction.enabled = true;
+            }
+            if (sasUpdatedAction != null) {
+                sasUpdatedAction.enabled = true;
+            }
+        }
+
+        void OnDisable() {
+            if (stageUpdatedAction != null) {
+                stageUpdatedAction.enabled = false;
+            }
+            if (sasUpdatedAction != null) {
+                sasUpdatedAction.enabled = false;
+            }
         }
 
         void OnDestroy() {
@@ -34,10 +63,25 @@ namespace KerbalVR.Components
                     float periapsis = (float)FlightGlobals.ActiveVessel.orbit.PeA;
                     Events.Avionics("periapsis").Send(periapsis);
 
+                    
                 }
 
                 // wait for next update
                 yield return new WaitForSeconds(1f);
+            }
+        }
+
+        void OnStageInput(float signal) {
+            Utils.Log("OnStageInput = " + signal);
+            if (signal < 0.5f) {
+                KSP.UI.Screens.StageManager.ActivateNextStage();
+            }
+        }
+
+        void OnSASInput(float signal) {
+            Utils.Log("OnSASInput = " + signal);
+            if (signal < 0.5f) {
+                FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.SAS, signal < 0.5f);
             }
         }
     }
