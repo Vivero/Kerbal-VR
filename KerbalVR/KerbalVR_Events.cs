@@ -4,7 +4,8 @@ using UnityEngine.Events;
 namespace KerbalVR
 {
     /// <summary>
-    /// An event system for KerbalVR interactive components.
+    /// An event system for KerbalVR interactive components. Note this class is largely copied
+	/// from SteamVR_Events class of the SteamVR Unity plugin.
     /// 
     /// Example usage:
     ///     void ManipulatorLeftUpdated(Device state) { ... }
@@ -150,5 +151,5 @@ namespace KerbalVR
         public static Action AvionicsAction(string eventType, UnityAction<float> action) {
             return new Action<float>(Avionics(eventType), action);
         }
-    }
-}
+    } // class Events
+} // namespace KerbalVR

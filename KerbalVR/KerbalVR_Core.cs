@@ -5,19 +5,26 @@ using Valve.VR;
 
 namespace KerbalVR
 {
-    // start plugin at startup
-    //
-    [KSPAddon(KSPAddon.Startup.Instantly, false)]
+	/// <summary>
+	/// The entry point for the KerbalVR plugin. This mod should
+	/// start up once, when the game starts.
+	/// </summary>
+    [KSPAddon(KSPAddon.Startup.Instantly, true)]
     public class Core : MonoBehaviour
     {
         // this function allows importing DLLs from a given path
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool SetDllDirectory(string lpPathName);
+        protected static extern bool SetDllDirectory(string lpPathName);
 
 
         #region Properties
 
-        // enable and disable VR functionality
+		/// <summary>
+		/// Returns true if VR is currently enabled. Enabled
+		/// does not necessarily mean VR is currently running, only
+		/// that the user allowing VR to be activated.
+		/// Set to true to enable VR; false to disable VR.
+		/// </summary>
         private static bool _hmdIsEnabled;
         public static bool HmdIsEnabled {
             get { return _hmdIsEnabled; }
@@ -31,10 +38,15 @@ namespace KerbalVR
             }
         }
 
-        // check if VR can be enabled
+		/// <summary>
+		/// Returns true if VR is allowed to run in the current scene.
+		/// </summary>
         public static bool HmdIsAllowed { get; private set; }
 
-        // keep track of HMD running
+		/// <summary>
+		/// Returns true if VR is currently running, i.e. tracking devices
+		/// and rendering images to the headset.
+		/// </summary>
         public static bool HmdIsRunning { get; private set; }
 
         #endregion
@@ -65,15 +77,10 @@ namespace KerbalVR
         #endregion
 
 
-        #region Debug
-        #endregion
-
-
         /// <summary>
-        /// Overrides the Awake method for a MonoBehaviour plugin.
-        /// Initialize class members.
+        /// Initialize the application GUI, singleton classes, and initialize OpenVR.
         /// </summary>
-        void Awake() {
+        protected void Awake() {
 #if DEBUG
             Utils.Log(Globals.KERBALVR_NAME + " plugin starting...");
 #endif
@@ -115,22 +122,22 @@ namespace KerbalVR
         /// <summary>
         /// Overrides the OnGUI method to render the application launcher GUI.
         /// </summary>
-        void OnGUI() {
+        protected void OnGUI() {
             gui.OnGUI();
         }
 
         /// <summary>
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
-        void OnDestroy() {
+        protected void OnDestroy() {
             Utils.Log(Globals.KERBALVR_NAME + " OnDestroy");
             CloseHMD();
         }
 
         /// <summary>
-        /// Overrides the LateUpdate method, called every frame after all objects' Update.
+        /// On LateUpdate, dispatch OpenVR events, run the main HMD loop code.
         /// </summary>
-        void LateUpdate() {
+        protected void LateUpdate() {
             // dispatch any OpenVR events
             if (hmdIsInitialized) {
                 DispatchOpenVREvents();
@@ -147,7 +154,7 @@ namespace KerbalVR
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
 
                 try {
-                    // get latest device poses
+                    // get latest device poses, emit an event to indicate devices have been updated
                     float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
                     OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, secondsToPhotons, devicePoses);
                     SteamVR_Events.NewPoses.Send(devicePoses);
@@ -176,9 +183,11 @@ namespace KerbalVR
                             hmdEyeTexture[i]);
                     }
 
+					// [insert dark magic here]
                     OpenVR.Compositor.PostPresentHandoff();
 
                 } catch (Exception e) {
+					// shut off VR when an error occurs
                     Utils.LogError(e);
                     HmdIsEnabled = false;
                     HmdIsRunning = false;
@@ -197,10 +206,13 @@ namespace KerbalVR
             if (!HmdIsRunning && hmdIsRunningPrev) {
                 Utils.Log("HMD is now off, resetting cameras...");
                 Scene.Instance.CloseScene();
+				
+				// TODO: figure out why we can no longer manipulate the IVA camera in the regular game
             }
 
 
 #if DEBUG
+			// debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
                 Utils.PrintAllLayers();
@@ -209,9 +221,13 @@ namespace KerbalVR
             }
 #endif
 
+			// keep track of whether we were running the HMD
             hmdIsRunningPrev = HmdIsRunning;
         }
 
+        /// <summary>
+        /// Dispatch other miscellaneous OpenVR-specific events.
+        /// </summary>
         private void DispatchOpenVREvents() {
             // copied from SteamVR_Render
             var vrEvent = new VREvent_t();
@@ -244,7 +260,10 @@ namespace KerbalVR
             }
         }
 
-        private void RenderHmdCameras(
+		/// <summary>
+        /// Renders a set of cameras onto a RenderTexture, and submit the frame to the HMD.
+        /// </summary>
+        protected void RenderHmdCameras(
             EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform,
@@ -260,7 +279,7 @@ namespace KerbalVR
              *      hmdEyeTransform.z+  towards the front of the headset
              *
              * hmdTransform is in a coordinate system set in physical space, where the
-             * origin is the initial seated position.
+             * origin is the initial seated position. Or for room-scale, the physical origin of the room.
              *      hmdTransform.x+     towards the right
              *      hmdTransform.y+     upwards
              *      hmdTransform.z+     towards the front
@@ -304,15 +323,15 @@ namespace KerbalVR
         /// An event called when the game is switching scenes. The VR headset should be disabled.
         /// </summary>
         /// <param name="scene">The scene being switched into.</param>
-        public void OnGameSceneLoadRequested(GameScenes scene) {
+        protected void OnGameSceneLoadRequested(GameScenes scene) {
             HmdIsEnabled = false;
         }
 
         /// <summary>
         /// Initialize HMD using OpenVR API calls.
         /// </summary>
-        /// <returns>True on success, false otherwise. Errors logged.</returns>
-        private bool InitHMD() {
+        /// <returns>True on successful initialization, false otherwise.</returns>
+        protected bool InitHMD() {
             bool retVal = false;
 
             // return if HMD has already been initialized
@@ -395,7 +414,7 @@ namespace KerbalVR
         }
 
         /// <summary>
-        /// Sets the current real-world position of the HMD as the seated origin in IVA.
+        /// Sets the current real-world position of the HMD as the seated origin.
         /// </summary>
         public static void ResetInitialHmdPosition() {
             if (hmdIsInitialized) {
@@ -420,5 +439,5 @@ namespace KerbalVR
             hmdIsInitialized = false;
         }
 
-    } // class KerbalVR
+    } // class Core
 } // namespace KerbalVR
