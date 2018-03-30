@@ -54,16 +54,18 @@ namespace KerbalVR
 
         // these arrays each hold one object for the corresponding eye, where
         // index 0 = Left_Eye, index 1 = Right_Eye
-        private Texture_t[] hmdEyeTexture = new Texture_t[2];
-        private RenderTexture[] hmdEyeRenderTexture = new RenderTexture[2];
+        private Texture2D[] leftEyeRenderTextures = new Texture2D[5];
+        private Texture2D[] rightEyeRenderTextures = new Texture2D[5];
+        private RenderTexture[] renderTextures = new RenderTexture[5];
+
+        private Texture_t openvrTexture;
 
         // store the tracked device poses
         private static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private static TrackedDevicePose_t[] renderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         private static TrackedDevicePose_t[] gamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-
+        public static int qualityLevel = 0;
         #endregion
-
 
         #region Debug
         #endregion
@@ -167,8 +169,8 @@ namespace KerbalVR
                             (EVREye)i,
                             hmdTransform,
                             hmdEyeTransform[i],
-                            hmdEyeRenderTexture[i],
-                            hmdEyeTexture[i]);
+                            i == 0 ? leftEyeRenderTextures[qualityLevel]:rightEyeRenderTextures[qualityLevel],
+                            renderTextures[qualityLevel]);
                     }
 
                     OpenVR.Compositor.PostPresentHandoff();
@@ -238,13 +240,15 @@ namespace KerbalVR
             }
         }
 
+        private bool failed;
+
         private void RenderHmdCameras(
             EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform,
-            RenderTexture hmdEyeRenderTexture,
-            Texture_t hmdEyeTexture) {
-
+            Texture2D hmdEyeRenderTexture,
+            RenderTexture renderTexture) {
+            if (failed) return;
             /**
              * hmdEyeTransform is in a coordinate system that follows the headset, where
              * the origin is the headset device position. Therefore the eyes are at a constant
@@ -269,7 +273,7 @@ namespace KerbalVR
              */
 
             // position of the eye in the VR reference frame
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+           // Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
             // update position of the cameras
             Scene.UpdateScene(hmdTransform, hmdEyeTransform);
@@ -283,14 +287,19 @@ namespace KerbalVR
                     camData.hmdProjectionMatrixL : camData.hmdProjectionMatrixR;
 
                 // set texture to render to, then render
-                camData.camera.targetTexture = hmdEyeRenderTexture;
+                camData.camera.targetTexture = renderTexture;
                 camData.camera.Render();
             }
-            
+
+            Graphics.CopyTexture(renderTexture, hmdEyeRenderTexture);
+
+            openvrTexture.handle = hmdEyeRenderTexture.GetNativeTexturePtr(); //this syncs with the render thread.
+
             // Submit frames to HMD
-            EVRCompositorError vrCompositorError = OpenVR.Compositor.Submit(eye, ref hmdEyeTexture, ref hmdTextureBounds, EVRSubmitFlags.Submit_Default);
+            EVRCompositorError vrCompositorError = OpenVR.Compositor.Submit(eye, ref openvrTexture, ref hmdTextureBounds, EVRSubmitFlags.Submit_Default);
             if (vrCompositorError != EVRCompositorError.None) {
-                throw new Exception("Submit (" + eye + ") failed: (" + (int)vrCompositorError + ") " + vrCompositorError.ToString());
+                Debug.Log("Submit (" + eye + ") failed: (" + (int)vrCompositorError + ") " + vrCompositorError.ToString());
+                failed = true;
             }
         }
 
@@ -368,21 +377,41 @@ namespace KerbalVR
                     throw (new Exception(SystemInfo.graphicsDeviceType.ToString() + " not supported"));
             }
 
+            openvrTexture = new Texture_t();
+            openvrTexture.eType = textureType;
+            openvrTexture.eColorSpace = EColorSpace.Auto;
+
+            Debug.Log("Graphics Type: " + SystemInfo.graphicsDeviceType);
+
             // initialize render textures (for displaying on HMD)
-            for (int i = 0; i < 2; i++) {
-                hmdEyeRenderTexture[i] = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 24, RenderTextureFormat.ARGB32);
-                hmdEyeRenderTexture[i].Create();
-                hmdEyeTexture[i].handle = hmdEyeRenderTexture[i].GetNativeTexturePtr();
-                hmdEyeTexture[i].eColorSpace = EColorSpace.Auto;
-                hmdEyeTexture[i].eType = textureType;
-            }
+
+            rightEyeRenderTextures[0] = new Texture2D((int)(renderTextureWidth * 1.5), (int)(renderTextureHeight * 1.5), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[0] = new Texture2D((int)(renderTextureWidth * 1.5), (int)(renderTextureHeight * 1.5), TextureFormat.ARGB32, false);
+            renderTextures[0] = new RenderTexture((int)(renderTextureWidth * 1.5), (int)(renderTextureHeight * 1.5), 24, RenderTextureFormat.ARGB32);
+
+            rightEyeRenderTextures[1] = new Texture2D((int)(renderTextureWidth), (int)(renderTextureHeight), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[1] = new Texture2D((int)(renderTextureWidth), (int)(renderTextureHeight), TextureFormat.ARGB32, false);
+            renderTextures[1] = new RenderTexture((int)(renderTextureWidth), (int)(renderTextureHeight), 24, RenderTextureFormat.ARGB32);
+
+            rightEyeRenderTextures[2] = new Texture2D((int)(renderTextureWidth * .75), (int)(renderTextureHeight * .75), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[2] = new Texture2D((int)(renderTextureWidth * .75), (int)(renderTextureHeight * .75), TextureFormat.ARGB32, false);
+            renderTextures[2] = new RenderTexture((int)(renderTextureWidth * .75), (int)(renderTextureHeight * .75), 24, RenderTextureFormat.ARGB32);
+
+            rightEyeRenderTextures[3] = new Texture2D((int)(renderTextureWidth * .5), (int)(renderTextureHeight * .5), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[3] = new Texture2D((int)(renderTextureWidth * .5), (int)(renderTextureHeight * .5), TextureFormat.ARGB32, false);
+            renderTextures[3] = new RenderTexture((int)(renderTextureWidth * .5), (int)(renderTextureHeight * .5), 24, RenderTextureFormat.ARGB32);
+
+            rightEyeRenderTextures[4] = new Texture2D((int)(renderTextureWidth * .25), (int)(renderTextureHeight * .25), TextureFormat.ARGB32, false);
+            leftEyeRenderTextures[4] = new Texture2D((int)(renderTextureWidth * .25), (int)(renderTextureHeight * .25), TextureFormat.ARGB32, false);
+            renderTextures[4] = new RenderTexture((int)(renderTextureWidth * .25), (int)(renderTextureHeight * .25), 24, RenderTextureFormat.ARGB32);
 
             // set rendering bounds on texture to render
             hmdTextureBounds.uMin = 0.0f;
             hmdTextureBounds.uMax = 1.0f;
             hmdTextureBounds.vMin = 1.0f; // flip the vertical coordinate for some reason
             hmdTextureBounds.vMax = 0.0f;
-            
+
+
             hmdIsInitialized = true;
 
             return retVal;
