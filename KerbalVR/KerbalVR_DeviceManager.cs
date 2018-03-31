@@ -269,5 +269,14 @@ namespace KerbalVR
             return (Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft) ||
                 (Instance.manipulatorRight != null && obj == Instance.manipulatorRight);
         }
+
+        public static SteamVR_Controller.Device GetManipulatorLeftState() {
+            return (Instance.ManipulatorLeft != null) ? Instance.ManipulatorLeft.State : null;
+        }
+
+        public static SteamVR_Controller.Device GetManipulatorRightState() {
+            return (Instance.ManipulatorRight != null) ? Instance.ManipulatorRight.State : null;
+        }
+
     } // class DeviceManager
 } // namespace KerbalVR
