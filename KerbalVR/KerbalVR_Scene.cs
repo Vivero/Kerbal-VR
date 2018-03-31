@@ -73,9 +73,14 @@ namespace KerbalVR
         // coordinate system.
         public Vector3 CurrentPosition { get; set; }
         public Quaternion CurrentRotation { get; set; }
-
-        // The current position of the HMD in Unity world coordinates
+        
+        /// <summary>
+        /// The current position of the HMD in Unity world coordinates
+        /// </summary>
         public Vector3 HmdPosition { get; private set; }
+        /// <summary>
+        /// The current rotation of the HMD in Unity world coordinates
+        /// </summary>
         public Quaternion HmdRotation { get; private set; }
 
         // defines the tracking method to use
