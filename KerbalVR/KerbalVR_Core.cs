@@ -109,6 +109,8 @@ namespace KerbalVR
             bool success = InitHMD();
             if (!success) {
                 Utils.LogError("Unable to initialize VR headset!");
+            } else {
+                Utils.Log("Initialized OpenVR.");
             }
 
             // when ready for a GUI, load it
@@ -130,7 +132,7 @@ namespace KerbalVR
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
         protected void OnDestroy() {
-            Utils.Log(Globals.KERBALVR_NAME + " OnDestroy");
+            Utils.Log(Globals.KERBALVR_NAME + " is shutting down...");
             CloseHMD();
         }
 
@@ -173,7 +175,7 @@ namespace KerbalVR
                     hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                     hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
-                    Mouse.HoveredPart = null; //?
+                    Mouse.HoveredPart = null;
 
                     // render each eye
                     for (int i = 0; i < 2; i++) {
@@ -194,14 +196,6 @@ namespace KerbalVR
                     HmdIsEnabled = false;
                     HmdIsRunning = false;
                 }
-
-                // disable highlighting of parts due to mouse
-                // TODO: there needs to be a better way to do this. this affects the Part permanently
-                //Part hoveredPart = Mouse.HoveredPart;
-                //if (hoveredPart != null) {
-                //    hoveredPart.HighlightActive = false;
-                //    hoveredPart.highlightColor.a = 0f;
-                //}
             }
 
             // reset cameras when HMD is turned off
@@ -385,10 +379,12 @@ namespace KerbalVR
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3:
                     textureType = ETextureType.OpenGL;
+                    Utils.LogWarning("OpenGL is known to cause problems with VR.");
                     break; // doesn't work
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D9:
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
                     textureType = ETextureType.DirectX;
+                    Utils.LogWarning("Direct3D9 and Direct3D11 are known to cause problems with VR.");
                     break; // doesn't work
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
                     textureType = ETextureType.DirectX; // do not use DirectX12

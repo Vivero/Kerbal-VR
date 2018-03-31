@@ -34,11 +34,11 @@ namespace KerbalVR
         #endregion
 
 
-        void Start() {
+        protected void Start() {
             meshRenderer = GetComponent<MeshRenderer>();
         }
 
-        void Update() {
+        protected void Update() {
             meshRenderer.enabled = Core.HmdIsEnabled;
         }
 
@@ -58,19 +58,21 @@ namespace KerbalVR
             gameObject.layer = Scene.Instance.RenderLayer;
         }
 
-        void OnTriggerEnter(Collider other) {
+        protected void OnTriggerEnter(Collider other) {
             // keep count of how many other colliders we've entered
             numCollidersTouching += 1;
             meshRenderer.sharedMaterial.color = activeColor;
+
+            // keep track of what colliders we're touching
             if (!CollidedGameObjects.Contains(other.gameObject))
                 CollidedGameObjects.Add(other.gameObject);
         }
 
-        void OnTriggerExit(Collider other) {
-            // when number of colliders exited drops back down to zero, reset default color
+        protected void OnTriggerExit(Collider other) {
             if (CollidedGameObjects.Contains(other.gameObject))
                 CollidedGameObjects.Remove(other.gameObject);
 
+            // when number of colliders exited drops back down to zero, reset default color
             numCollidersTouching -= 1;
             if (numCollidersTouching <= 0) {
                 numCollidersTouching = 0;

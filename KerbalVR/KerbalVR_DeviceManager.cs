@@ -3,6 +3,11 @@ using Valve.VR;
 
 namespace KerbalVR
 {
+    /// <summary>
+    /// DeviceManager handles events from the OpenVR dispatcher to handle
+    /// changes and state updates to tracked devices. It keeps convenient
+    /// references to the two controller "hands" (the so-named Manipulators).
+    /// </summary>
     public class DeviceManager : MonoBehaviour
     {
         #region Properties
@@ -66,7 +71,10 @@ namespace KerbalVR
         }
         #endregion
 
-        void OnEnable() {
+        /// <summary>
+        /// When this GameObject is enabled, listen to OpenVR events.
+        /// </summary>
+        protected void OnEnable() {
             SteamVR_Events.NewPoses.Listen(OnDevicePosesReady);
             SteamVR_Events.DeviceConnected.Listen(OnDeviceConnected);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).Listen(OnTrackedDeviceRoleChanged);
@@ -74,14 +82,22 @@ namespace KerbalVR
 
         }
 
-        void OnDisable() {
+        /// <summary>
+        /// When this GameObject is disabled, stop listening to OpenVR events.
+        /// </summary>
+        protected void OnDisable() {
             SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
             SteamVR_Events.DeviceConnected.Remove(OnDeviceConnected);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).Remove(OnTrackedDeviceRoleChanged);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceUpdated).Remove(OnTrackedDeviceRoleChanged);
         }
 
-        private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
+        /// <summary>
+        /// Callback for NewPoses event. Check whether devices have (dis)connected,
+        /// update their state, and manage the Manipulator objects.
+        /// </summary>
+        /// <param name="devicePoses">The data structure containing the current state of all devices.</param>
+        protected void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
             // detect devices that have (dis)connected
             for (uint i = 0; i < OpenVR.k_unMaxTrackedDeviceCount; i++) {
                 bool isConnected = devicePoses[i].bDeviceIsConnected;
@@ -124,7 +140,13 @@ namespace KerbalVR
             }
         }
 
-        private void OnTrackedDeviceRoleChanged(VREvent_t vrEvent) {
+        /// <summary>
+        /// Callback for the VREvent_TrackedDeviceRoleChanged and 
+        /// VREvent_TrackedDeviceUpdated events. Checks whether the "left"
+        /// and "right" controllers have changed.
+        /// </summary>
+        /// <param name="vrEvent">The OpenVR event data.</param>
+        protected void OnTrackedDeviceRoleChanged(VREvent_t vrEvent) {
             OnTrackedDeviceRoleChanged();
         }
 
@@ -136,19 +158,33 @@ namespace KerbalVR
             ManageManipulators();
         }
 
-
-        private void OnDeviceConnected(int deviceIndex, bool isConnected) {
+        /// <summary>
+        /// Callback for the DeviceConnected event.
+        /// </summary>
+        /// <param name="deviceIndex">The OpenVR-assigned index of this device.</param>
+        /// <param name="isConnected">True if the device is connected, false otherwise.</param>
+        protected void OnDeviceConnected(int deviceIndex, bool isConnected) {
             Utils.Log("Device " + deviceIndex + " (" +
                 OpenVR.System.GetTrackedDeviceClass((uint)deviceIndex) +
                 ") is " + (isConnected ? "connected" : "disconnected"));
         }
 
-        private bool DeviceIndexIsValid(uint deviceIndex) {
-            // return deviceIndex < OpenVR.k_unMaxTrackedDeviceCount;
+        /// <summary>
+        /// Checks whether a given device index is a valid index number.
+        /// </summary>
+        /// <param name="deviceIndex">The OpenVR device index number.</param>
+        /// <returns>True if index is valid, false otherwise.</returns>
+        public static bool DeviceIndexIsValid(uint deviceIndex) {
             return deviceIndex != OpenVR.k_unTrackedDeviceIndexInvalid;
         }
 
-        private GameObject CreateManipulator(ETrackedControllerRole role) {
+        /// <summary>
+        /// Creates a GameObject that represents the left or right device controllers.
+        /// These are the "VR hands".
+        /// </summary>
+        /// <param name="role">The controller device role (left or right).</param>
+        /// <returns>The GameObject for the "VR hand".</returns>
+        protected GameObject CreateManipulator(ETrackedControllerRole role) {
             // create new GameObject
             GameObject manipulator = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             manipulator.name = "KVR_Manipulator_" + role.ToString();
@@ -193,7 +229,11 @@ namespace KerbalVR
             }
         }
 
-        private void SetManipulatorSize(float size) {
+        /// <summary>
+        /// Sets the size of each "VR hand".
+        /// </summary>
+        /// <param name="size">Size of the hand, in meters.</param>
+        protected void SetManipulatorSize(float size) {
             if (manipulatorLeft != null) {
                 manipulatorLeft.transform.localScale = Vector3.one * ManipulatorSize;
             }
@@ -202,14 +242,29 @@ namespace KerbalVR
             }
         }
 
+        /// <summary>
+        /// Checks whether the given GameObject is the left Manipulator.
+        /// </summary>
+        /// <param name="obj">The GameObject to check.</param>
+        /// <returns>True if this is the left Manipulator, false otherwise.</returns>
         public static bool IsManipulatorLeft(GameObject obj) {
             return Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft;
         }
 
+        /// <summary>
+        /// Checks whether the given GameObject is the right Manipulator.
+        /// </summary>
+        /// <param name="obj">The GameObject to check.</param>
+        /// <returns>True if this is the right Manipulator, false otherwise.</returns>
         public static bool IsManipulatorRight(GameObject obj) {
             return Instance.manipulatorRight != null && obj == Instance.manipulatorRight;
         }
 
+        /// <summary>
+        /// Checks whether the given GameObject is a Manipulator GameObject.
+        /// </summary>
+        /// <param name="obj">The GameObject to check.</param>
+        /// <returns>True if this is a Manipulator, false otherwise.</returns>
         public static bool IsManipulator(GameObject obj) {
             return (Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft) ||
                 (Instance.manipulatorRight != null && obj == Instance.manipulatorRight);

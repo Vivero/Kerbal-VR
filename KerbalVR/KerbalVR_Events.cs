@@ -18,6 +18,7 @@ namespace KerbalVR
     ///     void OnEnable() { manipulatorUpdatedAction.enabled = true; }
     ///     void OnDisable() { manipulatorUpdatedAction.enabled = false; }
     ///     
+    /// TODO: investigate if we should just merge this code with the SteamVR_Events.
     /// </summary>
     public static class Events
     {
