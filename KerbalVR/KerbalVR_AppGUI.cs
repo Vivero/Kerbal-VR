@@ -150,6 +150,7 @@ namespace KerbalVR
             GUILayout.BeginVertical();
 
             // VR toggle button
+            //------------------------------------------------------------------
             UnityEngine.GUI.enabled = Scene.Instance.SceneAllowsVR();
             if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
                 if (Core.HmdIsEnabled) {
@@ -167,18 +168,37 @@ namespace KerbalVR
             UnityEngine.GUI.enabled = true;
 
             // VR status
+            //------------------------------------------------------------------
             GUILayout.BeginHorizontal();
             GUILayout.Label("VR Status:", HighLogic.Skin.label);
             GUILayout.Label(labelStringVrActive, labelStyleVrActive);
             GUILayout.EndHorizontal();
 
-#if DEBUG
             // settings
+            //------------------------------------------------------------------
             GUIStyle labelStyleHeader = new GUIStyle(HighLogic.Skin.label);
             labelStyleHeader.fontStyle = FontStyle.Bold;
             GUILayout.Label("Options", labelStyleHeader);
-#endif
 
+            // manipulator size (VR "hands")
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Hand Size (cm):", HighLogic.Skin.label);
+            int handSizeCentimeters = (int)(DeviceManager.Instance.ManipulatorSize * 100f + 0.5f);
+            string handSizeStr = handSizeCentimeters.ToString();
+            handSizeStr = GUILayout.TextField(handSizeStr, HighLogic.Skin.textField);
+            if (GUI.changed) {
+                bool parseSuccess = System.Int32.TryParse(handSizeStr, out handSizeCentimeters);
+                if (parseSuccess &&
+                    handSizeCentimeters >= 1 &&
+                    handSizeCentimeters <= 10) {
+                    DeviceManager.Instance.ManipulatorSize = handSizeCentimeters * 0.01f;
+                } else {
+                    DeviceManager.Instance.ManipulatorSize = 0.02f;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            //------------------------------------------------------------------
             GUILayout.EndVertical();
 
             // allow dragging the window

@@ -3,11 +3,24 @@ using Valve.VR;
 
 namespace KerbalVR
 {
-    public class DeviceManager : MonoBehaviour {
+    public class DeviceManager : MonoBehaviour
+    {
         #region Properties
         // Manipulator objects
         public Manipulator ManipulatorLeft { get; private set; }
         public Manipulator ManipulatorRight { get; private set; }
+
+        // Manipulator object properties
+        private float _manipulatorSize = 0.02f;
+        public float ManipulatorSize {
+            get {
+                return _manipulatorSize;
+            }
+            set {
+                _manipulatorSize = value;
+                SetManipulatorSize(_manipulatorSize);
+            }
+        }
 
         // keep aliases of controller indices
         public uint ControllerIndexLeft { get; private set; }
@@ -65,6 +78,7 @@ namespace KerbalVR
             SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
             SteamVR_Events.DeviceConnected.Remove(OnDeviceConnected);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).Remove(OnTrackedDeviceRoleChanged);
+            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceUpdated).Remove(OnTrackedDeviceRoleChanged);
         }
 
         private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
@@ -111,7 +125,6 @@ namespace KerbalVR
         }
 
         private void OnTrackedDeviceRoleChanged(VREvent_t vrEvent) {
-            // re-check controller indices
             OnTrackedDeviceRoleChanged();
         }
 
@@ -142,8 +155,7 @@ namespace KerbalVR
             DontDestroyOnLoad(manipulator);
 
             // define the render model
-            manipulator.transform.localScale = Vector3.one *
-                ((role == ETrackedControllerRole.RightHand) ? 0.02f : 0.04f);
+            manipulator.transform.localScale = Vector3.one * ManipulatorSize;
             Color manipulatorColor = (role == ETrackedControllerRole.RightHand) ? Color.green : Color.red;
             MeshRenderer manipulatorRenderer = manipulator.GetComponent<MeshRenderer>();
             manipulatorRenderer.material.color = manipulatorColor;
@@ -159,10 +171,8 @@ namespace KerbalVR
             manipulatorComponent.role = role;
             manipulatorComponent.defaultColor = manipulatorColor;
             manipulatorComponent.activeColor = Color.yellow;
-
-#if !DEBUG
+            
             manipulatorRenderer.enabled = false;
-#endif
 
             return manipulator;
         }
@@ -183,11 +193,26 @@ namespace KerbalVR
             }
         }
 
-        public static bool IsManipulator(GameObject obj) {
-            return (Instance.manipulatorLeft != null &&
-                obj == Instance.manipulatorLeft) || 
-                (Instance.manipulatorRight != null &&
-                obj == Instance.manipulatorRight);
+        private void SetManipulatorSize(float size) {
+            if (manipulatorLeft != null) {
+                manipulatorLeft.transform.localScale = Vector3.one * ManipulatorSize;
+            }
+            if (manipulatorRight != null) {
+                manipulatorRight.transform.localScale = Vector3.one * ManipulatorSize;
+            }
         }
-    }
-}
+
+        public static bool IsManipulatorLeft(GameObject obj) {
+            return Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft;
+        }
+
+        public static bool IsManipulatorRight(GameObject obj) {
+            return Instance.manipulatorRight != null && obj == Instance.manipulatorRight;
+        }
+
+        public static bool IsManipulator(GameObject obj) {
+            return (Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft) ||
+                (Instance.manipulatorRight != null && obj == Instance.manipulatorRight);
+        }
+    } // class DeviceManager
+} // namespace KerbalVR

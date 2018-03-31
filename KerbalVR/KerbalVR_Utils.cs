@@ -34,6 +34,40 @@ namespace KerbalVR
             get { return (IntPtr.Size == 8); }
         }
 
+        public static float CalculatePredictedSecondsToPhotons() {
+            float secondsSinceLastVsync = 0f;
+            ulong frameCounter = 0;
+            OpenVR.System.GetTimeSinceLastVsync(ref secondsSinceLastVsync, ref frameCounter);
+
+            float displayFrequency = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_DisplayFrequency_Float);
+            float vsyncToPhotons = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_SecondsFromVsyncToPhotons_Float);
+            float frameDuration = 1f / displayFrequency;
+
+            return frameDuration - secondsSinceLastVsync + vsyncToPhotons;
+        }
+
+        public static float GetFloatTrackedDeviceProperty(ETrackedDeviceProperty property, uint device = OpenVR.k_unTrackedDeviceIndex_Hmd) {
+            ETrackedPropertyError propertyError = ETrackedPropertyError.TrackedProp_Success;
+            float value = OpenVR.System.GetFloatTrackedDeviceProperty(device, property, ref propertyError);
+            if (propertyError != ETrackedPropertyError.TrackedProp_Success) {
+                throw new Exception("Failed to obtain tracked device property \"" +
+                    property + "\", error: (" + (int)propertyError + ") " + propertyError.ToString());
+            }
+            return value;
+        }
+
+        public static int[] Int32MaskToArray(int mask) {
+            List<int> maskBits = new List<int>(32);
+            for (int i = 0; i < 32; i++) {
+                int checkMask = 1 << i;
+                if ((mask & checkMask) > 0) {
+                    maskBits.Add(i);
+                }
+            }
+            return maskBits.ToArray();
+        }
+
+#if DEBUG
         public static GameObject CreateGizmo() {
             GameObject gizmo = new GameObject("gizmo");
             gizmo.transform.localScale = Vector3.one;
@@ -110,28 +144,6 @@ namespace KerbalVR
             return gizmo;
         }
 
-        public static float CalculatePredictedSecondsToPhotons() {
-            float secondsSinceLastVsync = 0f;
-            ulong frameCounter = 0;
-            OpenVR.System.GetTimeSinceLastVsync(ref secondsSinceLastVsync, ref frameCounter);
-
-            float displayFrequency = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_DisplayFrequency_Float);
-            float vsyncToPhotons = GetFloatTrackedDeviceProperty(ETrackedDeviceProperty.Prop_SecondsFromVsyncToPhotons_Float);
-            float frameDuration = 1f / displayFrequency;
-
-            return frameDuration - secondsSinceLastVsync + vsyncToPhotons;
-        }
-
-        public static float GetFloatTrackedDeviceProperty(ETrackedDeviceProperty property, uint device = OpenVR.k_unTrackedDeviceIndex_Hmd) {
-            ETrackedPropertyError propertyError = ETrackedPropertyError.TrackedProp_Success;
-            float value = OpenVR.System.GetFloatTrackedDeviceProperty(device, property, ref propertyError);
-            if (propertyError != ETrackedPropertyError.TrackedProp_Success) {
-                throw new Exception("Failed to obtain tracked device property \"" +
-                    property + "\", error: (" + (int)propertyError + ") " + propertyError.ToString());
-            }
-            return value;
-        }
-
         public static void PrintAllCameras() {
             Utils.Log("Scene: " + HighLogic.LoadedScene);
             for (int i = 0; i < Camera.allCamerasCount; i++) {
@@ -203,16 +215,15 @@ namespace KerbalVR
             }
         }
 
-        public static int[] Int32MaskToArray(int mask) {
-            List<int> maskBits = new List<int>(32);
-            for (int i = 0; i < 32; i++) {
-                int checkMask = 1 << i;
-                if ((mask & checkMask) > 0) {
-                    maskBits.Add(i);
-                }
+        public static void PrintFonts() {
+            TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
+            Utils.Log("num fonts: " + fonts.Length);
+            for (int i = 0; i < fonts.Length; i++) {
+                TMPro.TMP_FontAsset font = fonts[i];
+                Utils.Log("font name: " + font.name);
             }
-            return maskBits.ToArray();
         }
+#endif
 
     } // class Utils
 } // namespace KerbalVR
