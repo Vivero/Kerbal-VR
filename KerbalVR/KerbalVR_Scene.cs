@@ -2,10 +2,8 @@ using System;
 using UnityEngine;
 using Valve.VR;
 
-namespace KerbalVR
-{
-    public class Scene : MonoBehaviour
-    {
+namespace KerbalVR {
+    public class Scene : MonoBehaviour {
         #region Constants
         public static readonly string[] FLIGHT_SCENE_CAMERAS = {
             "GalaxyCamera",
@@ -118,7 +116,7 @@ namespace KerbalVR
                     throw new Exception("Cannot setup VR scene, current scene \"" +
                         HighLogic.LoadedScene + "\" is invalid.");
             }
-            
+
             CurrentPosition = InitialPosition;
             CurrentRotation = InitialRotation;
         }
@@ -324,6 +322,7 @@ namespace KerbalVR
         }
 
         public void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
+
             // right touchpad
             if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
                 Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
@@ -343,6 +342,25 @@ namespace KerbalVR
             if (state.GetPressDown(EVRButtonId.k_EButton_ApplicationMenu)) {
                 Core.ResetInitialHmdPosition();
             }
+
+
+            var devman = Scene.FindObjectOfType<DeviceManager>();
+            if (devman == null) { //????
+                return;
+            }
+
+            if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+                foreach (var obj in devman.ManipulatorRight.CollidedGameObjects) {
+                    obj.SendMessage("OnMouseDown");
+                }
+            }
+
+            if (!state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+                foreach (var obj in devman.ManipulatorRight.CollidedGameObjects) {
+                    obj.SendMessage("OnMouseUp");
+                }
+            }
+
         }
     }
 }

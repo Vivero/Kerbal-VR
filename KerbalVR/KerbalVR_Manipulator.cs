@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
@@ -9,6 +10,8 @@ namespace KerbalVR
 
         #region Properties
         public SteamVR_Controller.Device State { get; private set; }
+
+        public List<GameObject> CollidedGameObjects { get; private set; } = new List<GameObject>();
         #endregion
 
         #region Members
@@ -53,10 +56,15 @@ namespace KerbalVR
             // keep count of how many other colliders we've entered
             numCollidersTouching += 1;
             meshRenderer.sharedMaterial.color = activeColor;
+            if (!CollidedGameObjects.Contains(other.gameObject))
+                CollidedGameObjects.Add(other.gameObject);
         }
 
         void OnTriggerExit(Collider other) {
             // when number of colliders exited drops back down to zero, reset default color
+            if (CollidedGameObjects.Contains(other.gameObject))
+                CollidedGameObjects.Remove(other.gameObject);
+
             numCollidersTouching -= 1;
             if (numCollidersTouching <= 0) {
                 numCollidersTouching = 0;
