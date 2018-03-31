@@ -10,6 +10,18 @@ namespace KerbalVR
         public Manipulator ManipulatorLeft { get; private set; }
         public Manipulator ManipulatorRight { get; private set; }
 
+        // Manipulator object properties
+        private float _manipulatorSize = 0.02f;
+        public float ManipulatorSize {
+            get {
+                return _manipulatorSize;
+            }
+            set {
+                _manipulatorSize = value;
+                SetManipulatorSize(_manipulatorSize);
+            }
+        }
+
         // keep aliases of controller indices
         public uint ControllerIndexLeft { get; private set; }
         public uint ControllerIndexRight { get; private set; }
@@ -143,8 +155,7 @@ namespace KerbalVR
             DontDestroyOnLoad(manipulator);
 
             // define the render model
-            manipulator.transform.localScale = Vector3.one *
-                ((role == ETrackedControllerRole.RightHand) ? 0.02f : 0.04f);
+            manipulator.transform.localScale = Vector3.one * ManipulatorSize;
             Color manipulatorColor = (role == ETrackedControllerRole.RightHand) ? Color.green : Color.red;
             MeshRenderer manipulatorRenderer = manipulator.GetComponent<MeshRenderer>();
             manipulatorRenderer.material.color = manipulatorColor;
@@ -160,10 +171,8 @@ namespace KerbalVR
             manipulatorComponent.role = role;
             manipulatorComponent.defaultColor = manipulatorColor;
             manipulatorComponent.activeColor = Color.yellow;
-
-#if !DEBUG
+            
             manipulatorRenderer.enabled = false;
-#endif
 
             return manipulator;
         }
@@ -181,6 +190,15 @@ namespace KerbalVR
                 ManipulatorRight = manipulatorRight.GetComponent<Manipulator>();
             } else if (!DeviceIndexIsValid(ControllerIndexRight) && manipulatorRight != null) {
                 Destroy(manipulatorRight);
+            }
+        }
+
+        private void SetManipulatorSize(float size) {
+            if (manipulatorLeft != null) {
+                manipulatorLeft.transform.localScale = Vector3.one * ManipulatorSize;
+            }
+            if (manipulatorRight != null) {
+                manipulatorRight.transform.localScale = Vector3.one * ManipulatorSize;
             }
         }
 
