@@ -2,8 +2,15 @@ using System;
 using UnityEngine;
 using Valve.VR;
 
-namespace KerbalVR {
-    public class Scene : MonoBehaviour {
+namespace KerbalVR
+{
+    /// <summary>
+    /// Scene is a singleton class that encapsulates the code that positions
+    /// the game cameras correctly for rendering them to the VR headset,
+    /// according to the current KSP scene (flight, editor, etc).
+    /// </summary>
+    public class Scene : MonoBehaviour
+    {
         #region Constants
         public static readonly string[] FLIGHT_SCENE_CAMERAS = {
             "GalaxyCamera",
@@ -322,7 +329,6 @@ namespace KerbalVR {
         }
 
         public void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
-
             // right touchpad
             if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
                 Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
@@ -343,24 +349,18 @@ namespace KerbalVR {
                 Core.ResetInitialHmdPosition();
             }
 
-
-            var devman = Scene.FindObjectOfType<DeviceManager>();
-            if (devman == null) { //????
-                return;
-            }
-
+            // simulate mouse touch events with the trigger
             if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
-                foreach (var obj in devman.ManipulatorRight.CollidedGameObjects) {
+                foreach (var obj in DeviceManager.Instance.ManipulatorRight.CollidedGameObjects) {
                     obj.SendMessage("OnMouseDown");
                 }
             }
 
             if (!state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
-                foreach (var obj in devman.ManipulatorRight.CollidedGameObjects) {
+                foreach (var obj in DeviceManager.Instance.ManipulatorRight.CollidedGameObjects) {
                     obj.SendMessage("OnMouseUp");
                 }
             }
-
         }
-    }
-}
+    } // class Scene
+} // namespace KerbalVR

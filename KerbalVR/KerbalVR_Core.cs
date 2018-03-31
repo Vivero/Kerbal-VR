@@ -197,7 +197,7 @@ namespace KerbalVR
 
                 // disable highlighting of parts due to mouse
                 // TODO: there needs to be a better way to do this. this affects the Part permanently
-            //    Part hoveredPart = Mouse.HoveredPart;
+                //Part hoveredPart = Mouse.HoveredPart;
                 //if (hoveredPart != null) {
                 //    hoveredPart.HighlightActive = false;
                 //    hoveredPart.highlightColor.a = 0f;

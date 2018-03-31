@@ -5,6 +5,14 @@ using Valve.VR;
 
 namespace KerbalVR
 {
+    /// <summary>
+    /// Manipulator is a GameObject component that represents your VR "hands",
+    /// and serves as a storage container for the latest controller device
+    /// button state and tracking position.
+    /// 
+    /// Future work: this class should probably handle *how* the manipulators
+    /// are rendered (MeshFilter model, MeshRenderer material, etc).
+    /// </summary>
     public class Manipulator : MonoBehaviour
     {
 
@@ -71,5 +79,5 @@ namespace KerbalVR
                 meshRenderer.sharedMaterial.color = defaultColor;
             }
         }
-    }
-}
+    } // class Manipulator
+} // namespace KerbalVR

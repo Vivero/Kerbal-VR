@@ -3,7 +3,8 @@ using Valve.VR;
 
 namespace KerbalVR
 {
-    public class DeviceManager : MonoBehaviour {
+    public class DeviceManager : MonoBehaviour
+    {
         #region Properties
         // Manipulator objects
         public Manipulator ManipulatorLeft { get; private set; }
@@ -65,6 +66,7 @@ namespace KerbalVR
             SteamVR_Events.NewPoses.Remove(OnDevicePosesReady);
             SteamVR_Events.DeviceConnected.Remove(OnDeviceConnected);
             SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceRoleChanged).Remove(OnTrackedDeviceRoleChanged);
+            SteamVR_Events.System(EVREventType.VREvent_TrackedDeviceUpdated).Remove(OnTrackedDeviceRoleChanged);
         }
 
         private void OnDevicePosesReady(TrackedDevicePose_t[] devicePoses) {
@@ -111,7 +113,6 @@ namespace KerbalVR
         }
 
         private void OnTrackedDeviceRoleChanged(VREvent_t vrEvent) {
-            // re-check controller indices
             OnTrackedDeviceRoleChanged();
         }
 
@@ -195,5 +196,5 @@ namespace KerbalVR
             return (Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft) ||
                 (Instance.manipulatorRight != null && obj == Instance.manipulatorRight);
         }
-    }
-}
+    } // class DeviceManager
+} // namespace KerbalVR
