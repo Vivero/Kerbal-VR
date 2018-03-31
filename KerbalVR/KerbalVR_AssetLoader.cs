@@ -51,7 +51,7 @@ namespace KerbalVR
 
         private void LoadFonts() {
             TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
-            Utils.Log("Found " + fonts.Length + " fonts");
+            // Utils.Log("Found " + fonts.Length + " fonts");
             for (int i = 0; i < fonts.Length; i++) {
                 TMPro.TMP_FontAsset font = fonts[i];
                 fontDictionary.Add(font.name, font);

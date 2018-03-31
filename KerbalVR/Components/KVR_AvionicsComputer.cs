@@ -14,7 +14,7 @@ namespace KerbalVR.Components
         private Events.Action sasUpdatedAction;
 
         void Awake() {
-            Utils.Log("KVR_AvionicsComputer booting up.");
+            // Utils.Log("KVR_AvionicsComputer booting up.");
 
             outputSignalsFunction = StartCoroutine(OutputSignals());
 
@@ -46,7 +46,7 @@ namespace KerbalVR.Components
         }
 
         void OnDestroy() {
-            Utils.Log("KVR_AvionicsComputer closing.");
+            // Utils.Log("KVR_AvionicsComputer closing.");
         }
 
         IEnumerator OutputSignals() {
