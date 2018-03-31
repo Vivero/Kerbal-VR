@@ -4,8 +4,8 @@ namespace KerbalVR.Components
 {
     public class KVR_ExternalCamera : MonoBehaviour
     {
-        public static readonly int RENDER_TEXTURE_W = 256;
-        public static readonly int RENDER_TEXTURE_H = 256;
+        public static readonly int RENDER_TEXTURE_W = 512;
+        public static readonly int RENDER_TEXTURE_H = 512;
         public static readonly int RENDER_TEXTURE_D = 24;
         public static readonly RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.ARGB32;
 
@@ -29,7 +29,7 @@ namespace KerbalVR.Components
         public RenderTexture CameraRenderTexture { get; private set; }
 
         // camera parameters
-        public float _fieldOfView;
+        private float _fieldOfView;
         public float FieldOfView {
             get { return _fieldOfView; }
             set {
