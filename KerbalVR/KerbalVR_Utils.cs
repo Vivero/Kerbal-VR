@@ -88,6 +88,28 @@ namespace KerbalVR
             return gizmo;
         }
 
+        public static GameObject CreateGizmoBox(Vector3 position, Vector3 size) {
+            GameObject gizmo = new GameObject("gizmo");
+
+            GameObject gizmoPivot0 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            UnityEngine.Object.Destroy(gizmoPivot0.GetComponent<SphereCollider>());
+            gizmoPivot0.transform.SetParent(gizmo.transform);
+            gizmoPivot0.transform.localScale = Vector3.one * .05f;
+            gizmoPivot0.transform.localPosition = position + size;
+            gizmoPivot0.GetComponent<MeshRenderer>().material.color = Color.gray;
+            gizmoPivot0.layer = 20;
+
+            GameObject gizmoPivot1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            UnityEngine.Object.Destroy(gizmoPivot0.GetComponent<SphereCollider>());
+            gizmoPivot0.transform.SetParent(gizmo.transform);
+            gizmoPivot0.transform.localScale = Vector3.one * .005f;
+            gizmoPivot0.transform.localPosition = position - size;
+            gizmoPivot0.GetComponent<MeshRenderer>().material.color = Color.gray;
+            gizmoPivot0.layer = 20;
+
+            return gizmo;
+        }
+
         public static float CalculatePredictedSecondsToPhotons() {
             float secondsSinceLastVsync = 0f;
             ulong frameCounter = 0;
@@ -113,16 +135,32 @@ namespace KerbalVR
         public static void PrintAllCameras() {
             Utils.Log("Scene: " + HighLogic.LoadedScene);
             for (int i = 0; i < Camera.allCamerasCount; i++) {
-                string logMsg = "Camera: " + Camera.allCameras[i].name + ", depth = " + Camera.allCameras[i].depth + ", mask = [";
+                Camera cam = Camera.allCameras[i];
+                Utils.Log("Camera: " + cam.name);
+                Utils.Log("* clearFlags: " + cam.clearFlags);
+                Utils.Log("* backgroundColor: " + cam.backgroundColor);
+
+                string maskString = "[";
                 int[] cullingMaskLayers = Int32MaskToArray(Camera.allCameras[i].cullingMask);
                 string[] cullingMaskLayersStr = new string[cullingMaskLayers.Length];
                 for (int j = 0; j < cullingMaskLayers.Length; j++) {
                     cullingMaskLayersStr[j] = cullingMaskLayers[j].ToString();
                 }
-                logMsg += String.Join(",", cullingMaskLayersStr);
-                logMsg += "], clip = (" + Camera.allCameras[i].nearClipPlane.ToString("F3");
-                logMsg += "," + Camera.allCameras[i].farClipPlane.ToString("F3") + ")";
-                Utils.Log(logMsg);
+                maskString += String.Join(",", cullingMaskLayersStr);
+                maskString += "]";
+
+                Utils.Log("* cullingMask: " + maskString);
+                Utils.Log("* orthographic? " + cam.orthographic);
+                Utils.Log("* fieldOfView: " + cam.fieldOfView.ToString("F3"));
+                Utils.Log("* nearClipPlane: " + cam.nearClipPlane.ToString("F3"));
+                Utils.Log("* farClipPlane: " + cam.farClipPlane.ToString("F3"));
+                Utils.Log("* rect: " + cam.rect.ToString("F3"));
+                Utils.Log("* depth: " + cam.depth.ToString("F1"));
+                Utils.Log("* renderingPath: " + cam.renderingPath);
+                Utils.Log("* useOcclusionCulling? " + cam.useOcclusionCulling);
+                Utils.Log("* allowHDR? " + cam.allowHDR);
+                Utils.Log("* allowMSAA? " + cam.allowMSAA);
+                Utils.Log("* depthTextureMode: " + cam.depthTextureMode);
             }
         }
 
@@ -162,6 +200,15 @@ namespace KerbalVR
         public static void PrintAllLayers() {
             for (int i = 0; i < 32; i++) {
                 Utils.Log("Layer " + i + ": " + LayerMask.LayerToName(i));
+            }
+        }
+
+        public static void PrintFonts() {
+            TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
+            Utils.Log("num fonts: " + fonts.Length);
+            for (int i = 0; i < fonts.Length; i++) {
+                TMPro.TMP_FontAsset font = fonts[i];
+                Utils.Log("font name: " + font.name);
             }
         }
 

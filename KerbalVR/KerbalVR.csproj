@@ -42,10 +42,17 @@
     <Reference Include="UnityEngine">
       <HintPath>ksp_lib\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ksp_lib\UnityEngine.UI.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KerbalVR.cs" />
+    <Compile Include="Components\KVR_AvionicsComputer.cs" />
+    <Compile Include="Components\KVR_IActionableCollider.cs" />
+    <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
+    <Compile Include="KerbalVR_AssetLoader.cs" />
     <Compile Include="KerbalVR_DeviceManager.cs" />
     <Compile Include="KerbalVR_Globals.cs" />
     <Compile Include="KerbalVR_Manipulator.cs" />
@@ -53,9 +60,16 @@
     <Compile Include="KerbalVR_Scene.cs" />
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
+    <Compile Include="KerbalVR_ConfigUtils.cs" />
     <Compile Include="Modules\KVR_ControlStick.cs" />
-    <Compile Include="Modules\KVR_ToggleSwitchCollider.cs" />
+    <Compile Include="Modules\KVR_DigitalIndicator.cs" />
+    <Compile Include="Modules\KVR_Periscope.cs" />
+    <Compile Include="Modules\KVR_PushButton.cs" />
+    <Compile Include="Components\KVR_ActionableCollider.cs" />
+    <Compile Include="Modules\KVR_Throttle.cs" />
+    <Compile Include="Modules\KVR_ToggleSwitchCover.cs" />
     <Compile Include="Modules\KVR_ToggleSwitchDouble.cs" />
+    <Compile Include="Components\KVR_ExternalCamera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteamVR\Plugins\openvr_api.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR.cs" />
@@ -85,6 +99,7 @@
     <Compile Include="SteamVR\Scripts\SteamVR_TrackedObject.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_UpdatePoses.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_Utils.cs" />
+    <Compile Include="KerbalVR_Events.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -108,4 +123,7 @@ copy /Y "$(SolutionDir)\LICENSE-steamvr" "$(TargetDir)\rel\"
 copy /Y "$(SolutionDir)\LICENSE" "$(TargetDir)\rel\"
 copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"</PostBuildEvent>
   </PropertyGroup>
+  <Target Name="AfterClean">
+    <RemoveDir Directories="$(TargetDir)\rel" />
+  </Target>
 </Project>

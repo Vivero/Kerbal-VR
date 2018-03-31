@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using KerbalVR.Components;
 
 namespace KerbalVR.Modules
 {
@@ -19,7 +19,7 @@ namespace KerbalVR.Modules
     /// 
     /// This captures the gesture of swiping up/down to flip the switch.
     /// </summary>
-    public class KVR_ToggleSwitchDouble : InternalModule {
+    public class KVR_ToggleSwitchDouble : InternalModule, IActionableCollider {
         #region Types
         public enum SwitchState {
             Up,
@@ -48,6 +48,23 @@ namespace KerbalVR.Modules
         public string transformSwitchColliderUp = string.Empty;
         [KSPField]
         public string transformSwitchColliderDown = string.Empty;
+        [KSPField]
+        public string labelMainText = string.Empty;
+        [KSPField]
+        public Vector3 labelMainOffset = Vector3.zero;
+        [KSPField]
+        public string labelUpText = string.Empty;
+        [KSPField]
+        public Vector3 labelUpOffset = Vector3.zero;
+        [KSPField]
+        public string labelDownText = string.Empty;
+        [KSPField]
+        public Vector3 labelDownOffset = Vector3.zero;
+        [KSPField]
+        public string coloredObject = string.Empty;
+
+        [KSPField]
+        public string outputSignal = string.Empty;
         #endregion
 
         #region Properties
@@ -61,7 +78,10 @@ namespace KerbalVR.Modules
         private GameObject switchDownGameObject;
         private SwitchFSMState switchFSMState;
         private float targetAnimationEndTime;
+
+        private GameObject coloredGameObject;
         #endregion
+
 
         /// <summary>
         /// Loads the animations and hooks into the colliders for this toggle switch.
@@ -84,7 +104,7 @@ namespace KerbalVR.Modules
             Transform switchTransform = internalProp.FindModelTransform(transformSwitchColliderUp);
             if (switchTransform != null) {
                 switchUpGameObject = switchTransform.gameObject;
-                switchUpGameObject.AddComponent<KVR_ToggleSwitchCollider>().toggleSwitchComponent = this;
+                switchUpGameObject.AddComponent<KVR_ActionableCollider>().module = this;
             } else {
                 Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchColliderUp + "\"");
             }
@@ -92,18 +112,30 @@ namespace KerbalVR.Modules
             switchTransform = internalProp.FindModelTransform(transformSwitchColliderDown);
             if (switchTransform != null) {
                 switchDownGameObject = switchTransform.gameObject;
-                switchDownGameObject.AddComponent<KVR_ToggleSwitchCollider>().toggleSwitchComponent = this;
+                switchDownGameObject.AddComponent<KVR_ActionableCollider>().module = this;
             } else {
                 Utils.LogWarning("KVR_ToggleSwitchDouble (" + gameObject.name + ") has no switch collider \"" + transformSwitchColliderDown + "\"");
+            }
+
+            // special effects
+            Transform coloredObjectTransform = internalProp.FindModelTransform(coloredObject);
+            if (coloredObjectTransform != null) {
+                coloredGameObject = coloredObjectTransform.gameObject;
+                // MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
+                // Material rmat = r.sharedMaterial;
+                // rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.red);
             }
 
             // set initial state
             targetAnimationEndTime = 0f;
             switchFSMState = SwitchFSMState.IsDown;
-            SetState(SwitchState.Down);
+            GoToState(SwitchState.Down);
+
+            // create labels
+            CreateLabels();
         }
 
-        void Update() {
+        public override void OnUpdate() {
             if (switchAnimation.isPlaying &&
                 ((switchAnimationState.speed > 0f && switchAnimationState.normalizedTime >= targetAnimationEndTime) ||
                 (switchAnimationState.speed < 0f && switchAnimationState.normalizedTime <= targetAnimationEndTime))) {
@@ -149,24 +181,46 @@ namespace KerbalVR.Modules
             }
         }
 
-        public void SwitchColliderEntered(GameObject colliderObject) {
-            if (colliderObject == switchUpGameObject) {
+        public void OnColliderEntered(Collider thisObject, Collider otherObject) {
+            if (thisObject.gameObject == switchUpGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderUpEnter);
-            } else if (colliderObject == switchDownGameObject) {
+            } else if (thisObject.gameObject == switchDownGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderDownEnter);
             }
         }
 
-        public void SwitchColliderExited(GameObject colliderObject) {
-            if (colliderObject == switchUpGameObject) {
+        public void OnColliderStayed(Collider thisObject, Collider otherObject) { }
+
+        public void OnColliderExited(Collider thisObject, Collider otherObject) {
+            if (thisObject.gameObject == switchUpGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderUpExit);
-            } else if (colliderObject == switchDownGameObject) {
+            } else if (thisObject.gameObject == switchDownGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderDownExit);
             }
         }
 
-        private void SetState(SwitchState state) {
+        public void SetState(SwitchState state) {
             switchState = state;
+
+            if (state == SwitchState.Up) {
+                MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
+                Material rmat = r.sharedMaterial;
+                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.cyan);
+            } else if (state == SwitchState.Down) {
+                MeshRenderer r = coloredGameObject.GetComponent<MeshRenderer>();
+                Material rmat = r.sharedMaterial;
+                rmat.SetColor(Shader.PropertyToID("_EmissiveColor"), Color.black);
+            }
+
+            if (!string.IsNullOrEmpty(outputSignal)) {
+                KerbalVR.Events.Avionics(outputSignal).Send((float)state);
+            }
+        }
+
+        private void GoToState(SwitchState state) {
+            SetState(state);
+
+            // switch to animation state instantly
             switchAnimationState.normalizedTime = GetNormalizedTimeForState(state);
             switchAnimationState.speed = 0f;
             switchAnimation.Play(animationName);
@@ -191,13 +245,9 @@ namespace KerbalVR.Modules
             switchAnimationState.speed =
                 Mathf.Sign(targetAnimationEndTime - switchAnimationState.normalizedTime) * 1f;
 
-            /*Utils.Log("Play to state " + state + ", current state = " + switchState +
-                ", start = " + switchAnimationState.normalizedTime.ToString("F2") +
-                ", end = " + targetAnimationEndTime.ToString("F1") +
-                ", speed = " + switchAnimationState.speed.ToString("F1"));*/
+            // play animation and actuate switch
             switchAnimation.Play(animationName);
-
-            switchState = state;
+            SetState(state);
         }
 
         private float GetNormalizedTimeForState(SwitchState state) {
@@ -211,6 +261,48 @@ namespace KerbalVR.Modules
                     break;
             }
             return targetTime;
+        }
+
+        private void CreateLabels() {
+            GameObject labelMainGameObject = CreateLabel(
+                "labelMain",
+                labelMainText,
+                0.2f, new Vector3(0f, 0f, -0.05f) + labelMainOffset,
+                TMPro.FontStyles.Bold);
+
+            GameObject labelUpGameObject = CreateLabel(
+                "labelUp",
+                labelUpText,
+                0.1f, new Vector3(0f, 0f, -0.035f) + labelUpOffset);
+
+            GameObject labelDownGameObject = CreateLabel(
+                "labelDown",
+                labelDownText,
+                0.1f, new Vector3(0f, 0f, 0.035f) + labelDownOffset);
+        }
+
+        private GameObject CreateLabel(
+            string name,
+            string text,
+            float fontSize,
+            Vector3 offset,
+            TMPro.FontStyles fontStyle = TMPro.FontStyles.Normal) {
+
+            GameObject labelGameObject = new GameObject(internalProp.name + " " + name);
+            labelGameObject.layer = 20;
+            labelGameObject.transform.SetParent(internalProp.transform);
+
+            TMPro.TextMeshPro tmpLabel = labelGameObject.AddComponent<TMPro.TextMeshPro>();
+            tmpLabel.SetText(text);
+            tmpLabel.fontSize = fontSize;
+            tmpLabel.alignment = TMPro.TextAlignmentOptions.Center;
+            tmpLabel.fontStyle = fontStyle;
+
+            tmpLabel.rectTransform.localPosition = offset;
+            tmpLabel.rectTransform.localRotation = Quaternion.Euler(90f, 0f, 180f);
+            tmpLabel.rectTransform.sizeDelta = new Vector2(0.2f, 0.2f);
+            
+            return labelGameObject;
         }
     }
 }

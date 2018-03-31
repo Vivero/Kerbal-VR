@@ -141,7 +141,7 @@ namespace KerbalVR
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
-            if (KerbalVR.HmdIsRunning) {
+            if (Core.HmdIsRunning) {
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
@@ -150,35 +150,55 @@ namespace KerbalVR
             GUILayout.BeginVertical();
 
             // VR toggle button
-            UnityEngine.GUI.enabled = Scene.SceneAllowsVR();
+            //------------------------------------------------------------------
+            UnityEngine.GUI.enabled = Scene.Instance.SceneAllowsVR();
             if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
-                if (KerbalVR.HmdIsEnabled) {
-                    KerbalVR.HmdIsEnabled = false;
+                if (Core.HmdIsEnabled) {
+                    Core.HmdIsEnabled = false;
                 } else {
-                    KerbalVR.HmdIsEnabled = true;
+                    Core.HmdIsEnabled = true;
                 }
             }
 
-            if (KerbalVR.CanResetSeatedPose()) {
+            if (Core.CanResetSeatedPose()) {
                 if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
-                    KerbalVR.ResetInitialHmdPosition();
+                    Core.ResetInitialHmdPosition();
                 }
             }
             UnityEngine.GUI.enabled = true;
 
             // VR status
+            //------------------------------------------------------------------
             GUILayout.BeginHorizontal();
             GUILayout.Label("VR Status:", HighLogic.Skin.label);
             GUILayout.Label(labelStringVrActive, labelStyleVrActive);
             GUILayout.EndHorizontal();
 
-#if DEBUG
             // settings
+            //------------------------------------------------------------------
             GUIStyle labelStyleHeader = new GUIStyle(HighLogic.Skin.label);
             labelStyleHeader.fontStyle = FontStyle.Bold;
             GUILayout.Label("Options", labelStyleHeader);
-#endif
 
+            // manipulator size (VR "hands")
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Hand Size (cm):", HighLogic.Skin.label);
+            int handSizeCentimeters = (int)(DeviceManager.Instance.ManipulatorSize * 100f + 0.5f);
+            string handSizeStr = handSizeCentimeters.ToString();
+            handSizeStr = GUILayout.TextField(handSizeStr, HighLogic.Skin.textField);
+            if (GUI.changed) {
+                bool parseSuccess = System.Int32.TryParse(handSizeStr, out handSizeCentimeters);
+                if (parseSuccess &&
+                    handSizeCentimeters >= 1 &&
+                    handSizeCentimeters <= 10) {
+                    DeviceManager.Instance.ManipulatorSize = handSizeCentimeters * 0.01f;
+                } else {
+                    DeviceManager.Instance.ManipulatorSize = 0.02f;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            //------------------------------------------------------------------
             GUILayout.EndVertical();
 
             // allow dragging the window
