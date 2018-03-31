@@ -1,6 +1,6 @@
 # KerbalVR
 
-An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset (HTC Vive, Oculus Rift, etc), as supported by OpenVR. Supports in-flight IVA, and room-scale VAB / SPH.
+An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset (HTC Vive, Windows MR, Oculus Rift, etc), as supported by OpenVR. Supports in-flight IVA, and room-scale VAB / SPH.
 
 ### FOLLOW the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide), as there is a little bit more setup compared to other KSP mods.
 
@@ -36,6 +36,12 @@ For guidance on compiling this project and other project documentation, see the 
 
 **NOTE:** When VR is enabled, the game screen on your PC will appear locked up. This is by design and intended to improve the performance (higher FPS). Once you disable VR, the regular game screen *should* return to normal.
 
+## RasterProp Monitor
+
+There is experimental support for VR interaction with RPM. See the [User Guide](https://github.com/Vivero/Kerbal-VR/wiki/User-Guide) for more details. Note that using RPM may hinder performance in VR (lower FPS).
+
+----
+
 ## Performance Tips
 
 For best performance, go to the Settings menu in Kerbal Space Program, and under the Graphics tab, set:
@@ -59,11 +65,11 @@ I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems ha
 |------------|-----------|------------------------------|----------------------|
 | HTC Vive   | Win10 x64 | Intel Core i5-4590           | GeForce GTX 970      |
 | Windows MR |           | Intel Core i5-6600K (4.4GHz) | GeForce GTX 1070 8GB |
-|            |           | Intel Core i7-6700K          | GeForce GTX 1080     |
-|            |           |                              | Radeon RX 480        |
+|            |           | Intel Core i7-4790K          | GeForce GTX 1080     |
+|            |           | Intel Core i7-6700K          | Radeon RX 480        |
 
 ### Drivers
 
 | Nvidia | SteamVR         |
 |--------|-----------------|
-| 391.01 | beta 1520469824 |
+| 391.35 | beta 1522375663 |
