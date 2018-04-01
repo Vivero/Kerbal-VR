@@ -49,7 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\KVR_AvionicsComputer.cs" />
+    <Compile Include="Components\KVR_Cover.cs" />
     <Compile Include="Components\KVR_IActionableCollider.cs" />
+    <Compile Include="Components\KVR_Label.cs" />
     <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
