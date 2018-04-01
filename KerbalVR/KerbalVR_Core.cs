@@ -175,6 +175,7 @@ namespace KerbalVR
                     hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                     hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
+                    // don't highlight parts with the mouse
                     Mouse.HoveredPart = null;
 
                     // render each eye
@@ -293,7 +294,7 @@ namespace KerbalVR
             Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
             // update position of the cameras
-            Scene.Instance.UpdateScene(hmdTransform, hmdEyeTransform);
+            Scene.Instance.UpdateScene(eye, hmdTransform, hmdEyeTransform);
 
             // render the set of cameras
             for (int i = 0; i < Scene.Instance.NumVRCameras; i++) {
