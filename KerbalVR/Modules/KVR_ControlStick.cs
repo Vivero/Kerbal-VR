@@ -18,10 +18,12 @@ namespace KerbalVR.Modules
 
         public float StickAxisX { get; private set; }
         public float StickAxisY { get; private set; }
+        public float RollAxis { get; private set; }
 
         private float stickAxisMaxX = 45f;
         private float stickAxisMaxY = 45f;
         private float stickDeadZoneAngle = 10f;
+        private float rollDeadZoneRange = 0.1f;
 
         private GameObject stickTransformGameObject;
         private Vector3 stickInitialPosition;
@@ -54,6 +56,7 @@ namespace KerbalVR.Modules
             // Utils.PrintGameObjectTree(gameObject);
             StickAxisX = 0f;
             StickAxisY = 0f;
+            RollAxis = 0f;
 
             // obtain the collider
             stickColliderTransform = internalProp.FindModelTransform(transformStickCollider);
@@ -174,10 +177,30 @@ namespace KerbalVR.Modules
                     StickAxisY = yAngle / stickAxisMaxY;
                 }
 
-            } else {
+                // detect roll control
+                if (attachedManipulator.State != null) {
+                    if (attachedManipulator.State.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
+                        Vector2 touchAxis = attachedManipulator.State.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
+                        float xTouchAxis = touchAxis.x;
+
+                        if (Mathf.Abs(xTouchAxis) < rollDeadZoneRange) {
+                            RollAxis = 0f;
+                        } else {
+                            isCommandingControl = true;
+                            RollAxis = xTouchAxis;
+                        }
+                    } else {
+                        RollAxis = 0f;
+                    }
+                } else {
+                    RollAxis = 0f;
+                }
+
+            } else if (!isUnderControl) {
                 stickTransformGameObject.transform.rotation = stickInitialRotation;
                 StickAxisX = 0f;
                 StickAxisY = 0f;
+                RollAxis = 0f;
             }
         }
 
@@ -199,6 +222,7 @@ namespace KerbalVR.Modules
             if (isCommandingControl) {
                 state.yaw = StickAxisX * 0.3f;
                 state.pitch = -StickAxisY * 0.3f;
+                state.roll = RollAxis;
             }
         }
 
