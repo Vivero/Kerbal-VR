@@ -138,7 +138,7 @@ namespace KerbalVR.Modules
             // keep track if we're actually sending commands
             //isCommandingControl = false;
 
-            if (isUnderControl) {
+            if (isUnderControl && attachedManipulator != null) {
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 handleToManipulatorPos =
                     attachedManipulator.transform.position - handleInitialPosition;

@@ -58,7 +58,7 @@ namespace KerbalVR.Modules
 
         void Awake() {
             if (!string.IsNullOrEmpty(inputSignal)) {
-                avionicsUpdatedAction = KerbalVR.Events.AvionicsAction(inputSignal, OnAvionicsInput);
+                avionicsUpdatedAction = KerbalVR.Events.AvionicsFloatAction(inputSignal, OnAvionicsInput);
             }
         }
 

@@ -252,8 +252,8 @@ namespace KerbalVR.Modules
         public void SetSwitchState(SwitchState state) {
             CurrentSwitchState = state;
 
-            if (!string.IsNullOrEmpty(outputSignal)) {
-                KerbalVR.Events.Avionics(outputSignal).Send((float)state);
+            if (!string.IsNullOrEmpty(outputSignal) && state == SwitchState.Up) {
+                KerbalVR.Events.Avionics(outputSignal).Send();
             }
         }
 

@@ -22,8 +22,8 @@ namespace KerbalVR.Modules
     public class KVR_ToggleSwitchDouble : InternalModule, IActionableCollider {
         #region Types
         public enum SwitchState {
-            Up,
             Down,
+            Up,
         }
 
         public enum SwitchStateInput {
@@ -213,7 +213,7 @@ namespace KerbalVR.Modules
             }
 
             if (!string.IsNullOrEmpty(outputSignal)) {
-                KerbalVR.Events.Avionics(outputSignal).Send((float)state);
+                KerbalVR.Events.AvionicsInt(outputSignal).Send((int)state);
             }
         }
 
