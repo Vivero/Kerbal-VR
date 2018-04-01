@@ -14,7 +14,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 This is an early WIP mod to allow the use of the HTC Vive (and potentially any HMD supported by the OpenVR SDK) in KSP. The primary focus is for use in IVA, and can also be used to walk around inside the VAB or SPH (room-scale).
 
-IVA in VR puts you inside the cockpit of your craft. You can look around (and walk around if you have the physical space around you). Currently, it is not possible to interact with the cockpit controls, but I am actively working on this feature and it is **coming soon!** The goal is to replace the use of the keyboard and mouse entirely with interactive cockpit controls (buttons, switches, control sticks, throttles, etc.)
+IVA in VR puts you inside the cockpit of your craft. You can look around (and walk around if you have the physical space around you). Currently, it is possible to interact with cockpit instrumentation provided by the RPM mod (see note below); I am actively working on adding more immersive features for the cockpit (more **coming soon!**). The goal is to replace the use of the keyboard and mouse entirely with interactive cockpit controls (buttons, switches, control sticks, throttles, etc.)
 
 Room-scale VR in the VAB and SPH allows you to walk around inside the building and see your craft at a 1:1 scale.
 
