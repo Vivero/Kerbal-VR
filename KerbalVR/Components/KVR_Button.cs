@@ -54,36 +54,16 @@ namespace KerbalVR.Components
         public KVR_Button(InternalProp prop, ConfigNode configuration) {
             // button type
             ActuationType type = ActuationType.Latching;
-            bool success = configuration.TryGetEnum<ActuationType>("type", ref type, ActuationType.Latching);
+            bool success = configuration.TryGetEnum("type", ref type, ActuationType.Latching);
             Type = type;
 
             // animation
-            success = configuration.TryGetValue("animationName", ref animationName);
-            if (success) {
-                Animation[] animations = prop.FindModelAnimators(animationName);
-                if (animations.Length > 0) {
-                    ButtonAnimation = animations[0];
-                    animationState = ButtonAnimation[animationName];
-                    animationState.wrapMode = WrapMode.Once;
-                } else {
-                    throw new ArgumentException("InternalProp \"" + prop.name + "\" does not have animations (config node " +
-                        configuration.id + ")");
-                }
-            } else {
-                throw new ArgumentException("animationName not specified for KVR_Button " +
-                    prop.name + " (config node " + configuration.id + ")");
-            }
+            ButtonAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName");
+            animationState = ButtonAnimation[animationName];
+            animationState.wrapMode = WrapMode.Once;
 
             // collider game object
-            string colliderTransformName = "";
-            success = configuration.TryGetValue("colliderTransformName", ref colliderTransformName);
-            if (!success) throw new ArgumentException("colliderTransformName not specified for KVR_Button " +
-                prop.name + " (config node " + configuration.id + ")");
-
-            ColliderTransform = prop.FindModelTransform(colliderTransformName);
-            if (ColliderTransform == null) throw new ArgumentException("Transform \"" + colliderTransformName +
-                "\" not found for KVR_Button " + prop.name + " (config node " + configuration.id + ")");
-            
+            ColliderTransform = ConfigUtils.GetTransform(prop, configuration, "colliderTransformName");
             colliderGameObject = ColliderTransform.gameObject;
             colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
 

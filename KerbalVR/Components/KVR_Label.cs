@@ -27,14 +27,7 @@ namespace KerbalVR.Components
             if (success) Text = text;
 
             // label transform (where to place the label)
-            string parentTransformName = "";
-            success = configuration.TryGetValue("parentTransformName", ref parentTransformName);
-            if (!success) throw new ArgumentException("parentTransformName not specified for KVR_Label " +
-                prop.name + " (config node " + configuration.id + ")");
-
-            ParentTransform = prop.FindModelTransform(parentTransformName);
-            if (ParentTransform == null) throw new ArgumentException("Transform \"" + parentTransformName +
-                "\" not found for KVR_Label " + prop.name + " (config node " + configuration.id + ")");
+            ParentTransform = ConfigUtils.GetTransform(prop, configuration, "parentTransformName");
 
             // position offset from the transform
             Vector3 positionOffset = Vector3.zero;

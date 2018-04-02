@@ -42,34 +42,15 @@ namespace KerbalVR.Components
         #region Constructors
         public KVR_Cover(InternalProp prop, ConfigNode configuration) {
             // animation
-            bool success = configuration.TryGetValue("animationName", ref animationName);
-            if (success) {
-                Animation[] animations = prop.FindModelAnimators(animationName);
-                if (animations.Length > 0) {
-                    CoverAnimation = animations[0];
-                    animationState = CoverAnimation[animationName];
-                    animationState.wrapMode = WrapMode.Once;
-                } else {
-                    throw new ArgumentException("InternalProp \"" + prop.name + "\" does not have animations (config node " +
-                        configuration.id + ")");
-                }
-            } else {
-                throw new ArgumentException("animationName not specified for KVR_Cover " +
-                    prop.name + " (config node " + configuration.id + ")");
-            }
+            CoverAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName");
+            animationState = CoverAnimation[animationName];
+            animationState.wrapMode = WrapMode.Once;
 
             // collider game object
-            string colliderTransformName = "";
-            success = configuration.TryGetValue("colliderTransformName", ref colliderTransformName);
-            if (!success) throw new ArgumentException("colliderTransformName not specified for KVR_Cover " +
-                prop.name + " (config node " + configuration.id + ")");
-
-            ColliderTransform = prop.FindModelTransform(colliderTransformName);
-            if (ColliderTransform == null) throw new ArgumentException("Transform \"" + colliderTransformName +
-                "\" not found for KVR_Cover " + prop.name + " (config node " + configuration.id + ")");
-
+            ColliderTransform = ConfigUtils.GetTransform(prop, configuration, "colliderTransformName");
             colliderGameObject = ColliderTransform.gameObject;
             colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
+
 
             // set initial state
             isAnimationPlayingPrev = false;
