@@ -69,7 +69,7 @@ namespace KerbalVR.Components
                 "\" not found for KVR_Cover " + prop.name + " (config node " + configuration.id + ")");
 
             colliderGameObject = ColliderTransform.gameObject;
-            colliderGameObject.AddComponent<KVR_ActionableCollider>();
+            colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
 
             // set initial state
             isAnimationPlayingPrev = false;

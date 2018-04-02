@@ -62,8 +62,6 @@ namespace KerbalVR.Modules
         
 
         protected void Start() {
-            Utils.Log("KVR_PushButton Start");
-
             // no setup needed in editor mode
             if (HighLogic.LoadedScene == GameScenes.EDITOR) return;
 
@@ -75,7 +73,9 @@ namespace KerbalVR.Modules
             try {
                 buttonCover = new KVR_Cover(internalProp, coverConfigNode);
             } catch (Exception e) {
-                Utils.LogWarning("KVR_PushButton: cover exception: " + e.ToString());
+#if DEBUG
+                Utils.LogWarning("KVR_PushButton exception: " + e.ToString());
+#endif
             }
 
             // retrieve the animations
@@ -239,7 +239,6 @@ namespace KerbalVR.Modules
 
         private void CreateLabels() {
             // create labels from the module configuration
-            moduleConfigNode = ConfigUtils.GetModuleConfigNode(internalProp.name, moduleID);
             ConfigNode[] labelNodes = moduleConfigNode.GetNodes("KVR_LABEL");
             for (int i = 0; i < labelNodes.Length; i++) {
                 ConfigNode node = labelNodes[i];
