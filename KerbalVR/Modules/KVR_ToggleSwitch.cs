@@ -5,7 +5,7 @@ using KerbalVR.Components;
 
 namespace KerbalVR.Modules
 {
-    public class KVR_ToggleSwitchCover : InternalModule
+    public class KVR_ToggleSwitch : InternalModule
     {
 
         #region KSP Config Fields
