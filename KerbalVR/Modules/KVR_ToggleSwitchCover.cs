@@ -83,7 +83,6 @@ namespace KerbalVR.Modules
             }
 
             // set initial state
-            isSwitchAnimationPlayingPrev = false;
             targetSwitchAnimationEndTime = 0f;
             GoToSwitchState(SwitchState.Down);
 
@@ -102,7 +101,7 @@ namespace KerbalVR.Modules
             if (DeviceManager.IsManipulator(otherObject.gameObject)) {
 
                 if (thisObject.gameObject == switchGameObject && ((buttonCover == null) ||
-                    (buttonCover != null && buttonCover.CurrentCoverState == KVR_Cover.State.Open))) {
+                    (buttonCover != null && buttonCover.CurrentState == KVR_Cover.State.Open))) {
                     // switch is pressed while cover is OPEN, and collider
                     // has entered from the top side of the switch
                     Vector3 manipulatorDeltaPos = switchGameObject.transform.InverseTransformPoint(

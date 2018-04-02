@@ -3,31 +3,42 @@ using UnityEngine;
 
 namespace KerbalVR.Components
 {
-    public class KVR_Cover : IActionableCollider
+    public class KVR_Button : IActionableCollider
     {
         #region Types
+        public enum ActuationType {
+            Momentary,
+            Latching
+        }
+
         public enum State {
-            Closed,
-            Open,
+            Unpressed,
+            Pressed,
         }
 
         public enum StateInput {
             ColliderEnter,
+            ColliderExit,
             FinishedAction,
         }
 
         public enum FSMState {
-            IsClosed,
-            IsOpening,
-            IsOpen,
-            IsClosing,
+            IsUnpressed,
+            IsPressing,
+            IsPressed,
+            IsUnpressing,
         }
         #endregion
 
         #region Properties
+        public ActuationType Type { get; private set; }
         public State CurrentState { get; private set; }
-        public Animation CoverAnimation { get; private set; }
+        public Animation ButtonAnimation { get; private set; }
         public Transform ColliderTransform { get; private set; }
+        #endregion
+
+        #region Members
+        public bool enabled;
         #endregion
 
         #region Private Members
@@ -40,47 +51,53 @@ namespace KerbalVR.Components
         #endregion
 
         #region Constructors
-        public KVR_Cover(InternalProp prop, ConfigNode configuration) {
+        public KVR_Button(InternalProp prop, ConfigNode configuration) {
+            // button type
+            ActuationType type = ActuationType.Latching;
+            bool success = configuration.TryGetEnum<ActuationType>("type", ref type, ActuationType.Latching);
+            Type = type;
+
             // animation
-            bool success = configuration.TryGetValue("animationName", ref animationName);
+            success = configuration.TryGetValue("animationName", ref animationName);
             if (success) {
                 Animation[] animations = prop.FindModelAnimators(animationName);
                 if (animations.Length > 0) {
-                    CoverAnimation = animations[0];
-                    animationState = CoverAnimation[animationName];
+                    ButtonAnimation = animations[0];
+                    animationState = ButtonAnimation[animationName];
                     animationState.wrapMode = WrapMode.Once;
                 } else {
                     throw new ArgumentException("InternalProp \"" + prop.name + "\" does not have animations (config node " +
                         configuration.id + ")");
                 }
             } else {
-                throw new ArgumentException("animationName not specified for KVR_Cover " +
+                throw new ArgumentException("animationName not specified for KVR_Button " +
                     prop.name + " (config node " + configuration.id + ")");
             }
 
             // collider game object
             string colliderTransformName = "";
             success = configuration.TryGetValue("colliderTransformName", ref colliderTransformName);
-            if (!success) throw new ArgumentException("colliderTransformName not specified for KVR_Cover " +
+            if (!success) throw new ArgumentException("colliderTransformName not specified for KVR_Button " +
                 prop.name + " (config node " + configuration.id + ")");
 
             ColliderTransform = prop.FindModelTransform(colliderTransformName);
             if (ColliderTransform == null) throw new ArgumentException("Transform \"" + colliderTransformName +
-                "\" not found for KVR_Cover " + prop.name + " (config node " + configuration.id + ")");
-
+                "\" not found for KVR_Button " + prop.name + " (config node " + configuration.id + ")");
+            
             colliderGameObject = ColliderTransform.gameObject;
             colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
 
             // set initial state
+            enabled = false;
             isAnimationPlayingPrev = false;
-            fsmState = FSMState.IsClosed;
+            fsmState = FSMState.IsUnpressed;
             targetAnimationEndTime = 0f;
-            GoToState(State.Closed);
+            GoToState(State.Unpressed);
         }
         #endregion
 
         public void Update() {
-            bool isAnimationPlaying = CoverAnimation.isPlaying;
+            bool isAnimationPlaying = ButtonAnimation.isPlaying;
 
             // check if animation finished playing
             if (!isAnimationPlaying && isAnimationPlayingPrev) {
@@ -92,30 +109,32 @@ namespace KerbalVR.Components
         }
 
         private void UpdateFSM(StateInput input) {
+            // Utils.Log("KVR_Button UpdateFSM, fsm = " + fsmState + ", state = " + CurrentState + ", input = " + input);
             switch (fsmState) {
-                case FSMState.IsClosed:
+                case FSMState.IsUnpressed:
                     if (input == StateInput.ColliderEnter) {
-                        fsmState = FSMState.IsOpening;
-                        PlayToState(State.Open);
+                        fsmState = FSMState.IsPressing;
+                        PlayToState(State.Pressed);
                     }
                     break;
 
-                case FSMState.IsOpening:
+                case FSMState.IsPressing:
                     if (input == StateInput.FinishedAction) {
-                        fsmState = FSMState.IsOpen;
+                        fsmState = FSMState.IsPressed;
                     }
                     break;
 
-                case FSMState.IsOpen:
-                    if (input == StateInput.ColliderEnter) {
-                        fsmState = FSMState.IsClosing;
-                        PlayToState(State.Closed);
+                case FSMState.IsPressed:
+                    if ((Type == ActuationType.Latching && input == StateInput.ColliderEnter) || 
+                        (Type == ActuationType.Momentary && input == StateInput.ColliderExit)) {
+                        fsmState = FSMState.IsUnpressing;
+                        PlayToState(State.Unpressed);
                     }
                     break;
 
-                case FSMState.IsClosing:
+                case FSMState.IsUnpressing:
                     if (input == StateInput.FinishedAction) {
-                        fsmState = FSMState.IsClosed;
+                        fsmState = FSMState.IsUnpressed;
                     }
                     break;
 
@@ -127,24 +146,25 @@ namespace KerbalVR.Components
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
             if (DeviceManager.IsManipulator(otherObject.gameObject)) {
 
-                if (thisObject.gameObject == colliderGameObject) {
-                    // when cover is closed, can only be opened from the bottom edge of the
-                    // collider on the top side. when cover is open, can only be opened from the top
-                    // side of the collider.
+                if (enabled && thisObject.gameObject == colliderGameObject) {
+                    // actuate only when collider enters from the top
                     Vector3 manipulatorDeltaPos = colliderGameObject.transform.InverseTransformPoint(
                         otherObject.transform.position);
-                    if ((CurrentState == State.Closed &&
-                        manipulatorDeltaPos.z > 0f &&
-                        manipulatorDeltaPos.y > 0f) ||
-                        (CurrentState == State.Open &&
-                        manipulatorDeltaPos.y > 0f))
 
+                    if (manipulatorDeltaPos.y > 0f) {
                         UpdateFSM(StateInput.ColliderEnter);
+                    }
                 }
             }
         }
 
-        public void OnColliderExited(Collider thisObject, Collider otherObject) { }
+        public void OnColliderExited(Collider thisObject, Collider otherObject) {
+            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+                if (Type == ActuationType.Momentary) {
+                    UpdateFSM(StateInput.ColliderExit);
+                }
+            }
+        }
 
         public void SetState(State state) {
             CurrentState = state;
@@ -156,7 +176,7 @@ namespace KerbalVR.Components
             // switch to animation state instantly
             animationState.normalizedTime = GetNormalizedTimeForState(state);
             animationState.speed = 0f;
-            CoverAnimation.Play(animationName);
+            ButtonAnimation.Play(animationName);
         }
 
         private void PlayToState(State state) {
@@ -165,12 +185,12 @@ namespace KerbalVR.Components
             targetAnimationEndTime = GetNormalizedTimeForState(state);
 
             // note that the normalizedTime always resets to zero after finishing the clip.
-            // so if cover was at Open and it was already done playing, its normalizedTime is
-            // 0f, even though the Open state corresponds to a time of 1f. so, for this special
+            // so if button was at Pressed and it was already done playing, its normalizedTime is
+            // 0f, even though the Pressed state corresponds to a time of 1f. so, for this special
             // case, force it to 1f.
-            if (CurrentState == State.Open &&
+            if (CurrentState == State.Pressed &&
                 animationState.normalizedTime == 0f &&
-                !CoverAnimation.isPlaying) {
+                !ButtonAnimation.isPlaying) {
                 animationState.normalizedTime = 1f;
             }
 
@@ -179,17 +199,17 @@ namespace KerbalVR.Components
                 Mathf.Sign(targetAnimationEndTime - animationState.normalizedTime) * 1f;
 
             // play animation and actuate switch
-            CoverAnimation.Play(animationName);
+            ButtonAnimation.Play(animationName);
             SetState(state);
         }
 
         private float GetNormalizedTimeForState(State state) {
             float targetTime = 0f;
             switch (state) {
-                case State.Closed:
+                case State.Unpressed:
                     targetTime = 0f;
                     break;
-                case State.Open:
+                case State.Pressed:
                     targetTime = 1f;
                     break;
             }
