@@ -69,6 +69,7 @@
     <Compile Include="Modules\KVR_Periscope.cs" />
     <Compile Include="Modules\KVR_PushButton.cs" />
     <Compile Include="Components\KVR_ActionableCollider.cs" />
+    <Compile Include="Components\KVR_Switch.cs" />
     <Compile Include="Modules\KVR_Throttle.cs" />
     <Compile Include="Modules\KVR_ToggleSwitchCover.cs" />
     <Compile Include="Modules\KVR_ToggleSwitchDouble.cs" />

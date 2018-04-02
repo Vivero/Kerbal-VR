@@ -50,9 +50,7 @@ namespace KerbalVR.Modules
                 pushButton = new KVR_Button(internalProp, buttonConfigNode);
                 pushButton.enabled = (buttonCover == null);
             } catch (Exception e) {
-#if DEBUG
-                Utils.LogWarning("KVR_PushButton exception: " + e.ToString());
-#endif
+                throw e;
             }
 
             // special effects

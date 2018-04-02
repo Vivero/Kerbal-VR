@@ -58,7 +58,7 @@ namespace KerbalVR.Components
             Type = type;
 
             // animation
-            ButtonAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName");
+            ButtonAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
             animationState = ButtonAnimation[animationName];
             animationState.wrapMode = WrapMode.Once;
 

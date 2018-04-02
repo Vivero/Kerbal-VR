@@ -23,11 +23,11 @@ namespace KerbalVR
             return moduleConfigNode;
         }
 
-        public static Animation GetAnimation(InternalProp prop, ConfigNode configuration, string configKey) {
-            string animationName = "";
-            bool success = configuration.TryGetValue(configKey, ref animationName);
+        public static Animation GetAnimation(InternalProp prop, ConfigNode configuration, string configKey, out string configValue) {
+            configValue = "";
+            bool success = configuration.TryGetValue(configKey, ref configValue);
             if (success) {
-                Animation[] animations = prop.FindModelAnimators(animationName);
+                Animation[] animations = prop.FindModelAnimators(configValue);
                 if (animations.Length > 0) {
                     return animations[0];
                 } else {

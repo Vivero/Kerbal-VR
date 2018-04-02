@@ -3,31 +3,44 @@ using UnityEngine;
 
 namespace KerbalVR.Components
 {
-    public class KVR_Cover : IActionableCollider
+    public class KVR_Switch : IActionableCollider
     {
         #region Types
+        public enum ActuationType {
+            Momentary,
+            LatchingTwoState,
+            LatchingThreeState,
+        }
+
         public enum State {
-            Closed,
-            Open,
+            Down,
+            Middle,
+            Up,
         }
 
         public enum StateInput {
             ColliderEnter,
+            ColliderExit,
             FinishedAction,
         }
 
         public enum FSMState {
-            IsClosed,
-            IsOpening,
-            IsOpen,
-            IsClosing,
+            IsDown,
+            IsSwitchingUp,
+            IsUp,
+            IsSwitchingDown,
         }
         #endregion
 
         #region Properties
+        public ActuationType Type { get; private set; }
         public State CurrentState { get; private set; }
-        public Animation CoverAnimation { get; private set; }
+        public Animation SwitchAnimation { get; private set; }
         public Transform ColliderTransform { get; private set; }
+        #endregion
+
+        #region Members
+        public bool enabled;
         #endregion
 
         #region Private Members
@@ -40,28 +53,33 @@ namespace KerbalVR.Components
         #endregion
 
         #region Constructors
-        public KVR_Cover(InternalProp prop, ConfigNode configuration) {
+        public KVR_Switch(InternalProp prop, ConfigNode configuration) {
+            // button type
+            ActuationType type = ActuationType.Momentary;
+            bool success = configuration.TryGetEnum("type", ref type, ActuationType.Momentary);
+            Type = type;
+
             // animation
-            CoverAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
-            animationState = CoverAnimation[animationName];
+            SwitchAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
+            animationState = SwitchAnimation[animationName];
             animationState.wrapMode = WrapMode.Once;
 
-            // collider game object
-            ColliderTransform = ConfigUtils.GetTransform(prop, configuration, "colliderTransformName");
+            // collider game objects
+            ColliderTransform = ConfigUtils.GetTransform(prop, configuration, "colliderDownTransformName");
             colliderGameObject = ColliderTransform.gameObject;
             colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
 
-
             // set initial state
+            enabled = false;
             isAnimationPlayingPrev = false;
-            fsmState = FSMState.IsClosed;
+            fsmState = FSMState.IsDown;
             targetAnimationEndTime = 0f;
-            GoToState(State.Closed);
+            GoToState(State.Down);
         }
         #endregion
 
         public void Update() {
-            bool isAnimationPlaying = CoverAnimation.isPlaying;
+            bool isAnimationPlaying = SwitchAnimation.isPlaying;
 
             // check if animation finished playing
             if (!isAnimationPlaying && isAnimationPlayingPrev) {
@@ -73,30 +91,31 @@ namespace KerbalVR.Components
         }
 
         private void UpdateFSM(StateInput input) {
+            // Utils.Log("KVR_Switch UpdateFSM, fsm = " + fsmState + ", state = " + CurrentState + ", input = " + input);
             switch (fsmState) {
-                case FSMState.IsClosed:
+                case FSMState.IsDown:
                     if (input == StateInput.ColliderEnter) {
-                        fsmState = FSMState.IsOpening;
-                        PlayToState(State.Open);
+                        fsmState = FSMState.IsSwitchingUp;
+                        PlayToState(State.Up);
                     }
                     break;
 
-                case FSMState.IsOpening:
+                case FSMState.IsSwitchingUp:
                     if (input == StateInput.FinishedAction) {
-                        fsmState = FSMState.IsOpen;
+                        fsmState = FSMState.IsUp;
                     }
                     break;
 
-                case FSMState.IsOpen:
-                    if (input == StateInput.ColliderEnter) {
-                        fsmState = FSMState.IsClosing;
-                        PlayToState(State.Closed);
+                case FSMState.IsUp:
+                    if (input == StateInput.ColliderExit) {
+                        fsmState = FSMState.IsSwitchingDown;
+                        PlayToState(State.Down);
                     }
                     break;
 
-                case FSMState.IsClosing:
+                case FSMState.IsSwitchingDown:
                     if (input == StateInput.FinishedAction) {
-                        fsmState = FSMState.IsClosed;
+                        fsmState = FSMState.IsDown;
                     }
                     break;
 
@@ -108,24 +127,25 @@ namespace KerbalVR.Components
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
             if (DeviceManager.IsManipulator(otherObject.gameObject)) {
 
-                if (thisObject.gameObject == colliderGameObject) {
-                    // when cover is closed, can only be opened from the bottom edge of the
-                    // collider on the top side. when cover is open, can only be opened from the top
-                    // side of the collider.
+                if (enabled && thisObject.gameObject == colliderGameObject) {
+                    // actuate only when collider enters from the bottom
                     Vector3 manipulatorDeltaPos = colliderGameObject.transform.InverseTransformPoint(
                         otherObject.transform.position);
-                    if ((CurrentState == State.Closed &&
-                        manipulatorDeltaPos.z > 0f &&
-                        manipulatorDeltaPos.y > 0f) ||
-                        (CurrentState == State.Open &&
-                        manipulatorDeltaPos.y > 0f))
 
+                    if (manipulatorDeltaPos.z > 0f) {
                         UpdateFSM(StateInput.ColliderEnter);
+                    }
                 }
             }
         }
 
-        public void OnColliderExited(Collider thisObject, Collider otherObject) { }
+        public void OnColliderExited(Collider thisObject, Collider otherObject) {
+            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+                if (Type == ActuationType.Momentary) {
+                    UpdateFSM(StateInput.ColliderExit);
+                }
+            }
+        }
 
         public void SetState(State state) {
             CurrentState = state;
@@ -137,7 +157,7 @@ namespace KerbalVR.Components
             // switch to animation state instantly
             animationState.normalizedTime = GetNormalizedTimeForState(state);
             animationState.speed = 0f;
-            CoverAnimation.Play(animationName);
+            SwitchAnimation.Play(animationName);
         }
 
         private void PlayToState(State state) {
@@ -146,12 +166,12 @@ namespace KerbalVR.Components
             targetAnimationEndTime = GetNormalizedTimeForState(state);
 
             // note that the normalizedTime always resets to zero after finishing the clip.
-            // so if cover was at Open and it was already done playing, its normalizedTime is
-            // 0f, even though the Open state corresponds to a time of 1f. so, for this special
+            // so if switch was at Up and it was already done playing, its normalizedTime is
+            // 0f, even though the Up state corresponds to a time of 1f. so, for this special
             // case, force it to 1f.
-            if (CurrentState == State.Open &&
+            if (CurrentState == State.Up &&
                 animationState.normalizedTime == 0f &&
-                !CoverAnimation.isPlaying) {
+                !SwitchAnimation.isPlaying) {
                 animationState.normalizedTime = 1f;
             }
 
@@ -160,17 +180,20 @@ namespace KerbalVR.Components
                 Mathf.Sign(targetAnimationEndTime - animationState.normalizedTime) * 1f;
 
             // play animation and actuate switch
-            CoverAnimation.Play(animationName);
+            SwitchAnimation.Play(animationName);
             SetState(state);
         }
 
         private float GetNormalizedTimeForState(State state) {
             float targetTime = 0f;
             switch (state) {
-                case State.Closed:
+                case State.Down:
                     targetTime = 0f;
                     break;
-                case State.Open:
+                case State.Middle:
+                    targetTime = 0.5f;
+                    break;
+                case State.Up:
                     targetTime = 1f;
                     break;
             }
