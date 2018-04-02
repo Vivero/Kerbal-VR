@@ -53,7 +53,10 @@ namespace KerbalVR
         }
 
         // first-time initialization for this singleton class
-        private void Initialize() { }
+        private void Initialize() {
+            HmdEyePosition = new Vector3[2];
+            HmdEyeRotation = new Quaternion[2];
+        }
         #endregion
 
         #region Properties
@@ -74,9 +77,25 @@ namespace KerbalVR
         public Vector3 CurrentPosition { get; set; }
         public Quaternion CurrentRotation { get; set; }
 
-        // The current position of the HMD in Unity world coordinates
+        /// <summary>
+        /// The current position of the HMD in Unity world coordinates
+        /// </summary>
         public Vector3 HmdPosition { get; private set; }
+        /// <summary>
+        /// The current rotation of the HMD in Unity world coordinates
+        /// </summary>
         public Quaternion HmdRotation { get; private set; }
+
+        /// <summary>
+        /// The current position of the HMD eye in Unity world coordinates,
+        /// indexed by EVREye value.
+        /// </summary>
+        public Vector3[] HmdEyePosition { get; private set; }
+        /// <summary>
+        /// The current rotation of the HMD left eye in Unity world coordinates,
+        /// indexed by EVREye value.
+        /// </summary>
+        public Quaternion[] HmdEyeRotation { get; private set; }
 
         // defines the tracking method to use
         public ETrackingUniverseOrigin TrackingSpace { get; private set; }
@@ -176,16 +195,17 @@ namespace KerbalVR
         /// <param name="eyePosition">Position of the HMD eye, in the device space coordinate system</param>
         /// <param name="eyeRotation">Rotation of the HMD eye, in the device space coordinate system</param>
         public void UpdateScene(
+            EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
-                    UpdateFlightScene(hmdTransform, hmdEyeTransform);
+                    UpdateFlightScene(eye, hmdTransform, hmdEyeTransform);
                     break;
 
                 case GameScenes.EDITOR:
-                    UpdateEditorScene(hmdTransform, hmdEyeTransform);
+                    UpdateEditorScene(eye, hmdTransform, hmdEyeTransform);
                     break;
 
                 default:
@@ -193,11 +213,12 @@ namespace KerbalVR
                         HighLogic.LoadedScene + "\" is invalid.");
             }
 
-            HmdPosition = InitialPosition + InitialRotation * hmdTransform.pos;
-            HmdRotation = InitialRotation * hmdTransform.rot;
+            HmdPosition = CurrentPosition + CurrentRotation * hmdTransform.pos;
+            HmdRotation = CurrentRotation * hmdTransform.rot;
         }
 
         private void UpdateFlightScene(
+            EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
@@ -215,9 +236,13 @@ namespace KerbalVR
 
             FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+
+            HmdEyePosition[(int)eye] = updatedPosition;
+            HmdEyeRotation[(int)eye] = updatedRotation;
         }
 
         private void UpdateEditorScene(
+            EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
@@ -229,6 +254,9 @@ namespace KerbalVR
 
             EditorCamera.Instance.transform.position = updatedPosition;
             EditorCamera.Instance.transform.rotation = updatedRotation;
+
+            HmdEyePosition[(int)eye] = updatedPosition;
+            HmdEyeRotation[(int)eye] = updatedRotation;
         }
 
         /// <summary>

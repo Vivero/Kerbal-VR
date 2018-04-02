@@ -4,8 +4,8 @@ namespace KerbalVR.Components
 {
     public class KVR_ExternalCamera : MonoBehaviour
     {
-        public static readonly int RENDER_TEXTURE_W = 256;
-        public static readonly int RENDER_TEXTURE_H = 256;
+        public static readonly int RENDER_TEXTURE_W = 512;
+        public static readonly int RENDER_TEXTURE_H = 512;
         public static readonly int RENDER_TEXTURE_D = 24;
         public static readonly RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.ARGB32;
 
@@ -29,7 +29,7 @@ namespace KerbalVR.Components
         public RenderTexture CameraRenderTexture { get; private set; }
 
         // camera parameters
-        public float _fieldOfView;
+        private float _fieldOfView;
         public float FieldOfView {
             get { return _fieldOfView; }
             set {
@@ -41,6 +41,18 @@ namespace KerbalVR.Components
             }
         }
 
+        private float _magnification = 1f;
+        public float Magnification {
+            get { return _magnification; }
+            set {
+                _magnification = value;
+                float factor = 2f * Mathf.Tan(0.5f * 60f * Mathf.Deg2Rad);
+                float zoomedFov = 2f * Mathf.Atan(factor / (2f * _magnification)) * Mathf.Rad2Deg;
+                FieldOfView = zoomedFov;
+            }
+        }
+
+
         void Awake() {
             // initialize cameras
             GalaxyCameraGameObject = new GameObject("KVR_ExternalCamera_GalaxyCamera");
@@ -49,7 +61,7 @@ namespace KerbalVR.Components
             GalaxyCameraGameObject.transform.localRotation = Quaternion.identity;
             GalaxyCamera = GalaxyCameraGameObject.AddComponent<Camera>();
             GalaxyCamera.clearFlags = CameraClearFlags.Color;
-            GalaxyCamera.backgroundColor = Color.red;
+            GalaxyCamera.backgroundColor = Color.black;
             GalaxyCamera.cullingMask = (1 << 18); // layer 18: SkySphere
             GalaxyCamera.nearClipPlane = 0.1f;
             GalaxyCamera.farClipPlane = 20f;
@@ -137,6 +149,10 @@ namespace KerbalVR.Components
 
             // set camera parameters
             FieldOfView = 60f;
+        }
+
+        public float GetFrustumHeight(float distance) {
+            return 2f * distance * Mathf.Tan(FieldOfView * 0.5f * Mathf.Deg2Rad);
         }
     }
 }
