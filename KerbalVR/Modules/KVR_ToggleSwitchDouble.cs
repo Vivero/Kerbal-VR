@@ -189,8 +189,6 @@ namespace KerbalVR.Modules
             }
         }
 
-        public void OnColliderStayed(Collider thisObject, Collider otherObject) { }
-
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
             if (thisObject.gameObject == switchUpGameObject) {
                 UpdateSwitchFSM(SwitchStateInput.ColliderUpExit);

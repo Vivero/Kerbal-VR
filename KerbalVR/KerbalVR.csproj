@@ -53,6 +53,8 @@
     <Compile Include="Components\KVR_Cover.cs" />
     <Compile Include="Components\KVR_IActionableCollider.cs" />
     <Compile Include="Components\KVR_Label.cs" />
+    <Compile Include="Components\KVR_Switch.cs" />
+    <Compile Include="Components\KVR_SwitchTwoState.cs" />
     <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
@@ -69,7 +71,7 @@
     <Compile Include="Modules\KVR_Periscope.cs" />
     <Compile Include="Modules\KVR_PushButton.cs" />
     <Compile Include="Components\KVR_ActionableCollider.cs" />
-    <Compile Include="Components\KVR_Switch.cs" />
+    <Compile Include="Components\KVR_SwitchMomentary.cs" />
     <Compile Include="Modules\KVR_Throttle.cs" />
     <Compile Include="Modules\KVR_ToggleSwitch.cs" />
     <Compile Include="Modules\KVR_ToggleSwitchDouble.cs" />

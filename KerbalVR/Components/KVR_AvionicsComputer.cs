@@ -18,7 +18,7 @@ namespace KerbalVR.Components
 
             outputSignalsCoroutine = StartCoroutine(OutputSignals());
 
-            stageUpdatedAction = KerbalVR.Events.AvionicsAction("stage", OnStageInput);
+            stageUpdatedAction = KerbalVR.Events.AvionicsIntAction("stage", OnStageInput);
             sasUpdatedAction = KerbalVR.Events.AvionicsIntAction("sas", OnSASInput);
         }
 
@@ -61,8 +61,10 @@ namespace KerbalVR.Components
             }
         }
 
-        void OnStageInput() {
-            KSP.UI.Screens.StageManager.ActivateNextStage();
+        void OnStageInput(int signal) {
+            if (signal != 0) {
+                KSP.UI.Screens.StageManager.ActivateNextStage();
+            }
         }
 
         void OnSASInput(int signal) {

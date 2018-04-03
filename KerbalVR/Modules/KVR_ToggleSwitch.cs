@@ -7,6 +7,12 @@ namespace KerbalVR.Modules
 {
     public class KVR_ToggleSwitch : InternalModule
     {
+        public enum ActuationType {
+            Momentary,
+            LatchingTwoState,
+            LatchingThreeState,
+        }
+
 
         #region KSP Config Fields
         [KSPField]
@@ -37,21 +43,30 @@ namespace KerbalVR.Modules
             // if there's a cover, create it
             ConfigNode coverConfigNode = moduleConfigNode.GetNode("KVR_COVER");
             if (coverConfigNode != null) {
-                try {
-                    buttonCover = new KVR_Cover(internalProp, coverConfigNode);
-                } catch (Exception e) {
-                    throw e;
-                }
+                buttonCover = new KVR_Cover(internalProp, coverConfigNode);
             }
 
             // create the switch
-            ConfigNode switchConfigNode = moduleConfigNode.GetNode("KVR_SWITCH");
-            try {
-                toggleSwitch = new KVR_Switch(internalProp, switchConfigNode);
-                toggleSwitch.enabled = (buttonCover == null);
-            } catch (Exception e) {
-                throw e;
+            ConfigNode switchConfigNode = moduleConfigNode.GetNode("KVR_SWITCH_MOMENTARY");
+            if (switchConfigNode != null) {
+                toggleSwitch = new KVR_SwitchMomentary(internalProp, switchConfigNode);
             }
+
+            if (toggleSwitch == null) {
+                switchConfigNode = moduleConfigNode.GetNode("KVR_SWITCH_TWO_STATE");
+                if (switchConfigNode != null) {
+                    toggleSwitch = new KVR_SwitchTwoState(internalProp, switchConfigNode);
+                }
+            }
+
+            /*if (toggleSwitch == null) {
+                switchConfigNode = moduleConfigNode.GetNode("KVR_SWITCH_THREE_STATE");
+                if (switchConfigNode != null) {
+                    toggleSwitch = new KVR_SwitchThreeState(internalProp, switchConfigNode);
+                }
+            }*/
+
+            toggleSwitch.enabled = (buttonCover == null);
 
             // create labels
             CreateLabels();

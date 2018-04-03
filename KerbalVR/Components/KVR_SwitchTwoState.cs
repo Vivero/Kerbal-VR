@@ -1,0 +1,136 @@
+﻿using System;
+using UnityEngine;
+
+namespace KerbalVR.Components
+{
+    public class KVR_SwitchTwoState : KVR_Switch
+    {
+        #region Types
+        public enum StateInput {
+            ColliderUpEnter,
+            ColliderUpExit,
+            ColliderDownEnter,
+            ColliderDownExit,
+            FinishedAction,
+        }
+
+        public enum FSMState {
+            IsDown,
+            IsUp,
+            IsWaitingForDown,
+            IsWaitingForUp,
+        }
+        #endregion
+
+        #region Properties
+        public Transform ColliderDownTransform { get; private set; }
+        public Transform ColliderUpTransform { get; private set; }
+        #endregion
+
+        #region Private Members
+        private GameObject colliderDownGameObject;
+        private GameObject colliderUpGameObject;
+        private FSMState fsmState;
+        #endregion
+
+        #region Constructors
+        public KVR_SwitchTwoState(InternalProp prop, ConfigNode configuration) {
+            // animation
+            SwitchAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
+            animationState = SwitchAnimation[animationName];
+            animationState.wrapMode = WrapMode.Once;
+
+            // collider game objects
+            ColliderDownTransform = ConfigUtils.GetTransform(prop, configuration, "colliderDownTransformName");
+            colliderDownGameObject = ColliderDownTransform.gameObject;
+            colliderDownGameObject.AddComponent<KVR_ActionableCollider>().module = this;
+            
+            ColliderUpTransform = ConfigUtils.GetTransform(prop, configuration, "colliderUpTransformName");
+            colliderUpGameObject = ColliderUpTransform.gameObject;
+            colliderUpGameObject.AddComponent<KVR_ActionableCollider>().module = this;
+
+            // output signal
+            string outputSignalName = "";
+            bool success = configuration.TryGetValue("outputSignal", ref outputSignalName);
+            if (success) OutputSignal = outputSignalName;
+
+            // set initial state
+            enabled = false;
+            isAnimationPlayingPrev = false;
+            fsmState = FSMState.IsDown;
+            targetAnimationEndTime = 0f;
+            GoToState(State.Down);
+        }
+        #endregion
+
+        public override void Update() {
+            bool isAnimationPlaying = SwitchAnimation.isPlaying;
+
+            // check if animation finished playing
+            if (!isAnimationPlaying && isAnimationPlayingPrev) {
+                // UpdateFSM(StateInput.FinishedAction);
+                ExecuteSignal();
+            }
+
+            // keep track of whether animation was playing
+            isAnimationPlayingPrev = isAnimationPlaying;
+        }
+
+        private void UpdateFSM(StateInput colliderInput) {
+            switch (fsmState) {
+                case FSMState.IsUp:
+                    if (colliderInput == StateInput.ColliderUpEnter) {
+                        fsmState = FSMState.IsWaitingForDown;
+                    }
+                    break;
+
+                case FSMState.IsWaitingForDown:
+                    if (colliderInput == StateInput.ColliderUpExit) {
+                        fsmState = FSMState.IsUp;
+                    } else if (colliderInput == StateInput.ColliderDownEnter) {
+                        fsmState = FSMState.IsDown;
+                        PlayToState(State.Down);
+                    }
+                    break;
+
+                case FSMState.IsDown:
+                    if (colliderInput == StateInput.ColliderDownEnter) {
+                        fsmState = FSMState.IsWaitingForUp;
+                    }
+                    break;
+
+                case FSMState.IsWaitingForUp:
+                    if (colliderInput == StateInput.ColliderDownExit) {
+                        fsmState = FSMState.IsDown;
+                    } else if (colliderInput == StateInput.ColliderUpEnter) {
+                        fsmState = FSMState.IsUp;
+                        PlayToState(State.Up);
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        public override void OnColliderEntered(Collider thisObject, Collider otherObject) {
+            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+                if (thisObject.gameObject == colliderUpGameObject) {
+                    UpdateFSM(StateInput.ColliderUpEnter);
+                } else if (thisObject.gameObject == colliderDownGameObject) {
+                    UpdateFSM(StateInput.ColliderDownEnter);
+                }
+            }
+        }
+
+        public override void OnColliderExited(Collider thisObject, Collider otherObject) {
+            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+                if (thisObject.gameObject == colliderUpGameObject) {
+                    UpdateFSM(StateInput.ColliderUpExit);
+                } else if (thisObject.gameObject == colliderDownGameObject) {
+                    UpdateFSM(StateInput.ColliderDownExit);
+                }
+            }
+        }
+    }
+}

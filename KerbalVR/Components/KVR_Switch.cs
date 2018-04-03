@@ -3,40 +3,20 @@ using UnityEngine;
 
 namespace KerbalVR.Components
 {
-    public class KVR_Switch : IActionableCollider
+    public abstract class KVR_Switch : IActionableCollider
     {
         #region Types
-        public enum ActuationType {
-            Momentary,
-            LatchingTwoState,
-            LatchingThreeState,
-        }
-
         public enum State {
-            Down,
-            Middle,
-            Up,
-        }
-
-        public enum StateInput {
-            ColliderEnter,
-            ColliderExit,
-            FinishedAction,
-        }
-
-        public enum FSMState {
-            IsDown,
-            IsSwitchingUp,
-            IsUp,
-            IsSwitchingDown,
+            Down = 0,
+            Middle = 1,
+            Up = 2,
         }
         #endregion
 
         #region Properties
-        public ActuationType Type { get; private set; }
-        public State CurrentState { get; private set; }
-        public Animation SwitchAnimation { get; private set; }
-        public Transform ColliderTransform { get; private set; }
+        public State CurrentState { get; protected set; }
+        public Animation SwitchAnimation { get; protected set; }
+        public string OutputSignal { get; protected set; }
         #endregion
 
         #region Members
@@ -44,114 +24,27 @@ namespace KerbalVR.Components
         #endregion
 
         #region Private Members
-        private string animationName;
-        private AnimationState animationState;
-        private GameObject colliderGameObject;
-        private FSMState fsmState;
-        private float targetAnimationEndTime;
-        private bool isAnimationPlayingPrev = false;
+        protected string animationName;
+        protected AnimationState animationState;
+        protected float targetAnimationEndTime;
+        protected bool isAnimationPlayingPrev = false;
         #endregion
 
-        #region Constructors
-        public KVR_Switch(InternalProp prop, ConfigNode configuration) {
-            // button type
-            ActuationType type = ActuationType.Momentary;
-            bool success = configuration.TryGetEnum("type", ref type, ActuationType.Momentary);
-            Type = type;
-
-            // animation
-            SwitchAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
-            animationState = SwitchAnimation[animationName];
-            animationState.wrapMode = WrapMode.Once;
-
-            // collider game objects
-            ColliderTransform = ConfigUtils.GetTransform(prop, configuration, "colliderDownTransformName");
-            colliderGameObject = ColliderTransform.gameObject;
-            colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
-
-            // set initial state
-            enabled = false;
-            isAnimationPlayingPrev = false;
-            fsmState = FSMState.IsDown;
-            targetAnimationEndTime = 0f;
-            GoToState(State.Down);
-        }
-        #endregion
-
-        public void Update() {
-            bool isAnimationPlaying = SwitchAnimation.isPlaying;
-
-            // check if animation finished playing
-            if (!isAnimationPlaying && isAnimationPlayingPrev) {
-                UpdateFSM(StateInput.FinishedAction);
-            }
-
-            // keep track of whether animation was playing
-            isAnimationPlayingPrev = isAnimationPlaying;
-        }
-
-        private void UpdateFSM(StateInput input) {
-            // Utils.Log("KVR_Switch UpdateFSM, fsm = " + fsmState + ", state = " + CurrentState + ", input = " + input);
-            switch (fsmState) {
-                case FSMState.IsDown:
-                    if (input == StateInput.ColliderEnter) {
-                        fsmState = FSMState.IsSwitchingUp;
-                        PlayToState(State.Up);
-                    }
-                    break;
-
-                case FSMState.IsSwitchingUp:
-                    if (input == StateInput.FinishedAction) {
-                        fsmState = FSMState.IsUp;
-                    }
-                    break;
-
-                case FSMState.IsUp:
-                    if (input == StateInput.ColliderExit) {
-                        fsmState = FSMState.IsSwitchingDown;
-                        PlayToState(State.Down);
-                    }
-                    break;
-
-                case FSMState.IsSwitchingDown:
-                    if (input == StateInput.FinishedAction) {
-                        fsmState = FSMState.IsDown;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
-
-                if (enabled && thisObject.gameObject == colliderGameObject) {
-                    // actuate only when collider enters from the bottom
-                    Vector3 manipulatorDeltaPos = colliderGameObject.transform.InverseTransformPoint(
-                        otherObject.transform.position);
-
-                    if (manipulatorDeltaPos.z > 0f) {
-                        UpdateFSM(StateInput.ColliderEnter);
-                    }
-                }
-            }
-        }
-
-        public void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
-                if (Type == ActuationType.Momentary) {
-                    UpdateFSM(StateInput.ColliderExit);
-                }
-            }
-        }
+        public abstract void Update();
+        public abstract void OnColliderEntered(Collider thisObject, Collider otherObject);
+        public abstract void OnColliderExited(Collider thisObject, Collider otherObject);
 
         public void SetState(State state) {
             CurrentState = state;
         }
 
-        private void GoToState(State state) {
+        public void ExecuteSignal() {
+            if (!string.IsNullOrEmpty(OutputSignal)) {
+                Events.AvionicsInt(OutputSignal).Send((int)CurrentState);
+            }
+        }
+
+        protected void GoToState(State state) {
             SetState(state);
 
             // switch to animation state instantly
@@ -160,7 +53,7 @@ namespace KerbalVR.Components
             SwitchAnimation.Play(animationName);
         }
 
-        private void PlayToState(State state) {
+        protected void PlayToState(State state) {
 
             // set the animation time that we want to play to
             targetAnimationEndTime = GetNormalizedTimeForState(state);
@@ -177,14 +70,14 @@ namespace KerbalVR.Components
 
             // move either up or down depending on where the switch is right now
             animationState.speed =
-                Mathf.Sign(targetAnimationEndTime - animationState.normalizedTime) * 1f;
+                Mathf.Sign(targetAnimationEndTime - animationState.normalizedTime) * 2f;
 
             // play animation and actuate switch
             SwitchAnimation.Play(animationName);
             SetState(state);
         }
 
-        private float GetNormalizedTimeForState(State state) {
+        protected float GetNormalizedTimeForState(State state) {
             float targetTime = 0f;
             switch (state) {
                 case State.Down:
