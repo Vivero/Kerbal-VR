@@ -223,6 +223,22 @@ namespace KerbalVR
                 Utils.Log("font name: " + font.name);
             }
         }
+
+        public static void PrintCollisionMatrix() {
+            string header = string.Format("{0,22} {1,3}", "", "");
+            for (int i = 0; i < 32; i++) {
+                header += string.Format("{0,3}", i);
+            }
+            Utils.Log(header);
+
+            for (int y = 0; y < 32; y++) {
+                string line = string.Format("{0,22} {1,3}", LayerMask.LayerToName(y), y);
+                for (int x = 0; x < 32; x++) {
+                    line += Physics.GetIgnoreLayerCollision(x, y) ? "   " : "  X";
+                }
+                Utils.Log(line);
+            }
+        }
 #endif
 
     } // class Utils
