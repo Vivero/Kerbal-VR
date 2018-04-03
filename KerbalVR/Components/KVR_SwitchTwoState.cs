@@ -11,7 +11,6 @@ namespace KerbalVR.Components
             ColliderUpExit,
             ColliderDownEnter,
             ColliderDownExit,
-            FinishedAction,
         }
 
         public enum FSMState {
@@ -68,7 +67,6 @@ namespace KerbalVR.Components
 
             // check if animation finished playing
             if (!isAnimationPlaying && isAnimationPlayingPrev) {
-                // UpdateFSM(StateInput.FinishedAction);
                 ExecuteSignal();
             }
 

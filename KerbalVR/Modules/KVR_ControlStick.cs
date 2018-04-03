@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using Valve.VR;
 using KerbalVR.Components;
@@ -33,9 +34,8 @@ namespace KerbalVR.Modules
         private GameObject stickColliderGameObject;
 
         private Manipulator attachedManipulator;
-        private bool isManipulatorLeftInsideStickCollider;
-        private bool isManipulatorRightInsideStickCollider;
-        private bool isUnderControl; // stick is being operated by manipulator
+        private bool isManipulatorLeftInsideCollider;
+        private bool isManipulatorRightInsideCollider;
         private bool isCommandingControl; // stick is allowed to control the vessel
 
         // implement a button de-bounce
@@ -80,11 +80,10 @@ namespace KerbalVR.Modules
             // define the active vessel to control
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
 
-            isManipulatorLeftInsideStickCollider = false;
-            isManipulatorRightInsideStickCollider = false;
-            isUnderControl = false;
+            isManipulatorLeftInsideCollider = false;
+            isManipulatorRightInsideCollider = false;
             isCommandingControl = false;
-            
+            attachedManipulator = null;
         }
 
         void OnDestroy() {
@@ -102,37 +101,46 @@ namespace KerbalVR.Modules
         }
 
         void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
-            if (isInteractable && isManipulatorLeftInsideStickCollider &&
-                state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
-                if (!isUnderControl) {
+            if (state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+                /*Utils.Log("OnManipulatorLeftUpdated: " +
+                    "attached = " + (attachedManipulator == null ? "null" : attachedManipulator.ToString()) +
+                    ", isManipulatorLeftInsideStickCollider = " + (isManipulatorLeftInsideCollider ? "yes" : "no") +
+                    ", state.GetPressDown = " + (state.GetPressDown(EVRButtonId.k_EButton_Grip) ? "yes" : "no"));*/
+
+                if (isInteractable && (attachedManipulator == null) &&
+                    isManipulatorLeftInsideCollider) {
+
                     attachedManipulator = DeviceManager.Instance.ManipulatorLeft;
-                    isUnderControl = true;
 
                     // cool-down for button de-bounce
                     isInteractable = false;
                     StartCoroutine(ButtonCooldown());
 
-                } else if (isUnderControl) {
+                } else if (DeviceManager.IsManipulatorLeft(attachedManipulator)) {
                     attachedManipulator = null;
-                    isUnderControl = false;
                 }
             }
         }
 
         void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
-            if (isInteractable && isManipulatorRightInsideStickCollider &&
-                state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
-                if (!isUnderControl) {
+            if (state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+                /*Utils.Log("OnManipulatorRightUpdated: " +
+                    "attached = " + (attachedManipulator == null ? "null" : attachedManipulator.ToString()) +
+                    ", isManipulatorRightInsideStickCollider = " + (isManipulatorRightInsideCollider ? "yes" : "no") +
+                    ", state.GetPressDown = " + (state.GetPressDown(EVRButtonId.k_EButton_Grip) ? "yes" : "no"));*/
+
+                if (isInteractable && (attachedManipulator == null) &&
+                    isManipulatorRightInsideCollider) {
+
                     attachedManipulator = DeviceManager.Instance.ManipulatorRight;
-                    isUnderControl = true;
 
                     // cool-down for button de-bounce
                     isInteractable = false;
                     StartCoroutine(ButtonCooldown());
 
-                } else if (isUnderControl) {
+                } else if (DeviceManager.IsManipulatorRight(attachedManipulator)) {
+
                     attachedManipulator = null;
-                    isUnderControl = false;
                 }
             }
         }
@@ -141,7 +149,7 @@ namespace KerbalVR.Modules
             // keep track if we're actually sending commands
             isCommandingControl = false;
 
-            if (isUnderControl && attachedManipulator != null) {
+            if (attachedManipulator != null) {
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 stickToManipulatorPos =
                     attachedManipulator.transform.position - stickTransformGameObject.transform.position;
@@ -196,7 +204,7 @@ namespace KerbalVR.Modules
                     RollAxis = 0f;
                 }
 
-            } else if (!isUnderControl) {
+            } else {
                 stickTransformGameObject.transform.rotation = stickInitialRotation;
                 StickAxisX = 0f;
                 StickAxisY = 0f;
@@ -205,16 +213,22 @@ namespace KerbalVR.Modules
         }
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (thisObject.gameObject == stickColliderGameObject) {
-                isManipulatorLeftInsideStickCollider = DeviceManager.IsManipulatorLeft(otherObject.gameObject);
-                isManipulatorRightInsideStickCollider = DeviceManager.IsManipulatorRight(otherObject.gameObject);
+            if (DeviceManager.IsManipulatorLeft(otherObject.gameObject)) {
+                isManipulatorLeftInsideCollider = true;
+            }
+
+            if (DeviceManager.IsManipulatorRight(otherObject.gameObject)) {
+                isManipulatorRightInsideCollider = true;
             }
         }
 
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (thisObject.gameObject == stickColliderGameObject) {
-                isManipulatorLeftInsideStickCollider = DeviceManager.IsManipulatorLeft(otherObject.gameObject);
-                isManipulatorRightInsideStickCollider = DeviceManager.IsManipulatorRight(otherObject.gameObject);
+            if (DeviceManager.IsManipulatorLeft(otherObject.gameObject)) {
+                isManipulatorLeftInsideCollider = false;
+            }
+
+            if (DeviceManager.IsManipulatorRight(otherObject.gameObject)) {
+                isManipulatorRightInsideCollider = false;
             }
         }
 

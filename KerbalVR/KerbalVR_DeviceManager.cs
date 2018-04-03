@@ -252,12 +252,30 @@ namespace KerbalVR
         }
 
         /// <summary>
+        /// Checks whether the given Manipulator component is the left Manipulator.
+        /// </summary>
+        /// <param name="obj">The Manipulator component to check.</param>
+        /// <returns>True if this is the left Manipulator, false otherwise.</returns>
+        public static bool IsManipulatorLeft(Manipulator obj) {
+            return Instance.ManipulatorLeft != null && obj == Instance.ManipulatorLeft;
+        }
+
+        /// <summary>
         /// Checks whether the given GameObject is the right Manipulator.
         /// </summary>
         /// <param name="obj">The GameObject to check.</param>
         /// <returns>True if this is the right Manipulator, false otherwise.</returns>
         public static bool IsManipulatorRight(GameObject obj) {
             return Instance.manipulatorRight != null && obj == Instance.manipulatorRight;
+        }
+
+        /// <summary>
+        /// Checks whether the given Manipulator component is the right Manipulator.
+        /// </summary>
+        /// <param name="obj">The Manipulator component to check.</param>
+        /// <returns>True if this is the right Manipulator, false otherwise.</returns>
+        public static bool IsManipulatorRight(Manipulator obj) {
+            return Instance.ManipulatorRight != null && obj == Instance.ManipulatorRight;
         }
 
         /// <summary>
