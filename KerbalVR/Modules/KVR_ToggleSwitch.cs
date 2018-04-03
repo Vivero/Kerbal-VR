@@ -66,6 +66,9 @@ namespace KerbalVR.Modules
                 }
             }*/
 
+            if (toggleSwitch == null)
+                throw new ArgumentException("KVR_ToggleSwitch " + internalProp.name + " is missing a switch configuration!");
+
             toggleSwitch.enabled = (buttonCover == null);
 
             // create labels

@@ -309,8 +309,14 @@ namespace KerbalVR
             bool allowed;
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
+#if DEBUG
+                    allowed = (CameraManager.Instance != null) &&
+                        (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA ||
+                        CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.External);
+#else
                     allowed = (CameraManager.Instance != null) &&
                         (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
+#endif
                     break;
 
                 case GameScenes.EDITOR:

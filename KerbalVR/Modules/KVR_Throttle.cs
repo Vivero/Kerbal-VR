@@ -36,6 +36,13 @@ namespace KerbalVR.Modules
         private bool isManipulatorRightInsideCollider;
         private bool isCommandingControl; // stick is allowed to control the vessel
 
+        private ConfigNode moduleConfigNode;
+
+        private GameObject[] emissiveObjects;
+        private int numEmissiveObjects;
+        private Color emissiveColorDefault = Color.white;
+        private Color emissiveColor;
+
         // implement a button de-bounce
         private bool isInteractable = true;
         private float buttonCooldownTime = 0.3f;
@@ -51,8 +58,12 @@ namespace KerbalVR.Modules
         }
 
         void Start() {
-            HandleAxis = 0f;
+            // no setup needed in editor mode
+            if (HighLogic.LoadedScene == GameScenes.EDITOR) return;
 
+            // obtain module configuration
+            moduleConfigNode = ConfigUtils.GetModuleConfigNode(internalProp.name, moduleID);
+            
             // obtain the collider
             handleColliderTransform = internalProp.FindModelTransform(transformHandleCollider);
             if (handleColliderTransform != null) {
@@ -72,13 +83,35 @@ namespace KerbalVR.Modules
                 Utils.LogWarning("KVR_Throttle (" + gameObject.name + ") has no handle transform \"" + transformHandle + "\"");
             }
 
+            // special effects
+            ConfigNode emissiveConfigNode = moduleConfigNode.GetNode("KVR_EMISSIVE");
+            if (emissiveConfigNode != null) {
+                string[] emissiveObjectNames = emissiveConfigNode.GetValues("objectName");
+                numEmissiveObjects = emissiveObjectNames.Length;
+                emissiveObjects = new GameObject[numEmissiveObjects];
+                for (int i = 0; i < numEmissiveObjects; i++) {
+                    Transform emissiveTransform = internalProp.FindModelTransform(emissiveObjectNames[i]);
+                    if (emissiveTransform != null) {
+                        emissiveObjects[i] = emissiveTransform.gameObject;
+                    } else {
+                        Utils.LogWarning("KVR_Throttle (" + gameObject.name + ") has no emissive transform \"" + emissiveObjectNames[i] + "\"");
+                    }
+                }
+
+                emissiveColor = Color.white;
+                bool success = emissiveConfigNode.TryGetValue("color", ref emissiveColor);
+            }
+
             // define the active vessel to control
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
 
+            HandleAxis = 0f;
             isManipulatorLeftInsideCollider = false;
             isManipulatorRightInsideCollider = false;
             isCommandingControl = false;
             attachedManipulator = null;
+
+            SetEmissiveColor(emissiveColorDefault);
         }
 
         void OnDestroy() {
@@ -166,10 +199,21 @@ namespace KerbalVR.Modules
                 if (Mathf.Abs(xAngle) < handleDeadZoneAngle) {
                     isCommandingControl = false;
                     HandleAxis = 0f;
+
+                    SetEmissiveColor(Color.white);
                 } else {
                     isCommandingControl = true;
                     HandleAxis = (xAngle - handleAxisMin) / (handleAxisMax - handleAxisMin);
+                    
+                    SetEmissiveColor(Color.Lerp(emissiveColorDefault, emissiveColor, HandleAxis));
                 }
+            }
+        }
+
+        private void SetEmissiveColor(Color emissiveColor) {
+            for (int i = 0; i < numEmissiveObjects; i++) {
+                MeshRenderer emissiveRenderer = emissiveObjects[i].GetComponent<MeshRenderer>();
+                emissiveRenderer.material.SetColor("_EmissiveColor", emissiveColor);
             }
         }
 
