@@ -35,6 +35,7 @@ namespace KerbalVR.Components
         public State CurrentState { get; private set; }
         public Animation ButtonAnimation { get; private set; }
         public Transform ColliderTransform { get; private set; }
+        public AudioSource SoundEffect { get; protected set; }
         #endregion
 
         #region Members
@@ -66,6 +67,13 @@ namespace KerbalVR.Components
             ColliderTransform = ConfigUtils.GetTransform(prop, configuration, "colliderTransformName");
             colliderGameObject = ColliderTransform.gameObject;
             colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
+
+            // sound effect
+            try {
+                SoundEffect = ConfigUtils.SetupAudioClip(prop, configuration, "sound");
+            } catch (Exception e) {
+                Utils.LogWarning(e.ToString());
+            }
 
             // set initial state
             enabled = false;
@@ -181,6 +189,11 @@ namespace KerbalVR.Components
             // play animation and actuate switch
             ButtonAnimation.Play(animationName);
             SetState(state);
+
+            // play sound effect if available
+            if (SoundEffect != null) {
+                SoundEffect.Play();
+            }
         }
 
         private float GetNormalizedTimeForState(State state) {

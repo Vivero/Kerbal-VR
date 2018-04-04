@@ -33,12 +33,7 @@ namespace KerbalVR.Components
         #endregion
 
         #region Constructors
-        public KVR_SwitchTwoState(InternalProp prop, ConfigNode configuration) {
-            // animation
-            SwitchAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
-            animationState = SwitchAnimation[animationName];
-            animationState.wrapMode = WrapMode.Once;
-
+        public KVR_SwitchTwoState(InternalProp prop, ConfigNode configuration) : base(prop, configuration) {
             // collider game objects
             ColliderDownTransform = ConfigUtils.GetTransform(prop, configuration, "colliderDownTransformName");
             colliderDownGameObject = ColliderDownTransform.gameObject;
@@ -48,17 +43,8 @@ namespace KerbalVR.Components
             colliderUpGameObject = ColliderUpTransform.gameObject;
             colliderUpGameObject.AddComponent<KVR_ActionableCollider>().module = this;
 
-            // output signal
-            string outputSignalName = "";
-            bool success = configuration.TryGetValue("outputSignal", ref outputSignalName);
-            if (success) OutputSignal = outputSignalName;
-
             // set initial state
-            enabled = false;
-            isAnimationPlayingPrev = false;
             fsmState = FSMState.IsDown;
-            targetAnimationEndTime = 0f;
-            GoToState(State.Down);
         }
         #endregion
 

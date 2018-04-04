@@ -17,6 +17,7 @@ namespace KerbalVR.Components
         public State CurrentState { get; protected set; }
         public Animation SwitchAnimation { get; protected set; }
         public string OutputSignal { get; protected set; }
+        public AudioSource SoundEffect { get; protected set; }
         #endregion
 
         #region Members
@@ -33,6 +34,31 @@ namespace KerbalVR.Components
         public abstract void Update();
         public abstract void OnColliderEntered(Collider thisObject, Collider otherObject);
         public abstract void OnColliderExited(Collider thisObject, Collider otherObject);
+
+        public KVR_Switch(InternalProp prop, ConfigNode configuration) {
+            // animation
+            SwitchAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
+            animationState = SwitchAnimation[animationName];
+            animationState.wrapMode = WrapMode.Once;
+
+            // sound effect
+            try {
+                SoundEffect = ConfigUtils.SetupAudioClip(prop, configuration, "sound");
+            } catch (Exception e) {
+                Utils.LogWarning(e.ToString());
+            }
+
+            // output signal
+            string outputSignalName = "";
+            bool success = configuration.TryGetValue("outputSignal", ref outputSignalName);
+            if (success) OutputSignal = outputSignalName;
+
+            // set initial state
+            enabled = false;
+            isAnimationPlayingPrev = false;
+            targetAnimationEndTime = 0f;
+            GoToState(State.Down);
+        }
 
         public void SetState(State state) {
             CurrentState = state;
@@ -54,7 +80,6 @@ namespace KerbalVR.Components
         }
 
         protected void PlayToState(State state) {
-
             // set the animation time that we want to play to
             targetAnimationEndTime = GetNormalizedTimeForState(state);
 
@@ -75,6 +100,11 @@ namespace KerbalVR.Components
             // play animation and actuate switch
             SwitchAnimation.Play(animationName);
             SetState(state);
+
+            // play sound effect if available
+            if (SoundEffect != null) {
+                SoundEffect.Play();
+            }
         }
 
         protected float GetNormalizedTimeForState(State state) {

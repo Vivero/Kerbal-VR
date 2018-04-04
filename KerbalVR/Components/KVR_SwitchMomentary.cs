@@ -25,33 +25,19 @@ namespace KerbalVR.Components
         #endregion
 
         #region Private Members
-        private GameObject colliderGameObject, colliderUpGameObject, colliderMiddleGameObject;
+        private GameObject colliderGameObject;
         private FSMState fsmState;
         #endregion
 
         #region Constructors
-        public KVR_SwitchMomentary(InternalProp prop, ConfigNode configuration) {
-            // animation
-            SwitchAnimation = ConfigUtils.GetAnimation(prop, configuration, "animationName", out animationName);
-            animationState = SwitchAnimation[animationName];
-            animationState.wrapMode = WrapMode.Once;
-
-            // collider game objects
+        public KVR_SwitchMomentary(InternalProp prop, ConfigNode configuration) : base(prop, configuration) {
+            // collider game object
             ColliderTransform = ConfigUtils.GetTransform(prop, configuration, "colliderTransformName");
             colliderGameObject = ColliderTransform.gameObject;
             colliderGameObject.AddComponent<KVR_ActionableCollider>().module = this;
 
-            // output signal
-            string outputSignalName = "";
-            bool success = configuration.TryGetValue("outputSignal", ref outputSignalName);
-            if (success) OutputSignal = outputSignalName;
-
             // set initial state
-            enabled = false;
-            isAnimationPlayingPrev = false;
             fsmState = FSMState.IsDown;
-            targetAnimationEndTime = 0f;
-            GoToState(State.Down);
         }
         #endregion
 

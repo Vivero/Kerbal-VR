@@ -52,5 +52,31 @@ namespace KerbalVR
 
             return transform;
         }
+
+        public static AudioSource SetupAudioClip(InternalProp prop, ConfigNode configuration, string configKey) {
+            string audioClipName = "";
+            bool success = configuration.TryGetValue(configKey, ref audioClipName);
+            if (!success) throw new ArgumentException(configKey + " not specified for " +
+                prop.name + " (config node " + configuration.id + ")");
+
+            AudioClip audioClip = GameDatabase.Instance.GetAudioClip(audioClipName);
+            if (audioClip == null) throw new ArgumentException("AudioClip \"" + audioClipName +
+                "\" not found for " + prop.name + " (config node " + configuration.id + ")");
+
+            AudioSource audioSource = prop.gameObject.AddComponent<AudioSource>();
+            audioSource.clip = audioClip;
+            audioSource.Stop();
+            audioSource.volume = GameSettings.SHIP_VOLUME;
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.maxDistance = 10f;
+            audioSource.minDistance = 2f;
+            audioSource.dopplerLevel = 0f;
+            audioSource.panStereo = 0f;
+            audioSource.playOnAwake = false;
+            audioSource.loop = false;
+            audioSource.pitch = 1f;
+
+            return audioSource;
+        }
     }
 }
