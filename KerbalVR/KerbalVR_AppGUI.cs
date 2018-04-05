@@ -198,6 +198,24 @@ namespace KerbalVR
             }
             GUILayout.EndHorizontal();
 
+            // world scale
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("World Scale:", HighLogic.Skin.label);
+            float worldScale = Scene.Instance.WorldScale;
+            string worldScaleStr = worldScale.ToString("F1");
+            worldScaleStr = GUILayout.TextField(worldScaleStr, HighLogic.Skin.textField);
+            if (GUI.changed) {
+                bool parseSuccess = System.Single.TryParse(worldScaleStr, out worldScale);
+                if (parseSuccess &&
+                    worldScale >= 0.2 &&
+                    worldScale <= 10) {
+                    Scene.Instance.WorldScale = worldScale;
+                } else {
+                    Scene.Instance.WorldScale = 1f;
+                }
+            }
+            GUILayout.EndHorizontal();
+
             //------------------------------------------------------------------
             GUILayout.EndVertical();
 
