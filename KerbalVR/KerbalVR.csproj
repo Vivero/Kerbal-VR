@@ -55,6 +55,7 @@
     <Compile Include="Components\KVR_Label.cs" />
     <Compile Include="Components\KVR_Switch.cs" />
     <Compile Include="Components\KVR_SwitchTwoState.cs" />
+    <Compile Include="Components\KVR_SwitchThreeState.cs" />
     <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
