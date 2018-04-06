@@ -34,7 +34,6 @@ namespace KerbalVR
             ApplicationLauncher.AppScenes.VAB |
             ApplicationLauncher.AppScenes.SPH;
 #endif
-        #endregion
 
         private static string BUTTON_STRING_ENABLE_VR = "Enable VR";
         private static string BUTTON_STRING_DISABLE_VR = "Disable VR";
@@ -44,11 +43,16 @@ namespace KerbalVR
 
         private static readonly int APP_GUI_ID = 186012;
 
+        #endregion
+
         private ApplicationLauncherButton appButton;
         private bool appButtonGuiActive = false;
         private bool appButtonGuiActiveLastState = false;
 
         private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
+
+        // text fields
+        private string worldScaleStr;
 
         /// <summary>
         /// This GameEvent is registered with GameEvents.onGUIApplicationLauncherReady,
@@ -71,6 +75,10 @@ namespace KerbalVR
 
             // create new app button instance if it doesn't already exist
             if (appButton == null) {
+
+                // init variables
+                worldScaleStr = Scene.Instance.WorldScale.ToString("F1");
+
                 appButton = ApplicationLauncher.Instance.AddModApplication(
                     OnToggleTrue,
                     OnToggleFalse,
@@ -201,17 +209,13 @@ namespace KerbalVR
             // world scale
             GUILayout.BeginHorizontal();
             GUILayout.Label("World Scale:", HighLogic.Skin.label);
-            float worldScale = Scene.Instance.WorldScale;
-            string worldScaleStr = worldScale.ToString("F1");
             worldScaleStr = GUILayout.TextField(worldScaleStr, HighLogic.Skin.textField);
             if (GUI.changed) {
-                bool parseSuccess = System.Single.TryParse(worldScaleStr, out worldScale);
+                bool parseSuccess = System.Single.TryParse(worldScaleStr, out float worldScale);
                 if (parseSuccess &&
-                    worldScale >= 0.2 &&
+                    worldScale >= 0.1 &&
                     worldScale <= 10) {
                     Scene.Instance.WorldScale = worldScale;
-                } else {
-                    Scene.Instance.WorldScale = 1f;
                 }
             }
             GUILayout.EndHorizontal();
