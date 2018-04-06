@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
@@ -369,7 +370,8 @@ namespace KerbalVR
             if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
                 Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
 
-                Vector3 upDisplacement = Vector3.up * (editorMovementSpeed * touchAxis.y) * Time.deltaTime;
+                Vector3 upDisplacement = Vector3.up *
+                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.y) * Time.deltaTime;
 
                 Vector3 newPosition = CurrentPosition + upDisplacement;
                 if (newPosition.y < 0f) newPosition.y = 0f;
@@ -403,11 +405,13 @@ namespace KerbalVR
 
                 Vector3 fwdDirection = HmdRotation * Vector3.forward;
                 fwdDirection.y = 0f; // allow only planar movement
-                Vector3 fwdDisplacement = fwdDirection.normalized * (editorMovementSpeed * touchAxis.y) * Time.deltaTime;
+                Vector3 fwdDisplacement = fwdDirection.normalized *
+                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.y) * Time.deltaTime;
 
                 Vector3 rightDirection = HmdRotation * Vector3.right;
                 rightDirection.y = 0f; // allow only planar movement
-                Vector3 rightDisplacement = rightDirection.normalized * (editorMovementSpeed * touchAxis.x) * Time.deltaTime;
+                Vector3 rightDisplacement = rightDirection.normalized *
+                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.x) * Time.deltaTime;
 
                 CurrentPosition += fwdDisplacement + rightDisplacement;
             }
