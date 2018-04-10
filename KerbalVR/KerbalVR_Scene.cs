@@ -174,9 +174,13 @@ namespace KerbalVR
             InitialPosition = InternalCamera.Instance.transform.position;
 
             // set rotation to always point forward inside the cockpit
-            InitialRotation = Quaternion.LookRotation(
+            // NOTE: actually this code doesn't work for certain capsules
+            // with different internal origin orientations
+            /*InitialRotation = Quaternion.LookRotation(
                 InternalSpace.Instance.transform.rotation * Vector3.up,
-                InternalSpace.Instance.transform.rotation * Vector3.back);
+                InternalSpace.Instance.transform.rotation * Vector3.back);*/
+
+            InitialRotation = InternalCamera.Instance.transform.rotation;
         }
 
         private void SetupEditorScene() {
