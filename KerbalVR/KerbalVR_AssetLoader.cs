@@ -12,6 +12,10 @@ namespace KerbalVR
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class AssetLoader : MonoBehaviour
     {
+        public static bool IsReady { get; private set; } = false;
+
+        public GameObject glove;
+
         private Dictionary<string, TMPro.TMP_FontAsset> fontDictionary;
 
         #region Singleton
@@ -47,6 +51,10 @@ namespace KerbalVR
 
             // load KerbalVR asset bundles
             LoadFonts();
+
+            LoadAssets();
+
+            IsReady = true;
         }
 
         private void LoadFonts() {
@@ -64,6 +72,49 @@ namespace KerbalVR
                 return font;
             }
             return null;
+        }
+
+        private void LoadAssets() {
+            // get path to asset bundle
+            string assetBundlePath = KSPUtil.ApplicationRootPath +
+                "GameData/" + Globals.KERBALVR_ASSETS_DIR +
+                "kerbalvr.ksp";
+            Utils.Log("assetbundle path = " + assetBundlePath);
+
+            // load asset bundle
+            AssetBundle bundle = AssetBundle.LoadFromFile(assetBundlePath);
+            if (bundle == null) {
+                Utils.LogError("Error loading asset bundle from: " + assetBundlePath);
+                return;
+            }
+
+            // enumerate assets
+            string[] assetNames = bundle.GetAllAssetNames();
+            for (int i = 0; i < assetNames.Length; i++) {
+                Utils.Log("Asset: " + assetNames[i]);
+            }
+
+            glove = bundle.LoadAsset<GameObject>("assets/prefabs/glovel.prefab");
+            if (glove != null) {
+                DontDestroyOnLoad(glove);
+                Utils.PrintGameObjectTree(glove);
+
+                int numChildren = glove.transform.childCount;
+                for (int i = 0; i < numChildren; i++) {
+                    if (glove.transform.GetChild(i).name == "Zero_Gravity_Glove_L") {
+                        GameObject glovemesh = glove.transform.GetChild(i).gameObject;
+                        SkinnedMeshRenderer skinmesh = glovemesh.GetComponent<SkinnedMeshRenderer>();
+                        skinmesh.material = new Material(Shader.Find("KSP/Diffuse"));
+                        skinmesh.material.color = Color.cyan;
+
+                        Utils.Log("skinmesh.sharedMesh = " + skinmesh.sharedMesh.name + ", " + skinmesh.sharedMesh.vertexCount);
+                        Utils.Log("skinmesh.material = " + skinmesh.material);
+                        break;
+                    }
+                }
+            } else {
+                Utils.LogError("glove null!");
+            }
         }
     }
 }

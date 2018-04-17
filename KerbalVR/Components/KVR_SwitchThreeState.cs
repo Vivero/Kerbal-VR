@@ -60,6 +60,14 @@ namespace KerbalVR.Components
         public override void Update() {
             bool isAnimationPlaying = SwitchAnimation.isPlaying;
 
+            if (SwitchAnimation.isPlaying &&
+                ((animationState.speed > 0f && animationState.normalizedTime >= targetAnimationEndTime) ||
+                (animationState.speed < 0f && animationState.normalizedTime <= targetAnimationEndTime))) {
+
+                Utils.Log("Stopped anim at " + animationState.normalizedTime.ToString("F2"));
+                SwitchAnimation.Stop();
+            }
+
             // check if animation finished playing
             if (!isAnimationPlaying && isAnimationPlayingPrev) {
                 ExecuteSignal();
@@ -70,6 +78,7 @@ namespace KerbalVR.Components
         }
 
         private void UpdateFSM(StateInput colliderInput) {
+            Utils.Log("UpdateFSM, state = " + CurrentState + ", fsm = " + fsmState + ", input = " + colliderInput);
             switch (fsmState) {
                 case FSMState.IsDown:
                     if (colliderInput == StateInput.ColliderDownEnter) {

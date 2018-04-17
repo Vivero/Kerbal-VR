@@ -59,12 +59,12 @@ namespace KerbalVR.Modules
                 }
             }
 
-            /*if (toggleSwitch == null) {
+            if (toggleSwitch == null) {
                 switchConfigNode = moduleConfigNode.GetNode("KVR_SWITCH_THREE_STATE");
                 if (switchConfigNode != null) {
                     toggleSwitch = new KVR_SwitchThreeState(internalProp, switchConfigNode);
                 }
-            }*/
+            }
 
             if (toggleSwitch == null)
                 throw new ArgumentException("KVR_ToggleSwitch " + internalProp.name + " is missing a switch configuration!");

@@ -210,6 +210,32 @@ namespace KerbalVR
             
             manipulatorRenderer.enabled = false;
 
+            GameObject glove = GameDatabase.Instance.GetModel("KerbalVR/Assets/Gloves/Glove");
+            // GameObject glove = GameDatabase.Instance.GetModelPrefab("Assets/ZeroGravity/Models/Glove/Models/GloveL");
+            // GameObject glove = AssetLoader.Instance.glove;
+
+            if (glove == null) {
+                Utils.LogWarning("glove is null!");
+            } else {
+                Utils.Log("glove loaded!");
+
+                Utils.SetLayer(glove, 20);
+
+                DontDestroyOnLoad(glove);
+                /*glove.transform.SetParent(manipulator.transform);
+                glove.transform.localPosition = Vector3.zero;
+                glove.transform.localRotation = Quaternion.identity;*/
+
+                glove.transform.position = new Vector3(0f, 0.1f, -0.5f);
+
+                Utils.CreateGizmoAtPosition(glove.transform.position);
+
+                Utils.PrintGameObjectTree(manipulator);
+
+                GameObject origin = Utils.CreateGizmoAtPosition(Vector3.zero, Quaternion.identity);
+                origin.transform.localScale = Vector3.one * 3f;
+            }
+
             return manipulator;
         }
 
