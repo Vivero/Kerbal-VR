@@ -67,6 +67,16 @@ namespace KerbalVR
             return maskBits.ToArray();
         }
 
+        public static void SetLayer(GameObject obj, int layer) {
+            if (obj != null) {
+                obj.layer = layer;
+                int numChildren = obj.transform.childCount;
+                for (int i = 0; i < numChildren; i++) {
+                    SetLayer(obj.transform.GetChild(i).gameObject, layer);
+                }
+            }
+        }
+
 #if DEBUG
         public static GameObject CreateGizmo() {
             GameObject gizmo = new GameObject("gizmo");
