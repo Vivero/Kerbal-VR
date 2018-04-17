@@ -73,4 +73,4 @@ I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems ha
 
 | Nvidia | SteamVR         |
 |--------|-----------------|
-| 391.35 | beta 1523037268 |
+| 391.35 | beta 1523560849 |
