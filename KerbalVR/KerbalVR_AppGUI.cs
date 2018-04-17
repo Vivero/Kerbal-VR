@@ -41,6 +41,9 @@ namespace KerbalVR
         private static string LABEL_STRING_VR_ACTIVE = "ACTIVE";
         private static string LABEL_STRING_VR_INACTIVE = "INACTIVE";
 
+        private static string BUTTON_STRING_ENABLE_MIRROR = "Enable Display Mirror";
+        private static string BUTTON_STRING_DISABLE_MIRROR = "Disable Display Mirror";
+
         private static readonly int APP_GUI_ID = 186012;
 
         #endregion
@@ -146,6 +149,7 @@ namespace KerbalVR
         private void GenerateGUI(int windowId) {
             string buttonStringToggleVr = BUTTON_STRING_ENABLE_VR;
             string labelStringVrActive = LABEL_STRING_VR_INACTIVE;
+            string buttonStringToggleMirror = BUTTON_STRING_ENABLE_MIRROR;
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
@@ -153,6 +157,10 @@ namespace KerbalVR
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
+            }
+
+            if (Core.RenderHmdToScreen) {
+                buttonStringToggleMirror = BUTTON_STRING_DISABLE_MIRROR;
             }
 
             GUILayout.BeginVertical();
@@ -171,6 +179,16 @@ namespace KerbalVR
             if (Core.CanResetSeatedPose()) {
                 if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
                     Core.ResetInitialHmdPosition();
+                }
+            }
+
+            if (Core.HmdIsRunning) {
+                if (GUILayout.Button(buttonStringToggleMirror, HighLogic.Skin.button)) {
+                    if (Core.RenderHmdToScreen) {
+                        Core.RenderHmdToScreen = false;
+                    } else {
+                        Core.RenderHmdToScreen = true;
+                    }
                 }
             }
             UnityEngine.GUI.enabled = true;
