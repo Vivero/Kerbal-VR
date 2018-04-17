@@ -121,11 +121,6 @@ robocopy "$(ProjectDir)Assets" "$(TargetDir)\rel\GameData\KerbalVR\Assets" /E
 :: Copy release into KSP directory
 if EXIST "C:\KSP_win64\" (
   robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win64\GameData\KerbalVR" /E
-  
-  :: Copy debug symbols
-  if $(ConfigurationName) == Debug (
-    copy /Y "$(TargetDir)$(TargetName).pdb" "C:\KSP_win64\GameData\KerbalVR"
-  )
 )
 
 :: Do NOT make robocopy the last command here. It gives a "bad" return value.
