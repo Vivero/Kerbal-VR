@@ -34,7 +34,6 @@ namespace KerbalVR
             ApplicationLauncher.AppScenes.VAB |
             ApplicationLauncher.AppScenes.SPH;
 #endif
-        #endregion
 
         private static string BUTTON_STRING_ENABLE_VR = "Enable VR";
         private static string BUTTON_STRING_DISABLE_VR = "Disable VR";
@@ -42,13 +41,21 @@ namespace KerbalVR
         private static string LABEL_STRING_VR_ACTIVE = "ACTIVE";
         private static string LABEL_STRING_VR_INACTIVE = "INACTIVE";
 
+        private static string BUTTON_STRING_ENABLE_MIRROR = "Enable Display Mirror";
+        private static string BUTTON_STRING_DISABLE_MIRROR = "Disable Display Mirror";
+
         private static readonly int APP_GUI_ID = 186012;
+
+        #endregion
 
         private ApplicationLauncherButton appButton;
         private bool appButtonGuiActive = false;
         private bool appButtonGuiActiveLastState = false;
 
         private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
+
+        // text fields
+        private string worldScaleStr;
 
         /// <summary>
         /// This GameEvent is registered with GameEvents.onGUIApplicationLauncherReady,
@@ -71,6 +78,10 @@ namespace KerbalVR
 
             // create new app button instance if it doesn't already exist
             if (appButton == null) {
+
+                // init variables
+                worldScaleStr = Scene.Instance.WorldScale.ToString("F1");
+
                 appButton = ApplicationLauncher.Instance.AddModApplication(
                     OnToggleTrue,
                     OnToggleFalse,
@@ -138,6 +149,7 @@ namespace KerbalVR
         private void GenerateGUI(int windowId) {
             string buttonStringToggleVr = BUTTON_STRING_ENABLE_VR;
             string labelStringVrActive = LABEL_STRING_VR_INACTIVE;
+            string buttonStringToggleMirror = BUTTON_STRING_ENABLE_MIRROR;
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
@@ -145,6 +157,10 @@ namespace KerbalVR
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
+            }
+
+            if (Core.RenderHmdToScreen) {
+                buttonStringToggleMirror = BUTTON_STRING_DISABLE_MIRROR;
             }
 
             GUILayout.BeginVertical();
@@ -163,6 +179,16 @@ namespace KerbalVR
             if (Core.CanResetSeatedPose()) {
                 if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
                     Core.ResetInitialHmdPosition();
+                }
+            }
+
+            if (Core.HmdIsRunning) {
+                if (GUILayout.Button(buttonStringToggleMirror, HighLogic.Skin.button)) {
+                    if (Core.RenderHmdToScreen) {
+                        Core.RenderHmdToScreen = false;
+                    } else {
+                        Core.RenderHmdToScreen = true;
+                    }
                 }
             }
             UnityEngine.GUI.enabled = true;
@@ -194,6 +220,20 @@ namespace KerbalVR
                     DeviceManager.Instance.ManipulatorSize = handSizeCentimeters * 0.01f;
                 } else {
                     DeviceManager.Instance.ManipulatorSize = 0.02f;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            // world scale
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("World Scale:", HighLogic.Skin.label);
+            worldScaleStr = GUILayout.TextField(worldScaleStr, HighLogic.Skin.textField);
+            if (GUI.changed) {
+                bool parseSuccess = System.Single.TryParse(worldScaleStr, out float worldScale);
+                if (parseSuccess &&
+                    worldScale >= 0.1 &&
+                    worldScale <= 10) {
+                    Scene.Instance.WorldScale = worldScale;
                 }
             }
             GUILayout.EndHorizontal();

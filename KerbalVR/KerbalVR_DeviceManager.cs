@@ -119,11 +119,13 @@ namespace KerbalVR
                 SteamVR_Controller.Device controllerState =
                     SteamVR_Controller.Input((int)ControllerIndexLeft);
 
-                // state is stored in Manipulator object
-                ManipulatorLeft.UpdateState(controllerPose, controllerState);
+                if (controllerState != null) {
+                    // state is stored in Manipulator object
+                    ManipulatorLeft.UpdateState(controllerPose, controllerState);
 
-                // notify listeners
-                Events.ManipulatorLeftUpdated.Send(controllerState);
+                    // notify listeners
+                    Events.ManipulatorLeftUpdated.Send(controllerState);
+                }
             }
 
             if (DeviceIndexIsValid(ControllerIndexRight)) {
@@ -132,11 +134,13 @@ namespace KerbalVR
                 SteamVR_Controller.Device controllerState =
                     SteamVR_Controller.Input((int)ControllerIndexRight);
 
-                // state is stored in Manipulator object
-                ManipulatorRight.UpdateState(controllerPose, controllerState);
+                if (controllerState != null) {
+                    // state is stored in Manipulator object
+                    ManipulatorRight.UpdateState(controllerPose, controllerState);
 
-                // notify listeners
-                Events.ManipulatorRightUpdated.Send(controllerState);
+                    // notify listeners
+                    Events.ManipulatorRightUpdated.Send(controllerState);
+                }
             }
         }
 
