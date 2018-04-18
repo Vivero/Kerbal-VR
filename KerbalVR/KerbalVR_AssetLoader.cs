@@ -94,7 +94,7 @@ namespace KerbalVR
                 Utils.Log("Asset: " + assetNames[i]);
             }
 
-            glove = bundle.LoadAsset<GameObject>("assets/prefabs/glovel.prefab");
+            /*glove = bundle.LoadAsset<GameObject>("assets/prefabs/glovel.prefab");
             if (glove != null) {
                 DontDestroyOnLoad(glove);
                 Utils.PrintGameObjectTree(glove);
@@ -114,7 +114,7 @@ namespace KerbalVR
                 }
             } else {
                 Utils.LogError("glove null!");
-            }
+            }*/
         }
     }
 }

@@ -230,7 +230,7 @@ namespace KerbalVR
 
                 Utils.CreateGizmoAtPosition(glove.transform.position);
 
-                Utils.PrintGameObjectTree(manipulator);
+                Utils.PrintGameObjectTree(glove);
 
                 GameObject origin = Utils.CreateGizmoAtPosition(Vector3.zero, Quaternion.identity);
                 origin.transform.localScale = Vector3.one * 3f;
