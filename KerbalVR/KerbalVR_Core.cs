@@ -53,7 +53,7 @@ namespace KerbalVR
         /// Set to true to allow the VR images to be rendered
         /// to the game screen. False to disable.
         /// </summary>
-        public static bool RenderHmdToScreen { get; set; } = false;
+        public static bool RenderHmdToScreen { get; set; } = true;
 
         #endregion
 
