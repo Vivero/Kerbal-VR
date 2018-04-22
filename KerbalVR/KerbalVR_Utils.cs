@@ -77,6 +77,16 @@ namespace KerbalVR
             }
         }
 
+        public static void SetEnabled(GameObject obj, bool enabled) {
+            if (obj != null) {
+                obj.SetActive(enabled);
+                int numChildren = obj.transform.childCount;
+                for (int i = 0; i < numChildren; i++) {
+                    SetEnabled(obj.transform.GetChild(i).gameObject, enabled);
+                }
+            }
+        }
+
 #if DEBUG
         public static GameObject CreateGizmo() {
             GameObject gizmo = new GameObject("gizmo");
@@ -188,10 +198,25 @@ namespace KerbalVR
         }
 
         public static void PrintGameObject(GameObject go) {
-            Log("GameObject: " + go.name + " (layer: " + go.layer + ")");
+            Log("GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " +
+                go.name + " (layer: " + go.layer + ")");
             Component[] components = go.GetComponents<Component>();
             for (int i = 0; i < components.Length; i++) {
                 Log("Component: " + components[i].ToString());
+
+                if (components[i] is MeshFilter) {
+                    MeshFilter meshFilter = components[i] as MeshFilter;
+                    Log("MeshFilter: " + meshFilter.sharedMesh.name +
+                        " (" + meshFilter.sharedMesh.vertexCount + " vertices)");
+                }
+
+                if (components[i] is MeshRenderer) {
+                    MeshRenderer meshRenderer = components[i] as MeshRenderer;
+                    Log("MeshRenderer (" + (meshRenderer.enabled ? "on" : "off") + "): " +
+                        meshRenderer.sharedMaterial.name +
+                        ", shader \"" + meshRenderer.sharedMaterial.shader.name + "\", " +
+                        "color " + meshRenderer.sharedMaterial.color);
+                }
             }
         }
 
