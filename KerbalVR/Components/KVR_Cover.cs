@@ -113,7 +113,7 @@ namespace KerbalVR.Components
         }
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorFingertip(otherObject)) {
 
                 if (thisObject.gameObject == colliderGameObject) {
                     // when cover is closed, can only be opened from the bottom edge of the

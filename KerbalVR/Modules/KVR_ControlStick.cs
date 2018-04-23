@@ -144,6 +144,7 @@ namespace KerbalVR.Modules
                     isManipulatorLeftInsideCollider) {
 
                     attachedManipulator = DeviceManager.Instance.ManipulatorLeft;
+                    DeviceManager.Instance.ManipulatorLeft.isGripping = true;
 
                     // cool-down for button de-bounce
                     isInteractable = false;
@@ -151,6 +152,7 @@ namespace KerbalVR.Modules
 
                 } else if (DeviceManager.IsManipulatorLeft(attachedManipulator)) {
                     attachedManipulator = null;
+                    DeviceManager.Instance.ManipulatorLeft.isGripping = false;
                 }
             }
         }
@@ -166,14 +168,15 @@ namespace KerbalVR.Modules
                     isManipulatorRightInsideCollider) {
 
                     attachedManipulator = DeviceManager.Instance.ManipulatorRight;
+                    DeviceManager.Instance.ManipulatorRight.isGripping = true;
 
                     // cool-down for button de-bounce
                     isInteractable = false;
                     StartCoroutine(ButtonCooldown());
 
                 } else if (DeviceManager.IsManipulatorRight(attachedManipulator)) {
-
                     attachedManipulator = null;
+                    DeviceManager.Instance.ManipulatorRight.isGripping = false;
                 }
             }
         }
@@ -185,7 +188,7 @@ namespace KerbalVR.Modules
             if (attachedManipulator != null) {
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 stickToManipulatorPos =
-                    attachedManipulator.transform.position - stickTransformGameObject.transform.position;
+                    attachedManipulator.GripPosition - stickTransformGameObject.transform.position;
 
                 // calculate the joystick X-axis angle
                 Vector3 stickToManipulatorDeltaPos = stickInitialRotation * stickToManipulatorPos;
@@ -253,21 +256,21 @@ namespace KerbalVR.Modules
         }
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulatorLeft(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorGripLeft(otherObject)) {
                 isManipulatorLeftInsideCollider = true;
             }
 
-            if (DeviceManager.IsManipulatorRight(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorGripRight(otherObject)) {
                 isManipulatorRightInsideCollider = true;
             }
         }
 
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulatorLeft(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorGripLeft(otherObject)) {
                 isManipulatorLeftInsideCollider = false;
             }
 
-            if (DeviceManager.IsManipulatorRight(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorGripRight(otherObject)) {
                 isManipulatorRightInsideCollider = false;
             }
         }

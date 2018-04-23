@@ -127,7 +127,7 @@ namespace KerbalVR.Components
         }
 
         public override void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorFingertip(otherObject)) {
                 if (thisObject.gameObject == colliderDownGameObject) {
                     UpdateFSM(StateInput.ColliderDownEnter);
                 } else if (thisObject.gameObject == colliderMiddleGameObject) {
@@ -139,7 +139,7 @@ namespace KerbalVR.Components
         }
 
         public override void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorFingertip(otherObject)) {
                 if (thisObject.gameObject == colliderDownGameObject) {
                     UpdateFSM(StateInput.ColliderDownExit);
                 } else if (thisObject.gameObject == colliderMiddleGameObject) {

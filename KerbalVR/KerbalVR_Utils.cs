@@ -77,12 +77,21 @@ namespace KerbalVR
             }
         }
 
-        public static void SetEnabled(GameObject obj, bool enabled) {
+        public static void SetGameObjectTreeActive(GameObject obj, bool active) {
             if (obj != null) {
-                obj.SetActive(enabled);
+                obj.SetActive(active);
                 int numChildren = obj.transform.childCount;
                 for (int i = 0; i < numChildren; i++) {
-                    SetEnabled(obj.transform.GetChild(i).gameObject, enabled);
+                    SetGameObjectTreeActive(obj.transform.GetChild(i).gameObject, active);
+                }
+            }
+        }
+
+        public static void SetGameObjectChildrenActive(GameObject obj, bool active) {
+            if (obj != null) {
+                int numChildren = obj.transform.childCount;
+                for (int i = 0; i < numChildren; i++) {
+                    obj.transform.GetChild(i).gameObject.SetActive(active);
                 }
             }
         }

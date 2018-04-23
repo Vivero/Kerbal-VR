@@ -132,7 +132,7 @@ namespace KerbalVR.Components
         }
 
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorFingertip(otherObject)) {
 
                 if (enabled && thisObject.gameObject == colliderGameObject) {
                     // actuate only when collider enters from the top
@@ -147,7 +147,7 @@ namespace KerbalVR.Components
         }
 
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorFingertip(otherObject)) {
                 if (Type == ActuationType.Momentary) {
                     UpdateFSM(StateInput.ColliderExit);
                 }

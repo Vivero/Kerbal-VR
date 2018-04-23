@@ -93,7 +93,7 @@ namespace KerbalVR.Components
         }
 
         public override void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorFingertip(otherObject)) {
                 if (enabled && thisObject.gameObject == colliderGameObject) {
                     // actuate only when collider enters from the bottom
                     Vector3 manipulatorDeltaPos = colliderGameObject.transform.InverseTransformPoint(
@@ -107,7 +107,7 @@ namespace KerbalVR.Components
         }
 
         public override void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
+            if (DeviceManager.IsManipulatorFingertip(otherObject)) {
                 UpdateFSM(StateInput.ColliderExit);
             }
         }

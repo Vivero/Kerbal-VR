@@ -10,13 +10,19 @@ namespace KerbalVR
     /// </summary>
     public class DeviceManager : MonoBehaviour
     {
+        #region Constants
+        public readonly Vector3 GLOVE_POSITION = new Vector3(0f, 0.02f, -0.1f);
+        public readonly Vector3 GLOVE_ROTATION = new Vector3(-45f, 0f, 90f);
+        #endregion
+
+
         #region Properties
         // Manipulator objects
         public Manipulator ManipulatorLeft { get; private set; }
         public Manipulator ManipulatorRight { get; private set; }
 
         // Manipulator object properties
-        private float _manipulatorSize = 0.02f;
+        private float _manipulatorSize = 0.45f;
         public float ManipulatorSize {
             get {
                 return _manipulatorSize;
@@ -70,6 +76,7 @@ namespace KerbalVR
             ControllerIndexRight = OpenVR.k_unTrackedDeviceIndexInvalid;
         }
         #endregion
+        
 
         /// <summary>
         /// When this GameObject is enabled, listen to OpenVR events.
@@ -190,55 +197,54 @@ namespace KerbalVR
         /// <returns>The GameObject for the "VR hand".</returns>
         protected GameObject CreateManipulator(ETrackedControllerRole role) {
             // create new GameObject
-            GameObject manipulator = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            manipulator.name = "KVR_Manipulator_" + role.ToString();
+            GameObject manipulator = new GameObject("KVR_Manipulator_" + role.ToString());
             DontDestroyOnLoad(manipulator);
 
             // define the render model
-            manipulator.transform.localScale = Vector3.one * ManipulatorSize;
-            Color manipulatorColor = (role == ETrackedControllerRole.RightHand) ? Color.green : Color.red;
-            MeshRenderer manipulatorRenderer = manipulator.GetComponent<MeshRenderer>();
-            manipulatorRenderer.material.color = manipulatorColor;
+            GameObject gloveObject = Instantiate(AssetLoader.Instance.GetGameObject("Glove"));
+            gloveObject.transform.SetParent(manipulator.transform);
+            Vector3 gloveObjectScale = Vector3.one * ManipulatorSize;
+            if (role == ETrackedControllerRole.RightHand) {
+                gloveObjectScale.y *= -1f;
+            }
+            gloveObject.transform.localPosition = GLOVE_POSITION;
+            gloveObject.transform.localRotation = Quaternion.Euler(GLOVE_ROTATION);
+            gloveObject.transform.localScale = gloveObjectScale;
+            Utils.SetLayer(gloveObject, 20);
 
-            // define the collider
-            Rigidbody manipulatorRigidbody = manipulator.AddComponent<Rigidbody>();
-            manipulatorRigidbody.isKinematic = true;
-            SphereCollider manipulatorCollider = manipulator.GetComponent<SphereCollider>();
-            manipulatorCollider.isTrigger = true;
+            // define the colliders
+            Transform colliderObject = gloveObject.transform.Find("HandDummy/Arm Bone L/Wrist Bone L/Finger Index Bone L1/Finger Index Bone L2/Finger Index Bone L3/Finger Index Bone L4");
+            if (colliderObject == null) {
+                Utils.LogWarning("Manipulator is missing fingertip collider child object");
+                return manipulator;
+            }
+            SphereCollider fingertipCollider = colliderObject.GetComponent<SphereCollider>();
+
+            colliderObject = gloveObject.transform.Find("HandDummy/Arm Bone L/Wrist Bone L");
+            if (colliderObject == null) {
+                Utils.LogWarning("Manipulator is missing grip collider child object");
+                return manipulator;
+            }
+            CapsuleCollider gripCollider = colliderObject.GetComponent<CapsuleCollider>();
+            
+
+            // retrieve the animator
+            Animator manipulatorAnimator = gloveObject.GetComponent<Animator>();
 
             // define the Manipulator component
             Manipulator manipulatorComponent = manipulator.AddComponent<Manipulator>();
             manipulatorComponent.role = role;
-            manipulatorComponent.defaultColor = manipulatorColor;
-            manipulatorComponent.activeColor = Color.yellow;
-            
-            manipulatorRenderer.enabled = false;
+            manipulatorComponent.fingertipCollider = fingertipCollider;
+            manipulatorComponent.gripCollider = gripCollider;
+            manipulatorComponent.manipulatorAnimator = manipulatorAnimator;
 
-            GameObject glove = GameDatabase.Instance.GetModel("KerbalVR/Assets/Gloves/Glove");
-            // GameObject glove = GameDatabase.Instance.GetModelPrefab("Assets/ZeroGravity/Models/Glove/Models/GloveL");
-            // GameObject glove = AssetLoader.Instance.glove;
-
-            if (glove == null) {
-                Utils.LogWarning("glove is null!");
-            } else {
-                Utils.Log("glove loaded!");
-
-                Utils.SetLayer(glove, 20);
-
-                DontDestroyOnLoad(glove);
-                /*glove.transform.SetParent(manipulator.transform);
-                glove.transform.localPosition = Vector3.zero;
-                glove.transform.localRotation = Quaternion.identity;*/
-
-                glove.transform.position = new Vector3(0f, 0.1f, -0.5f);
-
-                Utils.CreateGizmoAtPosition(glove.transform.position);
-
-                Utils.PrintGameObjectTree(glove);
-
-                GameObject origin = Utils.CreateGizmoAtPosition(Vector3.zero, Quaternion.identity);
-                origin.transform.localScale = Vector3.one * 3f;
-            }
+#if DEBUG
+            GameObject manipulatorGizmo = Utils.CreateGizmo();
+            manipulatorGizmo.transform.SetParent(manipulator.transform);
+            manipulatorGizmo.transform.localPosition = Vector3.zero;
+            manipulatorGizmo.transform.localRotation = Quaternion.identity;
+            manipulatorGizmo.transform.localScale = Vector3.one * 0.5f;
+#endif
 
             return manipulator;
         }
@@ -273,12 +279,21 @@ namespace KerbalVR
         }
 
         /// <summary>
-        /// Checks whether the given GameObject is the left Manipulator.
+        /// Checks whether the given Collider is the left Manipulator's fingertip.
         /// </summary>
-        /// <param name="obj">The GameObject to check.</param>
-        /// <returns>True if this is the left Manipulator, false otherwise.</returns>
-        public static bool IsManipulatorLeft(GameObject obj) {
-            return Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft;
+        /// <param name="collider">The Collider to check.</param>
+        /// <returns>True if this is the left Manipulator's fingertip collider, false otherwise.</returns>
+        public static bool IsManipulatorFingertipLeft(Collider collider) {
+            return Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.fingertipCollider;
+        }
+
+        /// <summary>
+        /// Checks whether the given Collider is the left Manipulator's grip.
+        /// </summary>
+        /// <param name="collider">The Collider to check.</param>
+        /// <returns>True if this is the left Manipulator's grip collider, false otherwise.</returns>
+        public static bool IsManipulatorGripLeft(Collider collider) {
+            return Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.gripCollider;
         }
 
         /// <summary>
@@ -291,12 +306,21 @@ namespace KerbalVR
         }
 
         /// <summary>
-        /// Checks whether the given GameObject is the right Manipulator.
+        /// Checks whether the given Collider is the right Manipulator's fingertip.
         /// </summary>
-        /// <param name="obj">The GameObject to check.</param>
-        /// <returns>True if this is the right Manipulator, false otherwise.</returns>
-        public static bool IsManipulatorRight(GameObject obj) {
-            return Instance.manipulatorRight != null && obj == Instance.manipulatorRight;
+        /// <param name="collider">The Collider to check.</param>
+        /// <returns>True if this is the right Manipulator's fingertip collider, false otherwise.</returns>
+        public static bool IsManipulatorFingertipRight(Collider collider) {
+            return Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.fingertipCollider;
+        }
+
+        /// <summary>
+        /// Checks whether the given Collider is the right Manipulator's grip.
+        /// </summary>
+        /// <param name="collider">The Collider to check.</param>
+        /// <returns>True if this is the right Manipulator's grip collider, false otherwise.</returns>
+        public static bool IsManipulatorGripRight(Collider collider) {
+            return Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.gripCollider;
         }
 
         /// <summary>
@@ -309,13 +333,23 @@ namespace KerbalVR
         }
 
         /// <summary>
-        /// Checks whether the given GameObject is a Manipulator GameObject.
+        /// Checks whether the given Collider is a Manipulator fingertip collider.
         /// </summary>
-        /// <param name="obj">The GameObject to check.</param>
-        /// <returns>True if this is a Manipulator, false otherwise.</returns>
-        public static bool IsManipulator(GameObject obj) {
-            return (Instance.manipulatorLeft != null && obj == Instance.manipulatorLeft) ||
-                (Instance.manipulatorRight != null && obj == Instance.manipulatorRight);
+        /// <param name="collider">The Collider to check.</param>
+        /// <returns>True if this is a Manipulator fingertip collider, false otherwise.</returns>
+        public static bool IsManipulatorFingertip(Collider collider) {
+            return (Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.fingertipCollider) ||
+                (Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.fingertipCollider);
+        }
+
+        /// <summary>
+        /// Checks whether the given Collider is a Manipulator grip collider.
+        /// </summary>
+        /// <param name="collider">The Collider to check.</param>
+        /// <returns>True if this is a Manipulator grip collider, false otherwise.</returns>
+        public static bool IsManipulatorGrip(Collider collider) {
+            return (Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.gripCollider) ||
+                (Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.gripCollider);
         }
 
         public static SteamVR_Controller.Device GetManipulatorLeftState() {

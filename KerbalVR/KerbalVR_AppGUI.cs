@@ -1,11 +1,37 @@
 using UnityEngine;
 using KSP.UI.Screens;
 using System.Text.RegularExpressions;
+using System;
 
 namespace KerbalVR
 {
     public class AppGUI
     {
+        private class TextFieldFloat {
+            private string parameterName;
+            private Action<float> parameterCallback;
+            private string valueStr;
+
+            public TextFieldFloat(string parameterName, float parameter, Action<float> parameterCallback) {
+                this.parameterName = parameterName;
+                this.parameterCallback = parameterCallback;
+                valueStr = parameter.ToString("F3");
+            }
+
+            public void UpdateGUI() {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(parameterName + ":", HighLogic.Skin.label);
+                valueStr = GUILayout.TextField(valueStr, HighLogic.Skin.textField);
+                if (GUI.changed) {
+                    bool parseSuccess = System.Single.TryParse(valueStr, out float updatedValue);
+                    if (parseSuccess) {
+                        parameterCallback(updatedValue);
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+        }
+
         #region Constants
         public static string AppButtonLogo {
             get {
@@ -56,6 +82,7 @@ namespace KerbalVR
 
         // text fields
         private string worldScaleStr;
+
 
         /// <summary>
         /// This GameEvent is registered with GameEvents.onGUIApplicationLauncherReady,
@@ -207,22 +234,24 @@ namespace KerbalVR
             GUILayout.Label("Options", labelStyleHeader);
 
             // manipulator size (VR "hands")
+#if DEBUG
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hand Size (cm):", HighLogic.Skin.label);
-            int handSizeCentimeters = (int)(DeviceManager.Instance.ManipulatorSize * 100f + 0.5f);
-            string handSizeStr = handSizeCentimeters.ToString();
+            GUILayout.Label("Hand Size:", HighLogic.Skin.label);
+            int handSizeScale = (int)(DeviceManager.Instance.ManipulatorSize * 100f + 0.5f);
+            string handSizeStr = handSizeScale.ToString();
             handSizeStr = GUILayout.TextField(handSizeStr, HighLogic.Skin.textField);
             if (GUI.changed) {
-                bool parseSuccess = System.Int32.TryParse(handSizeStr, out handSizeCentimeters);
+                bool parseSuccess = System.Int32.TryParse(handSizeStr, out handSizeScale);
                 if (parseSuccess &&
-                    handSizeCentimeters >= 1 &&
-                    handSizeCentimeters <= 10) {
-                    DeviceManager.Instance.ManipulatorSize = handSizeCentimeters * 0.01f;
+                    handSizeScale >= 1 &&
+                    handSizeScale <= 100) {
+                    DeviceManager.Instance.ManipulatorSize = handSizeScale * 0.01f;
                 } else {
-                    DeviceManager.Instance.ManipulatorSize = 0.02f;
+                    DeviceManager.Instance.ManipulatorSize = 0.45f;
                 }
             }
             GUILayout.EndHorizontal();
+#endif
 
             // world scale
             GUILayout.BeginHorizontal();
@@ -237,6 +266,7 @@ namespace KerbalVR
                 }
             }
             GUILayout.EndHorizontal();
+
 
             //------------------------------------------------------------------
             GUILayout.EndVertical();
