@@ -40,7 +40,7 @@ namespace KerbalVR.Modules
                 buttonCover = new KVR_Cover(internalProp, coverConfigNode);
             } catch (Exception e) {
 #if DEBUG
-                Utils.LogWarning("KVR_PushButton exception: " + e.ToString());
+                Utils.LogWarning("KVR_PushButton KVR_COVER exception: " + e.ToString());
 #endif
             }
 
