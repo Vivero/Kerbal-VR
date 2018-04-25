@@ -201,7 +201,12 @@ namespace KerbalVR
             DontDestroyOnLoad(manipulator);
 
             // define the render model
-            GameObject gloveObject = Instantiate(AssetLoader.Instance.GetGameObject("Glove"));
+            GameObject glovePrefab = AssetLoader.Instance.GetGameObject("GlovePrefab");
+            if (glovePrefab == null) {
+                Utils.LogError("GameObject \"GlovePrefab\" was not found!");
+                return manipulator;
+            }
+            GameObject gloveObject = Instantiate(glovePrefab);
             gloveObject.transform.SetParent(manipulator.transform);
             Vector3 gloveObjectScale = Vector3.one * ManipulatorSize;
             if (role == ETrackedControllerRole.RightHand) {
