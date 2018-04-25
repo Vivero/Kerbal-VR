@@ -12,6 +12,7 @@ namespace KerbalVR.Components
 
         private Events.Action stageUpdatedAction;
         private Events.Action sasUpdatedAction;
+        private Events.Action precisionModeUpdatedAction;
 
         void Awake() {
             Utils.Log("KVR_AvionicsComputer booting up.");
@@ -20,6 +21,7 @@ namespace KerbalVR.Components
 
             stageUpdatedAction = KerbalVR.Events.AvionicsIntAction("stage", OnStageInput);
             sasUpdatedAction = KerbalVR.Events.AvionicsIntAction("sas", OnSASInput);
+            precisionModeUpdatedAction = KerbalVR.Events.AvionicsIntAction("precision_mode", OnPrecisionModeInput);
         }
 
         void Start() {
@@ -30,11 +32,13 @@ namespace KerbalVR.Components
         void OnEnable() {
             stageUpdatedAction.enabled = true;
             sasUpdatedAction.enabled = true;
+            precisionModeUpdatedAction.enabled = true;
         }
 
         void OnDisable() {
             stageUpdatedAction.enabled = false;
             sasUpdatedAction.enabled = false;
+            precisionModeUpdatedAction.enabled = false;
         }
 
         void OnDestroy() {
@@ -43,8 +47,9 @@ namespace KerbalVR.Components
 
         IEnumerator OutputSignals() {
             while (true) {
-                // send altitude information
                 if (FlightGlobals.ActiveVessel != null) {
+
+                    // send altitude information
                     float altitude = (float)FlightGlobals.ActiveVessel.altitude;
                     Events.AvionicsFloat("altitude").Send(altitude);
 
@@ -70,6 +75,13 @@ namespace KerbalVR.Components
         void OnSASInput(int signal) {
             FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.SAS, signal != 0);
         }
+
+        void OnPrecisionModeInput(int signal) {
+            FlightInputHandler.fetch.precisionMode = (signal != 0);
+        }
+
+        /*void VesselControl(FlightCtrlState state) {
+        }*/
 
     } // class KVR_AvionicsComputer
 } // namespace KerbalVR
