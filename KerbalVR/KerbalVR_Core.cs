@@ -49,6 +49,12 @@ namespace KerbalVR
 		/// </summary>
         public static bool HmdIsRunning { get; private set; }
 
+        /// <summary>
+        /// Set to true to allow the VR images to be rendered
+        /// to the game screen. False to disable.
+        /// </summary>
+        public static bool RenderHmdToScreen { get; set; } = true;
+
         #endregion
 
 
@@ -191,6 +197,11 @@ namespace KerbalVR
 					// [insert dark magic here]
                     OpenVR.Compositor.PostPresentHandoff();
 
+                    // render to the game screen
+                    if (RenderHmdToScreen) {
+                        Graphics.Blit(hmdEyeRenderTexture[0], null as RenderTexture);
+                    }
+
                 } catch (Exception e) {
 					// shut off VR when an error occurs
                     Utils.LogError(e);
@@ -212,9 +223,10 @@ namespace KerbalVR
 			// debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
-                Utils.PrintAllLayers();
+                // Utils.PrintAllLayers();
                 // Utils.PrintDebug();
-                Utils.PrintFonts();
+                // Utils.PrintFonts();
+                // Utils.PrintCollisionMatrix();
             }
 #endif
 

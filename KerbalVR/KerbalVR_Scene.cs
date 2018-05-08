@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
@@ -56,11 +57,19 @@ namespace KerbalVR
         private void Initialize() {
             HmdEyePosition = new Vector3[2];
             HmdEyeRotation = new Quaternion[2];
+
+            // initialize world scale values
+            inverseWorldScale = new Dictionary<GameScenes, float>();
+            inverseWorldScale.Add(GameScenes.MAINMENU, 1f);
+            inverseWorldScale.Add(GameScenes.SPACECENTER, 1f);
+            inverseWorldScale.Add(GameScenes.TRACKSTATION, 1f);
+            inverseWorldScale.Add(GameScenes.FLIGHT, 1f);
+            inverseWorldScale.Add(GameScenes.EDITOR, 1f);
         }
         #endregion
 
-        #region Properties
 
+        #region Properties
         // The list of cameras to render for the current scene.
         public Types.CameraData[] VRCameras { get; private set; }
         public int NumVRCameras { get; private set; }
@@ -103,13 +112,17 @@ namespace KerbalVR
         // defines what layer to render KerbalVR objects on
         public int RenderLayer { get; private set; }
 
+        // defines the world scaling factor (store the inverse)
+        public float WorldScale {
+            get { return (1f / inverseWorldScale[HighLogic.LoadedScene]); }
+            set { inverseWorldScale[HighLogic.LoadedScene] = (1f / value); }
+        }
         #endregion
 
 
         #region Private Members
-
+        private Dictionary<GameScenes, float> inverseWorldScale;
         private float editorMovementSpeed = 1f;
-
         #endregion
 
 
@@ -161,9 +174,13 @@ namespace KerbalVR
             InitialPosition = InternalCamera.Instance.transform.position;
 
             // set rotation to always point forward inside the cockpit
-            InitialRotation = Quaternion.LookRotation(
+            // NOTE: actually this code doesn't work for certain capsules
+            // with different internal origin orientations
+            /*InitialRotation = Quaternion.LookRotation(
                 InternalSpace.Instance.transform.rotation * Vector3.up,
-                InternalSpace.Instance.transform.rotation * Vector3.back);
+                InternalSpace.Instance.transform.rotation * Vector3.back);*/
+
+            InitialRotation = InternalCamera.Instance.transform.rotation;
         }
 
         private void SetupEditorScene() {
@@ -222,21 +239,26 @@ namespace KerbalVR
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
+            // in flight, don't allow movement of the origin point
             CurrentPosition = InitialPosition;
             CurrentRotation = InitialRotation;
 
+            // get position of your eyeball
             Vector3 positionToHmd = hmdTransform.pos;
             Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
-            Vector3 updatedPosition = CurrentPosition + CurrentRotation * positionToEye;
-            Quaternion updatedRotation = CurrentRotation * hmdTransform.rot;
+            // translate device space to Unity space, with world scaling
+            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
+            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
 
+            // in flight, update the internal and flight cameras
             InternalCamera.Instance.transform.position = updatedPosition;
             InternalCamera.Instance.transform.rotation = updatedRotation;
 
             FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
 
+            // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
             HmdEyeRotation[(int)eye] = updatedRotation;
         }
@@ -246,15 +268,19 @@ namespace KerbalVR
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
+            // get position of your eyeball
             Vector3 positionToHmd = hmdTransform.pos;
             Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
-            Vector3 updatedPosition = CurrentPosition + CurrentRotation * positionToEye;
-            Quaternion updatedRotation = CurrentRotation * hmdTransform.rot;
+            // translate device space to Unity space, with world scaling
+            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
+            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
 
+            // update the editor camera position
             EditorCamera.Instance.transform.position = updatedPosition;
             EditorCamera.Instance.transform.rotation = updatedRotation;
 
+            // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
             HmdEyeRotation[(int)eye] = updatedRotation;
         }
@@ -330,7 +356,8 @@ namespace KerbalVR
         /// <param name="devicePosition">Device position in the device space coordinate system.</param>
         /// <returns>Unity world position corresponding to the device position.</returns>
         public Vector3 DevicePoseToWorld(Vector3 devicePosition) {
-            return CurrentPosition + CurrentRotation * devicePosition;
+            return CurrentPosition + CurrentRotation *
+                (devicePosition * inverseWorldScale[HighLogic.LoadedScene]);
         }
 
         /// <summary>
@@ -347,12 +374,31 @@ namespace KerbalVR
             if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
                 Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
 
-                Vector3 upDisplacement = Vector3.up * (editorMovementSpeed * touchAxis.y) * Time.deltaTime;
+                Vector3 upDisplacement = Vector3.up *
+                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.y) * Time.deltaTime;
 
                 Vector3 newPosition = CurrentPosition + upDisplacement;
                 if (newPosition.y < 0f) newPosition.y = 0f;
 
                 CurrentPosition = newPosition;
+            }
+
+            // left menu button
+            if (state.GetPressDown(EVRButtonId.k_EButton_ApplicationMenu)) {
+                Core.ResetInitialHmdPosition();
+            }
+
+            // simulate mouse touch events with the trigger
+            if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+                foreach (var obj in DeviceManager.Instance.ManipulatorLeft.CollidedGameObjects) {
+                    obj.SendMessage("OnMouseDown");
+                }
+            }
+
+            if (!state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+                foreach (var obj in DeviceManager.Instance.ManipulatorLeft.CollidedGameObjects) {
+                    obj.SendMessage("OnMouseUp");
+                }
             }
         }
 
@@ -363,11 +409,13 @@ namespace KerbalVR
 
                 Vector3 fwdDirection = HmdRotation * Vector3.forward;
                 fwdDirection.y = 0f; // allow only planar movement
-                Vector3 fwdDisplacement = fwdDirection.normalized * (editorMovementSpeed * touchAxis.y) * Time.deltaTime;
+                Vector3 fwdDisplacement = fwdDirection.normalized *
+                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.y) * Time.deltaTime;
 
                 Vector3 rightDirection = HmdRotation * Vector3.right;
                 rightDirection.y = 0f; // allow only planar movement
-                Vector3 rightDisplacement = rightDirection.normalized * (editorMovementSpeed * touchAxis.x) * Time.deltaTime;
+                Vector3 rightDisplacement = rightDirection.normalized *
+                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.x) * Time.deltaTime;
 
                 CurrentPosition += fwdDisplacement + rightDisplacement;
             }

@@ -24,16 +24,17 @@ namespace KerbalVR.Modules
         private GameObject crosshair;
         float parallaxFactor = 200f;
         float crosshairOffset = 0.25f; // meters
+        // float crosshairOffset = 19f;
         float crosshairSize;
 
         // DEBUG
-        // private GameObject cameraGizmo;
+        private GameObject cameraGizmo;
 
         void Start() {
             // create a camera
             scopeCameraGameObject = new GameObject(gameObject.name + " PeriscopeCamera");
             scopeCamera = scopeCameraGameObject.AddComponent<KVR_ExternalCamera>();
-            scopeCamera.Magnification = 4f;
+            scopeCamera.Magnification = 1.2f;
             crosshairSize = scopeCamera.GetFrustumHeight(crosshairOffset);
 
             // obtain the viewfinder
@@ -41,6 +42,8 @@ namespace KerbalVR.Modules
             if (viewfinderTransform != null) {
                 viewfinderGameObject = viewfinderTransform.gameObject;
                 Vector3 lensPos = viewfinderGameObject.transform.localPosition;
+                lensPos.y = 0.04f;
+                //viewfinderGameObject.transform.localPosition = lensPos;
                 MeshRenderer viewfinderMeshRenderer = viewfinderGameObject.GetComponent<MeshRenderer>();
                 
                 Material viewfinderMaterial = new Material(Shader.Find("KSP/Unlit"));
@@ -71,7 +74,7 @@ namespace KerbalVR.Modules
             // cameraGizmo.transform.localScale = Vector3.one * 2f;
         }
 
-        public override void OnUpdate() {
+        public void OnUpdate2() {
             // calculate scope repositioning. when your head moves down, the image moves down
             // x - right
             // y - forward
@@ -95,7 +98,7 @@ namespace KerbalVR.Modules
             scopeCameraGameObject.transform.position = InternalSpace.InternalToWorld(newScopePosition);
             scopeCameraGameObject.transform.rotation = InternalSpace.InternalToWorld(cameraRot);
 
-            // camera positioning
+            // crosshair positioning
             crosshair.transform.position = InternalSpace.InternalToWorld(newScopePosition + cameraRot *
                 new Vector3(0f, 0f, crosshairOffset));
             crosshair.transform.rotation = InternalSpace.InternalToWorld(cameraRot * Quaternion.Euler(-90f, 0f, 0f));
@@ -108,6 +111,45 @@ namespace KerbalVR.Modules
             }
             cameraGizmo.transform.position = cameraPos;
             cameraGizmo.transform.rotation = cameraRot;*/
+        }
+
+        public override void OnUpdate() {
+
+            // camera position/rotation in internal space
+            // Vector3 internalCameraPos = Scene.Instance.HmdEyePosition[(int)EVREye.Eye_Right] + Scene.Instance.HmdEyeRotation[(int)EVREye.Eye_Right] * new Vector3(0f, 0f, 0.3f);
+            Vector3 internalCameraPos = Scene.Instance.HmdEyePosition[(int)EVREye.Eye_Right];
+
+            Quaternion internalCameraRot = Quaternion.LookRotation(viewfinderTransform.position -
+                internalCameraPos, new Vector3(0f, 0f, -1f));
+
+            // offset to the view position on the craft
+            Vector3 offsetCameraPos = new Vector3(0f, 2f, 0f);
+
+            internalCameraPos += offsetCameraPos;
+
+            Vector3 worldCameraPos = InternalSpace.InternalToWorld(internalCameraPos);
+            Quaternion worldCameraRot = InternalSpace.InternalToWorld(internalCameraRot);
+
+            scopeCameraGameObject.transform.position = worldCameraPos;
+            scopeCameraGameObject.transform.rotation = worldCameraRot;
+
+            // crosshair positioning
+            Vector3 crosshairRelPosition = new Vector3(0f, 0f, crosshairOffset);
+            Vector3 crosshairPosition = internalCameraPos + internalCameraRot * crosshairRelPosition;
+            Quaternion crosshairRotation = internalCameraRot * Quaternion.Euler(-90f, 0f, 0f);
+
+            crosshair.transform.position = InternalSpace.InternalToWorld(crosshairPosition);
+            crosshair.transform.rotation = InternalSpace.InternalToWorld(crosshairRotation);
+            // crosshair.transform.position = InternalSpace.InternalToWorld(new Vector3(0f, 24f, 0f));
+            // crosshair.transform.rotation = InternalSpace.InternalToWorld(Quaternion.Euler(180f, 0f, 0f));
+
+            /*if (cameraGizmo == null) {
+                cameraGizmo = Utils.CreateGizmo();
+                cameraGizmo.transform.localScale = Vector3.one * 0.75f;
+                DontDestroyOnLoad(cameraGizmo);
+            }
+            cameraGizmo.transform.position = internalCameraPos;
+            cameraGizmo.transform.rotation = internalCameraRot;*/
         }
     }
 }

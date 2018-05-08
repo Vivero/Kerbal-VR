@@ -18,28 +18,37 @@ namespace KerbalVR
 
         #region Properties
         public SteamVR_Controller.Device State { get; private set; }
+        public Vector3 GripPosition { get; private set; }
 
         public List<GameObject> CollidedGameObjects { get; private set; } = new List<GameObject>();
         #endregion
 
+
         #region Members
         public ETrackedControllerRole role;
-        public Color defaultColor = Color.white;
-        public Color activeColor = Color.black;
+        public Collider fingertipCollider;
+        public Collider gripCollider;
+        public Animator manipulatorAnimator;
+        public bool isGripping = false;
         #endregion
 
+
         #region Private Members
-        private MeshRenderer meshRenderer;
         private int numCollidersTouching = 0;
         #endregion
 
 
-        protected void Start() {
-            meshRenderer = GetComponent<MeshRenderer>();
-        }
+        protected void Start() { }
 
         protected void Update() {
-            meshRenderer.enabled = Core.HmdIsEnabled;
+            // meshRenderer.enabled = Core.HmdIsEnabled;
+            Utils.SetGameObjectChildrenActive(gameObject, Core.HmdIsEnabled);
+
+            // update transforms
+            GripPosition = gripCollider.transform.TransformPoint(((CapsuleCollider)gripCollider).center);
+
+            // animate grip
+            manipulatorAnimator.SetBool("Hold", isGripping);
         }
 
         /// <summary>
@@ -53,15 +62,11 @@ namespace KerbalVR
             // position the controller object
             transform.position = Scene.Instance.DevicePoseToWorld(pose.pos);
             transform.rotation = Scene.Instance.DevicePoseToWorld(pose.rot);
-
-            // set the layer to render to
-            gameObject.layer = Scene.Instance.RenderLayer;
         }
 
         protected void OnTriggerEnter(Collider other) {
             // keep count of how many other colliders we've entered
             numCollidersTouching += 1;
-            meshRenderer.sharedMaterial.color = activeColor;
 
             // keep track of what colliders we're touching
             if (!CollidedGameObjects.Contains(other.gameObject))
@@ -76,7 +81,6 @@ namespace KerbalVR
             numCollidersTouching -= 1;
             if (numCollidersTouching <= 0) {
                 numCollidersTouching = 0;
-                meshRenderer.sharedMaterial.color = defaultColor;
             }
         }
     } // class Manipulator

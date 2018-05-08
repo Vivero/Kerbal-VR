@@ -67,6 +67,35 @@ namespace KerbalVR
             return maskBits.ToArray();
         }
 
+        public static void SetLayer(GameObject obj, int layer) {
+            if (obj != null) {
+                obj.layer = layer;
+                int numChildren = obj.transform.childCount;
+                for (int i = 0; i < numChildren; i++) {
+                    SetLayer(obj.transform.GetChild(i).gameObject, layer);
+                }
+            }
+        }
+
+        public static void SetGameObjectTreeActive(GameObject obj, bool active) {
+            if (obj != null) {
+                obj.SetActive(active);
+                int numChildren = obj.transform.childCount;
+                for (int i = 0; i < numChildren; i++) {
+                    SetGameObjectTreeActive(obj.transform.GetChild(i).gameObject, active);
+                }
+            }
+        }
+
+        public static void SetGameObjectChildrenActive(GameObject obj, bool active) {
+            if (obj != null) {
+                int numChildren = obj.transform.childCount;
+                for (int i = 0; i < numChildren; i++) {
+                    obj.transform.GetChild(i).gameObject.SetActive(active);
+                }
+            }
+        }
+
 #if DEBUG
         public static GameObject CreateGizmo() {
             GameObject gizmo = new GameObject("gizmo");
@@ -146,6 +175,7 @@ namespace KerbalVR
 
         public static void PrintAllCameras() {
             Utils.Log("Scene: " + HighLogic.LoadedScene);
+            Utils.Log("CameraMode: " + CameraManager.Instance.currentCameraMode);
             for (int i = 0; i < Camera.allCamerasCount; i++) {
                 Camera cam = Camera.allCameras[i];
                 Utils.Log("Camera: " + cam.name);
@@ -177,10 +207,25 @@ namespace KerbalVR
         }
 
         public static void PrintGameObject(GameObject go) {
-            Log("GameObject: " + go.name + " (layer: " + go.layer + ")");
+            Log("GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " +
+                go.name + " (layer: " + go.layer + ")");
             Component[] components = go.GetComponents<Component>();
             for (int i = 0; i < components.Length; i++) {
                 Log("Component: " + components[i].ToString());
+
+                if (components[i] is MeshFilter) {
+                    MeshFilter meshFilter = components[i] as MeshFilter;
+                    Log("MeshFilter: " + meshFilter.sharedMesh.name +
+                        " (" + meshFilter.sharedMesh.vertexCount + " vertices)");
+                }
+
+                if (components[i] is MeshRenderer) {
+                    MeshRenderer meshRenderer = components[i] as MeshRenderer;
+                    Log("MeshRenderer (" + (meshRenderer.enabled ? "on" : "off") + "): " +
+                        meshRenderer.sharedMaterial.name +
+                        ", shader \"" + meshRenderer.sharedMaterial.shader.name + "\", " +
+                        "color " + meshRenderer.sharedMaterial.color);
+                }
             }
         }
 
@@ -221,6 +266,22 @@ namespace KerbalVR
             for (int i = 0; i < fonts.Length; i++) {
                 TMPro.TMP_FontAsset font = fonts[i];
                 Utils.Log("font name: " + font.name);
+            }
+        }
+
+        public static void PrintCollisionMatrix() {
+            string header = string.Format("{0,22} {1,3}", "", "");
+            for (int i = 0; i < 32; i++) {
+                header += string.Format("{0,3}", i);
+            }
+            Utils.Log(header);
+
+            for (int y = 0; y < 32; y++) {
+                string line = string.Format("{0,22} {1,3}", LayerMask.LayerToName(y), y);
+                for (int x = 0; x < 32; x++) {
+                    line += Physics.GetIgnoreLayerCollision(x, y) ? "   " : "  X";
+                }
+                Utils.Log(line);
             }
         }
 #endif
