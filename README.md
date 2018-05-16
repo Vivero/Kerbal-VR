@@ -12,7 +12,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
-This is an early WIP mod to allow the use of the HTC Vive (and potentially any HMD supported by the OpenVR SDK) in KSP. The primary focus is for use in IVA, and can also be used to walk around inside the VAB or SPH (room-scale).
+This is a WIP mod to allow the use of the HTC Vive (and any other HMD supported by the OpenVR SDK) in KSP. The primary focus is for use in IVA, and can also be used to walk around inside the VAB or SPH (room-scale).
 
 IVA in VR puts you inside the cockpit of your craft. You can look around (and walk around if you have the physical space around you). Currently, it is possible to interact with cockpit instrumentation provided by the RPM mod (see note below); I am actively working on adding more immersive features for the cockpit (more **coming soon!**). The goal is to replace the use of the keyboard and mouse entirely with interactive cockpit controls (buttons, switches, control sticks, throttles, etc.)
 
@@ -31,9 +31,7 @@ For installation instructions, see the [Install Guide](https://github.com/Vivero
 
 For instructions on how to use the mod, see the [User Guide](https://github.com/Vivero/Kerbal-VR/wiki/User-Guide).
 
-For guidance on compiling this project and other project documentation, see the [Build Guide](https://github.com/Vivero/Kerbal-VR/wiki/Build-Guide).
-
-**NOTE:** When VR is enabled, the game screen on your PC will appear locked up. This is by design and intended to improve the performance (higher FPS). Once you disable VR, the regular game screen *should* return to normal.
+For guidance on compiling this project and other project documentation, see the [Build Guide](https://github.com/Vivero/Kerbal-VR/wiki/Build-Guide)
 
 
 ## RasterProp Monitor
