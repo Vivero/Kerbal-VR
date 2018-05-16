@@ -25,6 +25,11 @@ It is possible to get 90 FPS by following the **Performance Tips** below.
 VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d3d12` flag on the executable. It will not work if you try to run KSP normally. To enable the Direct3D 12 flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append `-force-d3d12` to the Target. Follow the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide) if you're having trouble.
 
 
+## Requirements
+
+- [https://forum.kerbalspaceprogram.com/index.php?/topic/50533-141-module-manager-307-may-5th-2018-its-dangerous-to-go-alone-take-those-cats-with-you/](Module Manager)
+
+
 ## Installation & Usage
 
 For installation instructions, see the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide).
