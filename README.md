@@ -27,7 +27,7 @@ VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d
 
 ## Requirements
 
-- [https://forum.kerbalspaceprogram.com/index.php?/topic/50533-141-module-manager-307-may-5th-2018-its-dangerous-to-go-alone-take-those-cats-with-you/](Module Manager)
+- [Module Manager](https://forum.kerbalspaceprogram.com/index.php?/topic/50533-141-module-manager-307-may-5th-2018-its-dangerous-to-go-alone-take-those-cats-with-you/)
 
 
 ## Installation & Usage
