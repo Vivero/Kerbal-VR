@@ -32,10 +32,16 @@ namespace KerbalVR.Modules
         private GameObject handleColliderGameObject;
 
         private Manipulator attachedManipulator;
-        private bool isManipulatorLeftInsideHandleCollider;
-        private bool isManipulatorRightInsideHandleCollider;
-        private bool isUnderControl; // stick is being operated by manipulator
+        private bool isManipulatorLeftInsideCollider;
+        private bool isManipulatorRightInsideCollider;
         private bool isCommandingControl; // stick is allowed to control the vessel
+
+        private ConfigNode moduleConfigNode;
+
+        private GameObject[] emissiveObjects;
+        private int numEmissiveObjects;
+        private Color emissiveColorDefault = Color.white;
+        private Color emissiveColor;
 
         // implement a button de-bounce
         private bool isInteractable = true;
@@ -52,8 +58,12 @@ namespace KerbalVR.Modules
         }
 
         void Start() {
-            HandleAxis = 0f;
+            // no setup needed in editor mode
+            if (HighLogic.LoadedScene == GameScenes.EDITOR) return;
 
+            // obtain module configuration
+            moduleConfigNode = ConfigUtils.GetModuleConfigNode(internalProp.name, moduleID);
+            
             // obtain the collider
             handleColliderTransform = internalProp.FindModelTransform(transformHandleCollider);
             if (handleColliderTransform != null) {
@@ -73,13 +83,35 @@ namespace KerbalVR.Modules
                 Utils.LogWarning("KVR_Throttle (" + gameObject.name + ") has no handle transform \"" + transformHandle + "\"");
             }
 
+            // special effects
+            ConfigNode emissiveConfigNode = moduleConfigNode.GetNode("KVR_EMISSIVE");
+            if (emissiveConfigNode != null) {
+                string[] emissiveObjectNames = emissiveConfigNode.GetValues("objectName");
+                numEmissiveObjects = emissiveObjectNames.Length;
+                emissiveObjects = new GameObject[numEmissiveObjects];
+                for (int i = 0; i < numEmissiveObjects; i++) {
+                    Transform emissiveTransform = internalProp.FindModelTransform(emissiveObjectNames[i]);
+                    if (emissiveTransform != null) {
+                        emissiveObjects[i] = emissiveTransform.gameObject;
+                    } else {
+                        Utils.LogWarning("KVR_Throttle (" + gameObject.name + ") has no emissive transform \"" + emissiveObjectNames[i] + "\"");
+                    }
+                }
+
+                emissiveColor = Color.white;
+                bool success = emissiveConfigNode.TryGetValue("color", ref emissiveColor);
+            }
+
             // define the active vessel to control
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
 
-            isManipulatorLeftInsideHandleCollider = false;
-            isManipulatorRightInsideHandleCollider = false;
-            isUnderControl = false;
+            HandleAxis = 0f;
+            isManipulatorLeftInsideCollider = false;
+            isManipulatorRightInsideCollider = false;
             isCommandingControl = false;
+            attachedManipulator = null;
+
+            SetEmissiveColor(emissiveColorDefault);
         }
 
         void OnDestroy() {
@@ -97,39 +129,49 @@ namespace KerbalVR.Modules
         }
 
         void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
-            if (isInteractable && isManipulatorLeftInsideHandleCollider &&
-                state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
-                if (!isUnderControl) {
+            if (state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+                /*Utils.Log("OnManipulatorLeftUpdated: " +
+                    "attached = " + (attachedManipulator == null ? "null" : attachedManipulator.ToString()) +
+                    ", isManipulatorLeftInsideStickCollider = " + (isManipulatorLeftInsideCollider ? "yes" : "no") +
+                    ", state.GetPressDown = " + (state.GetPressDown(EVRButtonId.k_EButton_Grip) ? "yes" : "no"));*/
+
+                if (isInteractable && (attachedManipulator == null) &&
+                    isManipulatorLeftInsideCollider) {
 
                     attachedManipulator = DeviceManager.Instance.ManipulatorLeft;
-                    isUnderControl = true;
+                    DeviceManager.Instance.ManipulatorLeft.isGripping = true;
 
                     // cool-down for button de-bounce
                     isInteractable = false;
                     StartCoroutine(ButtonCooldown());
 
-                } else if (isUnderControl) {
+                } else if (DeviceManager.IsManipulatorLeft(attachedManipulator)) {
                     attachedManipulator = null;
-                    isUnderControl = false;
+                    DeviceManager.Instance.ManipulatorLeft.isGripping = false;
                 }
             }
         }
 
         void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
-            if (isInteractable && isManipulatorRightInsideHandleCollider &&
-                state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
-                if (!isUnderControl) {
+            if (state.GetPressDown(EVRButtonId.k_EButton_Grip)) {
+                /*Utils.Log("OnManipulatorRightUpdated: " +
+                    "attached = " + (attachedManipulator == null ? "null" : attachedManipulator.ToString()) +
+                    ", isManipulatorRightInsideStickCollider = " + (isManipulatorRightInsideCollider ? "yes" : "no") +
+                    ", state.GetPressDown = " + (state.GetPressDown(EVRButtonId.k_EButton_Grip) ? "yes" : "no"));*/
+
+                if (isInteractable && (attachedManipulator == null) &&
+                    isManipulatorRightInsideCollider) {
 
                     attachedManipulator = DeviceManager.Instance.ManipulatorRight;
-                    isUnderControl = true;
+                    DeviceManager.Instance.ManipulatorRight.isGripping = true;
 
                     // cool-down for button de-bounce
                     isInteractable = false;
                     StartCoroutine(ButtonCooldown());
 
-                } else if (isUnderControl) {
+                } else if (DeviceManager.IsManipulatorRight(attachedManipulator)) {
                     attachedManipulator = null;
-                    isUnderControl = false;
+                    DeviceManager.Instance.ManipulatorRight.isGripping = false;
                 }
             }
         }
@@ -138,10 +180,10 @@ namespace KerbalVR.Modules
             // keep track if we're actually sending commands
             //isCommandingControl = false;
 
-            if (isUnderControl) {
+            if (attachedManipulator != null) {
                 // calculate the delta position between the manipulator and the joystick
                 Vector3 handleToManipulatorPos =
-                    attachedManipulator.transform.position - handleInitialPosition;
+                    attachedManipulator.GripPosition - handleInitialPosition;
 
                 // calculate the joystick X-axis angle
                 Vector3 handleToManipulatorDeltaPos = handleInitialRotation * handleToManipulatorPos;
@@ -160,24 +202,41 @@ namespace KerbalVR.Modules
                 if (Mathf.Abs(xAngle) < handleDeadZoneAngle) {
                     isCommandingControl = false;
                     HandleAxis = 0f;
+
+                    SetEmissiveColor(Color.white);
                 } else {
                     isCommandingControl = true;
                     HandleAxis = (xAngle - handleAxisMin) / (handleAxisMax - handleAxisMin);
+                    
+                    SetEmissiveColor(Color.Lerp(emissiveColorDefault, emissiveColor, HandleAxis));
                 }
             }
         }
 
+        private void SetEmissiveColor(Color emissiveColor) {
+            for (int i = 0; i < numEmissiveObjects; i++) {
+                MeshRenderer emissiveRenderer = emissiveObjects[i].GetComponent<MeshRenderer>();
+                emissiveRenderer.material.SetColor("_EmissiveColor", emissiveColor);
+            }
+        }
+
         public void OnColliderEntered(Collider thisObject, Collider otherObject) {
-            if (DeviceManager.IsManipulator(otherObject.gameObject)) {
-                isManipulatorLeftInsideHandleCollider = DeviceManager.IsManipulatorLeft(otherObject.gameObject);
-                isManipulatorRightInsideHandleCollider = DeviceManager.IsManipulatorRight(otherObject.gameObject);
+            if (DeviceManager.IsManipulatorGripLeft(otherObject)) {
+                isManipulatorLeftInsideCollider = true;
+            }
+
+            if (DeviceManager.IsManipulatorGripRight(otherObject)) {
+                isManipulatorRightInsideCollider = true;
             }
         }
 
         public void OnColliderExited(Collider thisObject, Collider otherObject) {
-            if (thisObject.gameObject == handleColliderGameObject) {
-                isManipulatorLeftInsideHandleCollider = DeviceManager.IsManipulatorLeft(otherObject.gameObject);
-                isManipulatorRightInsideHandleCollider = DeviceManager.IsManipulatorRight(otherObject.gameObject);
+            if (DeviceManager.IsManipulatorGripLeft(otherObject)) {
+                isManipulatorLeftInsideCollider = false;
+            }
+
+            if (DeviceManager.IsManipulatorGripRight(otherObject)) {
+                isManipulatorRightInsideCollider = false;
             }
         }
 

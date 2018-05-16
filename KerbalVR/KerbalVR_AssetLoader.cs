@@ -1,6 +1,5 @@
-﻿using System;
+﻿using System.IO;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace KerbalVR
@@ -12,7 +11,23 @@ namespace KerbalVR
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class AssetLoader : MonoBehaviour
     {
-        private Dictionary<string, TMPro.TMP_FontAsset> fontDictionary;
+        #region Constants
+        /// <summary>
+        /// Full path to the KerbalVR AssetBundle file.
+        /// </summary>
+        public static string KERBALVR_ASSET_BUNDLE_PATH {
+            get {
+                string gameDataPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData");
+                string kvrAssetsPath = Path.Combine(gameDataPath, Globals.KERBALVR_ASSETS_DIR);
+                return Path.Combine(kvrAssetsPath, "kerbalvr.ksp");
+            }
+        }
+        #endregion
+
+        public static bool IsReady { get; private set; } = false;
+
+        private Dictionary<string, GameObject> gameObjectsDictionary;
+        private Dictionary<string, TMPro.TMP_FontAsset> fontsDictionary;
 
         #region Singleton
         // this is a singleton class, and there must be one DeviceManager in the scene
@@ -33,8 +48,11 @@ namespace KerbalVR
 
         // first-time initialization for this singleton class
         private void Initialize() {
-            if (fontDictionary == null) {
-                fontDictionary = new Dictionary<string, TMPro.TMP_FontAsset>();
+            if (gameObjectsDictionary == null) {
+                gameObjectsDictionary = new Dictionary<string, GameObject>();
+            }
+            if (fontsDictionary == null) {
+                fontsDictionary = new Dictionary<string, TMPro.TMP_FontAsset>();
             }
         }
         #endregion
@@ -47,6 +65,9 @@ namespace KerbalVR
 
             // load KerbalVR asset bundles
             LoadFonts();
+            LoadAssets();
+
+            IsReady = true;
         }
 
         private void LoadFonts() {
@@ -54,14 +75,46 @@ namespace KerbalVR
             // Utils.Log("Found " + fonts.Length + " fonts");
             for (int i = 0; i < fonts.Length; i++) {
                 TMPro.TMP_FontAsset font = fonts[i];
-                fontDictionary.Add(font.name, font);
+                fontsDictionary.Add(font.name, font);
+            }
+        }
+
+        private void LoadAssets() {
+            // load asset bundle
+            AssetBundle bundle = AssetBundle.LoadFromFile(KERBALVR_ASSET_BUNDLE_PATH);
+            if (bundle == null) {
+                Utils.LogError("Error loading asset bundle from: " + KERBALVR_ASSET_BUNDLE_PATH);
+                return;
+            }
+
+            // enumerate assets
+            string[] assetNames = bundle.GetAllAssetNames();
+            for (int i = 0; i < assetNames.Length; i++) {
+                string assetName = assetNames[i];
+
+                // find prefabs
+                if (assetName.EndsWith(".prefab")) {
+                    Utils.Log("Loading \"" + assetName + "\"");
+                    GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
+
+                    Utils.Log("assetGameObject.name = " + assetGameObject.name);
+                    gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
+                }
             }
         }
 
         public TMPro.TMP_FontAsset GetFont(string fontName) {
             TMPro.TMP_FontAsset font = null;
-            if (fontDictionary.TryGetValue(fontName, out font)) {
+            if (fontsDictionary.TryGetValue(fontName, out font)) {
                 return font;
+            }
+            return null;
+        }
+
+        public GameObject GetGameObject(string gameObjectName) {
+            GameObject obj = null;
+            if (gameObjectsDictionary.TryGetValue(gameObjectName, out obj)) {
+                return obj;
             }
             return null;
         }

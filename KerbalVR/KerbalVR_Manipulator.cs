@@ -12,34 +12,44 @@ namespace KerbalVR
     /// 
     /// Future work: this class should probably handle *how* the manipulators
     /// are rendered (MeshFilter model, MeshRenderer material, etc).
+    /// I'm not sure how all this Manipulator code is turning out, it might
+    /// need to be re-factored or designed better at a later time.
     /// </summary>
     public class Manipulator : MonoBehaviour
     {
 
         #region Properties
         public SteamVR_Controller.Device State { get; private set; }
+        public Vector3 GripPosition { get; private set; }
 
-        public List<GameObject> CollidedGameObjects { get; private set; } = new List<GameObject>();
+        public List<GameObject> FingertipCollidedGameObjects { get; private set; } = new List<GameObject>();
         #endregion
+
 
         #region Members
         public ETrackedControllerRole role;
-        public Color defaultColor = Color.white;
-        public Color activeColor = Color.black;
+        public Collider fingertipCollider;
+        public Collider gripCollider;
+        public Animator manipulatorAnimator;
+        public bool isGripping = false;
         #endregion
-
-        #region Private Members
-        private MeshRenderer meshRenderer;
-        private int numCollidersTouching = 0;
-        #endregion
-
+        
 
         protected void Start() {
-            meshRenderer = GetComponent<MeshRenderer>();
+            FingertipManipulator fingertipManipulator = fingertipCollider.gameObject.AddComponent<FingertipManipulator>();
+            FingertipCollidedGameObjects = fingertipManipulator.CollidedGameObjects;
         }
 
         protected void Update() {
-            meshRenderer.enabled = Core.HmdIsEnabled;
+            // enable this object while VR is active
+            // TODO: can we make this a little more efficient?
+            Utils.SetGameObjectChildrenActive(gameObject, Core.HmdIsEnabled);
+
+            // update transforms
+            GripPosition = gripCollider.transform.TransformPoint(((CapsuleCollider)gripCollider).center);
+
+            // animate grip
+            manipulatorAnimator.SetBool("Hold", isGripping);
         }
 
         /// <summary>
@@ -53,15 +63,22 @@ namespace KerbalVR
             // position the controller object
             transform.position = Scene.Instance.DevicePoseToWorld(pose.pos);
             transform.rotation = Scene.Instance.DevicePoseToWorld(pose.rot);
-
-            // set the layer to render to
-            gameObject.layer = Scene.Instance.RenderLayer;
         }
+    } // class Manipulator
+
+    public class FingertipManipulator : MonoBehaviour {
+
+        #region Properties
+        public List<GameObject> CollidedGameObjects { get; private set; } = new List<GameObject>();
+        #endregion
+
+        #region Private Members
+        private int numCollidersTouching = 0;
+        #endregion
 
         protected void OnTriggerEnter(Collider other) {
             // keep count of how many other colliders we've entered
             numCollidersTouching += 1;
-            meshRenderer.sharedMaterial.color = activeColor;
 
             // keep track of what colliders we're touching
             if (!CollidedGameObjects.Contains(other.gameObject))
@@ -76,8 +93,7 @@ namespace KerbalVR
             numCollidersTouching -= 1;
             if (numCollidersTouching <= 0) {
                 numCollidersTouching = 0;
-                meshRenderer.sharedMaterial.color = defaultColor;
             }
         }
-    } // class Manipulator
+    } // class FingertipManipulator
 } // namespace KerbalVR

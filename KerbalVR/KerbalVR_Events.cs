@@ -138,19 +138,48 @@ namespace KerbalVR
 
         public static Event<SteamVR_Controller.Device> ManipulatorRightUpdated = new Event<SteamVR_Controller.Device>();
         public static Action ManipulatorRightUpdatedAction(UnityAction<SteamVR_Controller.Device> action) { return new Action<SteamVR_Controller.Device>(ManipulatorRightUpdated, action); }
-
-        static Dictionary<string, Event<float>> avionicsEvents = new Dictionary<string, Event<float>>();
-        public static Event<float> Avionics(string eventType) {
-            Event<float> e;
-            if (!avionicsEvents.TryGetValue(eventType, out e)) {
-                e = new Event<float>();
-                avionicsEvents.Add(eventType, e);
+        
+        static Dictionary<string, Event> avionicsSignals = new Dictionary<string, Event>();
+        public static Event Avionics(string signalName) {
+            Event e;
+            if (!avionicsSignals.TryGetValue(signalName, out e)) {
+                e = new Event();
+                avionicsSignals.Add(signalName, e);
             }
             return e;
         }
 
-        public static Action AvionicsAction(string eventType, UnityAction<float> action) {
-            return new Action<float>(Avionics(eventType), action);
+        public static ActionNoArgs AvionicsAction(string signalName, UnityAction action) {
+            return new ActionNoArgs(Avionics(signalName), action);
         }
+
+        static Dictionary<string, Event<float>> avionicsSignalsFloat = new Dictionary<string, Event<float>>();
+        public static Event<float> AvionicsFloat(string signalName) {
+            Event<float> e;
+            if (!avionicsSignalsFloat.TryGetValue(signalName, out e)) {
+                e = new Event<float>();
+                avionicsSignalsFloat.Add(signalName, e);
+            }
+            return e;
+        }
+
+        public static Action AvionicsFloatAction(string signalName, UnityAction<float> action) {
+            return new Action<float>(AvionicsFloat(signalName), action);
+        }
+
+        static Dictionary<string, Event<int>> avionicsSignalsInt = new Dictionary<string, Event<int>>();
+        public static Event<int> AvionicsInt(string signalName) {
+            Event<int> e;
+            if (!avionicsSignalsInt.TryGetValue(signalName, out e)) {
+                e = new Event<int>();
+                avionicsSignalsInt.Add(signalName, e);
+            }
+            return e;
+        }
+
+        public static Action AvionicsIntAction(string signalName, UnityAction<int> action) {
+            return new Action<int>(AvionicsInt(signalName), action);
+        }
+
     } // class Events
 } // namespace KerbalVR

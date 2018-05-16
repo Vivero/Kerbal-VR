@@ -53,7 +53,7 @@ namespace KerbalVR
         /// Set to true to allow the VR images to be rendered
         /// to the game screen. False to disable.
         /// </summary>
-        public static bool RenderHmdToScreen { get; set; } = false;
+        public static bool RenderHmdToScreen { get; set; } = true;
 
         #endregion
 
@@ -223,9 +223,10 @@ namespace KerbalVR
 			// debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
-                Utils.PrintAllLayers();
+                // Utils.PrintAllLayers();
                 // Utils.PrintDebug();
-                Utils.PrintFonts();
+                // Utils.PrintFonts();
+                // Utils.PrintCollisionMatrix();
             }
 #endif
 

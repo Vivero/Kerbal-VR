@@ -8,18 +8,20 @@ namespace KerbalVR.Components
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KVR_AvionicsComputer : MonoBehaviour
     {
-        private Coroutine outputSignalsFunction;
+        private Coroutine outputSignalsCoroutine;
 
         private Events.Action stageUpdatedAction;
         private Events.Action sasUpdatedAction;
+        private Events.Action precisionModeUpdatedAction;
 
         void Awake() {
-            // Utils.Log("KVR_AvionicsComputer booting up.");
+            Utils.Log("KVR_AvionicsComputer booting up.");
 
-            outputSignalsFunction = StartCoroutine(OutputSignals());
+            outputSignalsCoroutine = StartCoroutine(OutputSignals());
 
-            stageUpdatedAction = KerbalVR.Events.AvionicsAction("stage", OnStageInput);
-            sasUpdatedAction = KerbalVR.Events.AvionicsAction("sas", OnSASInput);
+            stageUpdatedAction = KerbalVR.Events.AvionicsIntAction("stage", OnStageInput);
+            sasUpdatedAction = KerbalVR.Events.AvionicsIntAction("sas", OnSASInput);
+            precisionModeUpdatedAction = KerbalVR.Events.AvionicsIntAction("precision_mode", OnPrecisionModeInput);
         }
 
         void Start() {
@@ -28,40 +30,35 @@ namespace KerbalVR.Components
         }
 
         void OnEnable() {
-            if (stageUpdatedAction != null) {
-                stageUpdatedAction.enabled = true;
-            }
-            if (sasUpdatedAction != null) {
-                sasUpdatedAction.enabled = true;
-            }
+            stageUpdatedAction.enabled = true;
+            sasUpdatedAction.enabled = true;
+            precisionModeUpdatedAction.enabled = true;
         }
 
         void OnDisable() {
-            if (stageUpdatedAction != null) {
-                stageUpdatedAction.enabled = false;
-            }
-            if (sasUpdatedAction != null) {
-                sasUpdatedAction.enabled = false;
-            }
+            stageUpdatedAction.enabled = false;
+            sasUpdatedAction.enabled = false;
+            precisionModeUpdatedAction.enabled = false;
         }
 
         void OnDestroy() {
-            // Utils.Log("KVR_AvionicsComputer closing.");
+            Utils.Log("KVR_AvionicsComputer shutting down...");
         }
 
         IEnumerator OutputSignals() {
             while (true) {
-                // send altitude information
                 if (FlightGlobals.ActiveVessel != null) {
+
+                    // send altitude information
                     float altitude = (float)FlightGlobals.ActiveVessel.altitude;
-                    Events.Avionics("altitude").Send(altitude);
+                    Events.AvionicsFloat("altitude").Send(altitude);
 
                     // send orbital information
                     float apoapsis = (float)FlightGlobals.ActiveVessel.orbit.ApA;
-                    Events.Avionics("apoapsis").Send(apoapsis);
+                    Events.AvionicsFloat("apoapsis").Send(apoapsis);
 
                     float periapsis = (float)FlightGlobals.ActiveVessel.orbit.PeA;
-                    Events.Avionics("periapsis").Send(periapsis);
+                    Events.AvionicsFloat("periapsis").Send(periapsis);
                 }
 
                 // wait for next update
@@ -69,18 +66,22 @@ namespace KerbalVR.Components
             }
         }
 
-        void OnStageInput(float signal) {
-            Utils.Log("OnStageInput = " + signal);
-            if (signal < 0.5f) {
+        void OnStageInput(int signal) {
+            if (signal != 0) {
                 KSP.UI.Screens.StageManager.ActivateNextStage();
             }
         }
 
-        void OnSASInput(float signal) {
-            Utils.Log("OnSASInput = " + signal);
-            if (signal < 0.5f) {
-                FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.SAS, signal < 0.5f);
-            }
+        void OnSASInput(int signal) {
+            FlightGlobals.ActiveVessel.ActionGroups.SetGroup(KSPActionGroup.SAS, signal != 0);
         }
+
+        void OnPrecisionModeInput(int signal) {
+            FlightInputHandler.fetch.precisionMode = (signal != 0);
+        }
+
+        /*void VesselControl(FlightCtrlState state) {
+        }*/
+
     } // class KVR_AvionicsComputer
 } // namespace KerbalVR
