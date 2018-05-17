@@ -23,7 +23,8 @@ namespace KerbalVR
                 GUILayout.Label(parameterName + ":", HighLogic.Skin.label);
                 valueStr = GUILayout.TextField(valueStr, HighLogic.Skin.textField);
                 if (GUI.changed) {
-                    bool parseSuccess = System.Single.TryParse(valueStr, out float updatedValue);
+                    float updatedValue;
+                    bool parseSuccess = System.Single.TryParse(valueStr, out updatedValue);
                     if (parseSuccess) {
                         parameterCallback(updatedValue);
                     }
@@ -258,7 +259,8 @@ namespace KerbalVR
             GUILayout.Label("World Scale:", HighLogic.Skin.label);
             worldScaleStr = GUILayout.TextField(worldScaleStr, HighLogic.Skin.textField);
             if (GUI.changed) {
-                bool parseSuccess = System.Single.TryParse(worldScaleStr, out float worldScale);
+                float worldScale;
+                bool parseSuccess = System.Single.TryParse(worldScaleStr, out worldScale);
                 if (parseSuccess &&
                     worldScale >= 0.1 &&
                     worldScale <= 10) {
