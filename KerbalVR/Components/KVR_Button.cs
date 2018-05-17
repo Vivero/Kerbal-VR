@@ -12,8 +12,8 @@ namespace KerbalVR.Components
         }
 
         public enum State {
-            Unpressed,
-            Pressed,
+            Unpressed = 0,
+            Pressed = 1,
         }
 
         public enum StateInput {
@@ -36,6 +36,7 @@ namespace KerbalVR.Components
         public Animation ButtonAnimation { get; private set; }
         public Transform ColliderTransform { get; private set; }
         public AudioSource SoundEffect { get; protected set; }
+        public string OutputSignal { get; protected set; }
         #endregion
 
         #region Members
@@ -75,6 +76,11 @@ namespace KerbalVR.Components
                 Utils.LogWarning(e.ToString());
             }
 
+            // output signal
+            string outputSignalName = "";
+            success = configuration.TryGetValue("outputSignal", ref outputSignalName);
+            if (success) OutputSignal = outputSignalName;
+
             // set initial state
             enabled = false;
             isAnimationPlayingPrev = false;
@@ -109,6 +115,7 @@ namespace KerbalVR.Components
                 case FSMState.IsPressing:
                     if (input == StateInput.FinishedAction) {
                         fsmState = FSMState.IsPressed;
+                        ExecuteSignal();
                     }
                     break;
 
@@ -123,6 +130,7 @@ namespace KerbalVR.Components
                 case FSMState.IsUnpressing:
                     if (input == StateInput.FinishedAction) {
                         fsmState = FSMState.IsUnpressed;
+                        ExecuteSignal();
                     }
                     break;
 
@@ -156,6 +164,12 @@ namespace KerbalVR.Components
 
         public void SetState(State state) {
             CurrentState = state;
+        }
+
+        public void ExecuteSignal() {
+            if (!string.IsNullOrEmpty(OutputSignal)) {
+                Events.AvionicsInt(OutputSignal).Send((int)CurrentState);
+            }
         }
 
         private void GoToState(State state) {

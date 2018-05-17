@@ -277,8 +277,8 @@ namespace KerbalVR.Modules
 
         private void VesselControl(FlightCtrlState state) {
             if (isCommandingControl) {
-                state.yaw = StickAxisX * 0.3f;
-                state.pitch = -StickAxisY * 0.3f;
+                state.yaw = StickAxisX;
+                state.pitch = -StickAxisY;
                 state.roll = RollAxis;
             }
         }
