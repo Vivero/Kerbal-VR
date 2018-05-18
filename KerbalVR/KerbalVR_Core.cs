@@ -28,11 +28,6 @@ namespace KerbalVR {
             get { return _hmdIsEnabled; }
             set {
                 _hmdIsEnabled = value;
-
-                if (_hmdIsEnabled && hmdIsInitialized) {
-                    Scene.Instance.SetupScene();
-                    ResetInitialHmdPosition();
-                }
             }
         }
 
@@ -63,6 +58,7 @@ namespace KerbalVR {
 
         // keep track of when the HMD is rendering images
         private static bool hmdIsInitialized = false;
+        private static bool hmdInitializing = false;
         private static bool hmdFailed = false;
         private static bool hmdIsRunningPrev = false;
 
@@ -125,6 +121,7 @@ namespace KerbalVR {
             if (hmdFailed && DateTime.Now.Subtract(lastAttempt).TotalSeconds < 10) {
                 return;
             }
+            hmdInitializing = true;
             lastAttempt = DateTime.Now;
             string success = InitHMD();
             if (success != "OK") {
@@ -135,6 +132,8 @@ namespace KerbalVR {
                 Utils.Log("Initialized OpenVR.");
                 hmdIsInitialized = true;
             }
+            hmdInitializing = false;
+
         }
 
         /// <summary>
@@ -164,8 +163,14 @@ namespace KerbalVR {
             // check if the current scene allows VR
             HmdIsAllowed = Scene.Instance.SceneAllowsVR();
 
-            if (HmdIsAllowed && HmdIsEnabled && !hmdIsInitialized) {
+            if (HmdIsAllowed && HmdIsEnabled && !hmdIsInitialized & !hmdInitializing) {
                 initOpenVR();
+            }
+
+            if (!sceneSetup && hmdIsInitialized && HmdIsEnabled && HmdIsAllowed) {
+                Scene.Instance.SetupScene();
+                ResetInitialHmdPosition();
+                sceneSetup = true;
             }
 
             // check if we are running the HMD
@@ -350,8 +355,10 @@ namespace KerbalVR {
         /// <param name="scene">The scene being switched into.</param>
         protected void OnGameSceneLoadRequested(GameScenes scene) {
             HmdIsEnabled = false;
+            sceneSetup = false;
         }
 
+        private bool sceneSetup = false;
         private DateTime lastAttempt;
 
         /// <summary>
@@ -410,7 +417,7 @@ namespace KerbalVR {
                         textureType = ETextureType.DirectX;
                         break;
                     case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
-                        textureType = ETextureType.DirectX; 
+                        textureType = ETextureType.DirectX;
                         break;
                     default:
                         return SystemInfo.graphicsDeviceType.ToString() + " not supported";
