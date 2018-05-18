@@ -44,6 +44,11 @@ For guidance on compiling this project and other project documentation, see the 
 There is experimental support for VR interaction with RPM. See the [User Guide](https://github.com/Vivero/Kerbal-VR/wiki/User-Guide) for more details. Note that using RPM may hinder performance in VR (lower FPS).
 
 
+## VR Cockpits
+
+A set of VR-ready cockpits is provided by the [KVR Pods](https://github.com/Vivero/KVR-Pods) mod.
+
+
 ## Performance Tips
 
 For best performance, go to the Settings menu in Kerbal Space Program, and under the Graphics tab, set:
