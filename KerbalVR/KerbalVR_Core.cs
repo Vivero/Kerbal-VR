@@ -3,15 +3,13 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using Valve.VR;
 
-namespace KerbalVR
-{
-	/// <summary>
-	/// The entry point for the KerbalVR plugin. This mod should
-	/// start up once, when the game starts.
-	/// </summary>
+namespace KerbalVR {
+    /// <summary>
+    /// The entry point for the KerbalVR plugin. This mod should
+    /// start up once, when the game starts.
+    /// </summary>
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
-    public class Core : MonoBehaviour
-    {
+    public class Core : MonoBehaviour {
         // this function allows importing DLLs from a given path
         [DllImport("kernel32.dll", SetLastError = true)]
         protected static extern bool SetDllDirectory(string lpPathName);
@@ -19,34 +17,29 @@ namespace KerbalVR
 
         #region Properties
 
-		/// <summary>
-		/// Returns true if VR is currently enabled. Enabled
-		/// does not necessarily mean VR is currently running, only
-		/// that the user allowing VR to be activated.
-		/// Set to true to enable VR; false to disable VR.
-		/// </summary>
+        /// <summary>
+        /// Returns true if VR is currently enabled. Enabled
+        /// does not necessarily mean VR is currently running, only
+        /// that the user allowing VR to be activated.
+        /// Set to true to enable VR; false to disable VR.
+        /// </summary>
         private static bool _hmdIsEnabled;
         public static bool HmdIsEnabled {
             get { return _hmdIsEnabled; }
             set {
                 _hmdIsEnabled = value;
-
-                if (_hmdIsEnabled && hmdIsInitialized) {
-                    Scene.Instance.SetupScene();
-                    ResetInitialHmdPosition();
-                }
             }
         }
 
-		/// <summary>
-		/// Returns true if VR is allowed to run in the current scene.
-		/// </summary>
+        /// <summary>
+        /// Returns true if VR is allowed to run in the current scene.
+        /// </summary>
         public static bool HmdIsAllowed { get; private set; }
 
-		/// <summary>
-		/// Returns true if VR is currently running, i.e. tracking devices
-		/// and rendering images to the headset.
-		/// </summary>
+        /// <summary>
+        /// Returns true if VR is currently running, i.e. tracking devices
+        /// and rendering images to the headset.
+        /// </summary>
         public static bool HmdIsRunning { get; private set; }
 
         /// <summary>
@@ -65,6 +58,8 @@ namespace KerbalVR
 
         // keep track of when the HMD is rendering images
         private static bool hmdIsInitialized = false;
+        private static bool hmdInitializing = false;
+        private static bool hmdFailed = false;
         private static bool hmdIsRunningPrev = false;
 
         // defines the bounds to texture bounds for rendering
@@ -111,13 +106,7 @@ namespace KerbalVR
             // shutting off the HMD outside of allowed VR scenes
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
 
-            // initialize the OpenVR API
-            bool success = InitHMD();
-            if (!success) {
-                Utils.LogError("Unable to initialize VR headset!");
-            } else {
-                Utils.Log("Initialized OpenVR.");
-            }
+
 
             // when ready for a GUI, load it
             GameEvents.onGUIApplicationLauncherReady.Add(gui.OnAppLauncherReady);
@@ -125,6 +114,26 @@ namespace KerbalVR
 
             // don't destroy this object when switching scenes
             DontDestroyOnLoad(this);
+        }
+
+        private void initOpenVR() {
+            // initialize the OpenVR API
+            if (hmdFailed && DateTime.Now.Subtract(lastAttempt).TotalSeconds < 10) {
+                return;
+            }
+            hmdInitializing = true;
+            lastAttempt = DateTime.Now;
+            string success = InitHMD();
+            if (success != "OK") {
+                Utils.LogError("Unable to initialize VR headset: " + success);
+                hmdIsInitialized = false;
+                hmdFailed = true;
+            } else {
+                Utils.Log("Initialized OpenVR.");
+                hmdIsInitialized = true;
+            }
+            hmdInitializing = false;
+
         }
 
         /// <summary>
@@ -153,6 +162,16 @@ namespace KerbalVR
 
             // check if the current scene allows VR
             HmdIsAllowed = Scene.Instance.SceneAllowsVR();
+
+            if (HmdIsAllowed && HmdIsEnabled && !hmdIsInitialized & !hmdInitializing) {
+                initOpenVR();
+            }
+
+            if (!sceneSetup && hmdIsInitialized && HmdIsEnabled && HmdIsAllowed) {
+                Scene.Instance.SetupScene();
+                ResetInitialHmdPosition();
+                sceneSetup = true;
+            }
 
             // check if we are running the HMD
             HmdIsRunning = HmdIsAllowed && hmdIsInitialized && HmdIsEnabled;
@@ -194,7 +213,7 @@ namespace KerbalVR
                             hmdEyeTexture[i]);
                     }
 
-					// [insert dark magic here]
+                    // [insert dark magic here]
                     OpenVR.Compositor.PostPresentHandoff();
 
                     // render to the game screen
@@ -203,7 +222,7 @@ namespace KerbalVR
                     }
 
                 } catch (Exception e) {
-					// shut off VR when an error occurs
+                    // shut off VR when an error occurs
                     Utils.LogError(e);
                     HmdIsEnabled = false;
                     HmdIsRunning = false;
@@ -214,13 +233,13 @@ namespace KerbalVR
             if (!HmdIsRunning && hmdIsRunningPrev) {
                 Utils.Log("HMD is now off, resetting cameras...");
                 Scene.Instance.CloseScene();
-				
-				// TODO: figure out why we can no longer manipulate the IVA camera in the regular game
+
+                // TODO: figure out why we can no longer manipulate the IVA camera in the regular game
             }
 
 
 #if DEBUG
-			// debug hooks
+            // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
                 // Utils.PrintAllLayers();
@@ -230,7 +249,7 @@ namespace KerbalVR
             }
 #endif
 
-			// keep track of whether we were running the HMD
+            // keep track of whether we were running the HMD
             hmdIsRunningPrev = HmdIsRunning;
         }
 
@@ -269,7 +288,7 @@ namespace KerbalVR
             }
         }
 
-		/// <summary>
+        /// <summary>
         /// Renders a set of cameras onto a RenderTexture, and submit the frame to the HMD.
         /// </summary>
         protected void RenderHmdCameras(
@@ -336,94 +355,94 @@ namespace KerbalVR
         /// <param name="scene">The scene being switched into.</param>
         protected void OnGameSceneLoadRequested(GameScenes scene) {
             HmdIsEnabled = false;
+            sceneSetup = false;
         }
+
+        private bool sceneSetup = false;
+        private DateTime lastAttempt;
 
         /// <summary>
         /// Initialize HMD using OpenVR API calls.
         /// </summary>
         /// <returns>True on successful initialization, false otherwise.</returns>
-        protected bool InitHMD() {
-            bool retVal = false;
+        private string InitHMD() {
+            try {
 
-            // return if HMD has already been initialized
-            if (hmdIsInitialized) {
-                return true;
+                // return if HMD has already been initialized
+                if (hmdIsInitialized) {
+                    return "OK";
+                }
+
+                // set the location of the OpenVR DLL
+                SetDllDirectory(Globals.OpenVRDllPath);
+
+                // check if HMD is connected on the system
+                if (!OpenVR.IsHmdPresent()) {
+                    return "HMD not found on this system.";
+                }
+
+                // check if SteamVR runtime is installed
+                OpenVR.IsRuntimeInstalled();
+                if (!OpenVR.IsRuntimeInstalled()) {
+                    return "SteamVR runtime not found on this system.";
+                }
+
+                // initialize HMD
+                EVRInitError hmdInitErrorCode = EVRInitError.None;
+                OpenVR.Init(ref hmdInitErrorCode, EVRApplicationType.VRApplication_Scene);
+                if (hmdInitErrorCode != EVRInitError.None) {
+                    return "OpenVR Error: " + OpenVR.GetStringForHmdError(hmdInitErrorCode);
+                }
+
+                // reset "seated position" and capture initial position. this means you should hold the HMD in
+                // the position you would like to consider "seated", before running this code.
+                ResetInitialHmdPosition();
+
+                // get HMD render target size
+                uint renderTextureWidth = 0;
+                uint renderTextureHeight = 0;
+                OpenVR.System.GetRecommendedRenderTargetSize(ref renderTextureWidth, ref renderTextureHeight);
+
+                // at the moment, only Direct3D12 is working with Kerbal Space Program
+                ETextureType textureType = ETextureType.DirectX;
+                switch (SystemInfo.graphicsDeviceType) {
+                    case UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore:
+                    case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2:
+                    case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3:
+                        textureType = ETextureType.OpenGL;
+                        return SystemInfo.graphicsDeviceType.ToString() + " does not support VR. You must use -force-d3d12";
+                    case UnityEngine.Rendering.GraphicsDeviceType.Direct3D9:
+                        return SystemInfo.graphicsDeviceType.ToString() + " does not support VR. You must use -force-d3d12";
+                    case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
+                        textureType = ETextureType.DirectX;
+                        break;
+                    case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
+                        textureType = ETextureType.DirectX;
+                        break;
+                    default:
+                        return SystemInfo.graphicsDeviceType.ToString() + " not supported";
+                }
+
+                // initialize render textures (for displaying on HMD)
+                for (int i = 0; i < 2; i++) {
+                    hmdEyeRenderTexture[i] = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 24, RenderTextureFormat.ARGB32);
+                    hmdEyeRenderTexture[i].Create();
+                    hmdEyeTexture[i].handle = hmdEyeRenderTexture[i].GetNativeTexturePtr();
+                    hmdEyeTexture[i].eColorSpace = EColorSpace.Auto;
+                    hmdEyeTexture[i].eType = textureType;
+                }
+
+                // set rendering bounds on texture to render
+                hmdTextureBounds.uMin = 0.0f;
+                hmdTextureBounds.uMax = 1.0f;
+                hmdTextureBounds.vMin = 1.0f; // flip the vertical coordinate for some reason
+                hmdTextureBounds.vMax = 0.0f;
+
+                return "OK";
+
+            } catch (Exception ex) {
+                return "Unexpected Error: " + ex.Message;
             }
-
-            // set the location of the OpenVR DLL
-            SetDllDirectory(Globals.OpenVRDllPath);
-
-            // check if HMD is connected on the system
-            retVal = OpenVR.IsHmdPresent();
-            if (!retVal) {
-                Utils.LogError("HMD not found on this system.");
-                return retVal;
-            }
-
-            // check if SteamVR runtime is installed
-            retVal = OpenVR.IsRuntimeInstalled();
-            if (!retVal) {
-                Utils.LogError("SteamVR runtime not found on this system.");
-                return retVal;
-            }
-
-            // initialize HMD
-            EVRInitError hmdInitErrorCode = EVRInitError.None;
-            OpenVR.Init(ref hmdInitErrorCode, EVRApplicationType.VRApplication_Scene);
-            retVal = (hmdInitErrorCode == EVRInitError.None);
-            if (!retVal) {
-                Utils.LogError("Failed to initialize HMD. Init returned: " + OpenVR.GetStringForHmdError(hmdInitErrorCode));
-                return retVal;
-            }
-
-            // reset "seated position" and capture initial position. this means you should hold the HMD in
-            // the position you would like to consider "seated", before running this code.
-            ResetInitialHmdPosition();
-
-            // get HMD render target size
-            uint renderTextureWidth = 0;
-            uint renderTextureHeight = 0;
-            OpenVR.System.GetRecommendedRenderTargetSize(ref renderTextureWidth, ref renderTextureHeight);
-
-            // at the moment, only Direct3D12 is working with Kerbal Space Program
-            ETextureType textureType = ETextureType.DirectX;
-            switch (SystemInfo.graphicsDeviceType) {
-                case UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore:
-                case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2:
-                case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3:
-                    textureType = ETextureType.OpenGL;
-                    Utils.LogWarning("OpenGL is known to cause problems with VR.");
-                    break; // doesn't work
-                case UnityEngine.Rendering.GraphicsDeviceType.Direct3D9:
-                case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
-                    textureType = ETextureType.DirectX;
-                    Utils.LogWarning("Direct3D9 and Direct3D11 are known to cause problems with VR.");
-                    break; // doesn't work
-                case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
-                    textureType = ETextureType.DirectX; // do not use DirectX12
-                    break;
-                default:
-                    throw (new Exception(SystemInfo.graphicsDeviceType.ToString() + " not supported"));
-            }
-
-            // initialize render textures (for displaying on HMD)
-            for (int i = 0; i < 2; i++) {
-                hmdEyeRenderTexture[i] = new RenderTexture((int)renderTextureWidth, (int)renderTextureHeight, 24, RenderTextureFormat.ARGB32);
-                hmdEyeRenderTexture[i].Create();
-                hmdEyeTexture[i].handle = hmdEyeRenderTexture[i].GetNativeTexturePtr();
-                hmdEyeTexture[i].eColorSpace = EColorSpace.Auto;
-                hmdEyeTexture[i].eType = textureType;
-            }
-
-            // set rendering bounds on texture to render
-            hmdTextureBounds.uMin = 0.0f;
-            hmdTextureBounds.uMax = 1.0f;
-            hmdTextureBounds.vMin = 1.0f; // flip the vertical coordinate for some reason
-            hmdTextureBounds.vMax = 0.0f;
-            
-            hmdIsInitialized = true;
-
-            return retVal;
         }
 
         /// <summary>

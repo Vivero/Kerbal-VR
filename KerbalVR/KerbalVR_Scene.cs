@@ -395,7 +395,7 @@ namespace KerbalVR
                 }
             }
 
-            if (!state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+            if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
                 foreach (var obj in DeviceManager.Instance.ManipulatorLeft.FingertipCollidedGameObjects) {
                     obj.SendMessage("OnMouseUp");
                 }
@@ -432,7 +432,7 @@ namespace KerbalVR
                 }
             }
 
-            if (!state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+            if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
                 foreach (var obj in DeviceManager.Instance.ManipulatorRight.FingertipCollidedGameObjects) {
                     obj.SendMessage("OnMouseUp");
                 }
