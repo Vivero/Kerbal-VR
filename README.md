@@ -73,9 +73,11 @@ I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems ha
 | Headset     | Controllers  | OS        | CPU                          | GPU                  |
 |-------------|--------------|-----------|------------------------------|----------------------|
 | HTC Vive    | Vive Wands   | Win10 x64 | Intel Core i5-4590           | GeForce GTX 970      |
-| Oculus Rift | Oculus Touch |           | Intel Core i5-6600K (4.4GHz) | GeForce GTX 1070 8GB |
-| Windows MR  |              |           | Intel Core i7-4790K          | GeForce GTX 1080     |
+| Oculus Rift | Oculus Touch |           | Intel Core i5-6600K (4.4GHz) | GeForce GTX 1050Ti   |
+| Windows MR  |              |           | Intel Core i5-7300HQ         | GeForce GTX 1070 8GB |
+|             |              |           | Intel Core i7-4790K          | GeForce GTX 1080     |
 |             |              |           | Intel Core i7-6700K          | Radeon RX 480        |
+|             |              |           | AMD Ryzen 7                  |                      |
 
 ### Drivers
 
