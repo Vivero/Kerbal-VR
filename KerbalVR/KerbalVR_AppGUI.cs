@@ -1,7 +1,8 @@
 using UnityEngine;
 using KSP.UI.Screens;
-using System.Text.RegularExpressions;
 using System;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace KerbalVR
 {
@@ -36,7 +37,7 @@ namespace KerbalVR
         #region Constants
         public static string AppButtonLogo {
             get {
-                return Globals.KERBALVR_ASSETS_DIR + "app_button_logo";
+                return Path.Combine(Globals.KERBALVR_TEXTURES_DIR, "app_button_logo");
             }
         }
 
