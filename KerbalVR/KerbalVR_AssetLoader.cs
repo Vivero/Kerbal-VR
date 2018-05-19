@@ -72,7 +72,7 @@ namespace KerbalVR
 
         private void LoadFonts() {
             TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
-            // Utils.Log("Found " + fonts.Length + " fonts");
+
             for (int i = 0; i < fonts.Length; i++) {
                 TMPro.TMP_FontAsset font = fonts[i];
                 fontsDictionary.Add(font.name, font);
@@ -103,16 +103,14 @@ namespace KerbalVR
         }
 
         public TMPro.TMP_FontAsset GetFont(string fontName) {
-            TMPro.TMP_FontAsset font = null;
-            if (fontsDictionary.TryGetValue(fontName, out font)) {
+            if (fontsDictionary.TryGetValue(fontName, out TMPro.TMP_FontAsset font)) {
                 return font;
             }
             return null;
         }
 
         public GameObject GetGameObject(string gameObjectName) {
-            GameObject obj = null;
-            if (gameObjectsDictionary.TryGetValue(gameObjectName, out obj)) {
+            if (gameObjectsDictionary.TryGetValue(gameObjectName, out GameObject obj)) {
                 return obj;
             }
             return null;
