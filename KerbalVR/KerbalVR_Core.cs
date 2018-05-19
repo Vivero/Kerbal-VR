@@ -23,18 +23,12 @@ namespace KerbalVR {
         /// that the user allowing VR to be activated.
         /// Set to true to enable VR; false to disable VR.
         /// </summary>
-        private static bool _hmdIsEnabled;
-        public static bool HmdIsEnabled {
-            get { return _hmdIsEnabled; }
-            set {
-                _hmdIsEnabled = value;
-            }
-        }
+        public static bool HmdIsEnabled { get; set; } = false;
 
         /// <summary>
         /// Returns true if VR is allowed to run in the current scene.
         /// </summary>
-        public static bool HmdIsAllowed { get; private set; }
+        public static bool HmdIsAllowed { get; private set; } = false;
 
         /// <summary>
         /// Returns true if VR is currently running, i.e. tracking devices
@@ -83,15 +77,13 @@ namespace KerbalVR {
         /// <summary>
         /// Initialize the application GUI, singleton classes, and initialize OpenVR.
         /// </summary>
-        protected void Awake() {
+        private void Awake() {
 #if DEBUG
             Utils.Log(Globals.KERBALVR_NAME + " plugin starting...");
 #endif
 
             // init objects
             gui = new AppGUI();
-            _hmdIsEnabled = false;
-            HmdIsAllowed = false;
 
             // init GameObjects
             GameObject kvrDeviceManager = new GameObject("KVR_DeviceManager");
@@ -139,14 +131,14 @@ namespace KerbalVR {
         /// <summary>
         /// Overrides the OnGUI method to render the application launcher GUI.
         /// </summary>
-        protected void OnGUI() {
+        private void OnGUI() {
             gui.OnGUI();
         }
 
         /// <summary>
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
-        protected void OnDestroy() {
+        private void OnDestroy() {
             Utils.Log(Globals.KERBALVR_NAME + " is shutting down...");
             CloseHMD();
         }
@@ -154,7 +146,7 @@ namespace KerbalVR {
         /// <summary>
         /// On LateUpdate, dispatch OpenVR events, run the main HMD loop code.
         /// </summary>
-        protected void LateUpdate() {
+        private void LateUpdate() {
             // dispatch any OpenVR events
             if (hmdIsInitialized) {
                 DispatchOpenVREvents();
@@ -296,7 +288,7 @@ namespace KerbalVR {
         /// <summary>
         /// Renders a set of cameras onto a RenderTexture, and submit the frame to the HMD.
         /// </summary>
-        protected void RenderHmdCameras(
+        private void RenderHmdCameras(
             EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform,
@@ -358,7 +350,7 @@ namespace KerbalVR {
         /// An event called when the game is switching scenes. The VR headset should be disabled.
         /// </summary>
         /// <param name="scene">The scene being switched into.</param>
-        protected void OnGameSceneLoadRequested(GameScenes scene) {
+        private void OnGameSceneLoadRequested(GameScenes scene) {
             HmdIsEnabled = false;
             sceneSetup = false;
         }
@@ -448,6 +440,15 @@ namespace KerbalVR {
         }
 
         /// <summary>
+        /// Shuts down the OpenVR API.
+        /// </summary>
+        private void CloseHMD() {
+            HmdIsEnabled = false;
+            OpenVR.Shutdown();
+            hmdIsInitialized = false;
+        }
+
+        /// <summary>
         /// Sets the current real-world position of the HMD as the seated origin.
         /// </summary>
         public static void ResetInitialHmdPosition() {
@@ -462,15 +463,6 @@ namespace KerbalVR {
         /// <returns>True if seated pose can be reset.</returns>
         public static bool CanResetSeatedPose() {
             return HmdIsRunning && (Scene.Instance.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
-        }
-
-        /// <summary>
-        /// Shuts down the OpenVR API.
-        /// </summary>
-        private void CloseHMD() {
-            HmdIsEnabled = false;
-            OpenVR.Shutdown();
-            hmdIsInitialized = false;
         }
 
     } // class Core
