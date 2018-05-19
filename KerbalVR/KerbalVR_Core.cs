@@ -61,6 +61,8 @@ namespace KerbalVR {
         private static bool hmdInitializing = false;
         private static bool hmdFailed = false;
         private static bool hmdIsRunningPrev = false;
+        private bool sceneSetup = false;
+        private DateTime lastAttempt;
 
         // defines the bounds to texture bounds for rendering
         private VRTextureBounds_t hmdTextureBounds;
@@ -105,8 +107,6 @@ namespace KerbalVR {
             // add an event triggered when game scene changes, to handle
             // shutting off the HMD outside of allowed VR scenes
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
-
-
 
             // when ready for a GUI, load it
             GameEvents.onGUIApplicationLauncherReady.Add(gui.OnAppLauncherReady);
@@ -179,6 +179,11 @@ namespace KerbalVR {
             // perform regular updates if HMD is initialized
             if (HmdIsRunning) {
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
+
+                // we've just started VR
+                if (!hmdIsRunningPrev) {
+                    Utils.Log("HMD is now on");
+                }
 
                 try {
                     // get latest device poses, emit an event to indicate devices have been updated
@@ -357,9 +362,6 @@ namespace KerbalVR {
             HmdIsEnabled = false;
             sceneSetup = false;
         }
-
-        private bool sceneSetup = false;
-        private DateTime lastAttempt;
 
         /// <summary>
         /// Initialize HMD using OpenVR API calls.
