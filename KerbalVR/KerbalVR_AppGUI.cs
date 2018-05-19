@@ -37,7 +37,8 @@ namespace KerbalVR
         #region Constants
         public static string AppButtonLogo {
             get {
-                return Path.Combine(Globals.KERBALVR_TEXTURES_DIR, "app_button_logo");
+                string path = Path.Combine(Globals.KERBALVR_TEXTURES_DIR, "app_button_logo");
+                return path.Replace("\\", "/");
             }
         }
 
