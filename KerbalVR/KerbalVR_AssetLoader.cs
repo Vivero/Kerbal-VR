@@ -18,7 +18,7 @@ namespace KerbalVR
         public static string KERBALVR_ASSET_BUNDLE_PATH {
             get {
                 string gameDataPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData");
-                string kvrAssetsPath = Path.Combine(gameDataPath, Globals.KERBALVR_ASSETS_DIR);
+                string kvrAssetsPath = Path.Combine(gameDataPath, Globals.KERBALVR_ASSETBUNDLES_DIR);
                 return Path.Combine(kvrAssetsPath, "kerbalvr.ksp");
             }
         }
@@ -72,7 +72,7 @@ namespace KerbalVR
 
         private void LoadFonts() {
             TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
-            // Utils.Log("Found " + fonts.Length + " fonts");
+
             for (int i = 0; i < fonts.Length; i++) {
                 TMPro.TMP_FontAsset font = fonts[i];
                 fontsDictionary.Add(font.name, font);
@@ -97,23 +97,20 @@ namespace KerbalVR
                     Utils.Log("Loading \"" + assetName + "\"");
                     GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
 
-                    Utils.Log("assetGameObject.name = " + assetGameObject.name);
                     gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
                 }
             }
         }
 
         public TMPro.TMP_FontAsset GetFont(string fontName) {
-            TMPro.TMP_FontAsset font = null;
-            if (fontsDictionary.TryGetValue(fontName, out font)) {
+            if (fontsDictionary.TryGetValue(fontName, out TMPro.TMP_FontAsset font)) {
                 return font;
             }
             return null;
         }
 
         public GameObject GetGameObject(string gameObjectName) {
-            GameObject obj = null;
-            if (gameObjectsDictionary.TryGetValue(gameObjectName, out obj)) {
+            if (gameObjectsDictionary.TryGetValue(gameObjectName, out GameObject obj)) {
                 return obj;
             }
             return null;

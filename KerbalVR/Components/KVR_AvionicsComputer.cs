@@ -15,8 +15,7 @@ namespace KerbalVR.Components
         private Events.Action precisionModeUpdatedAction;
 
         void Awake() {
-            Utils.Log("KVR_AvionicsComputer booting up.");
-
+            // start emitting signals to components
             outputSignalsCoroutine = StartCoroutine(OutputSignals());
 
             stageUpdatedAction = KerbalVR.Events.AvionicsIntAction("stage", OnStageInput);

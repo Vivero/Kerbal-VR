@@ -238,20 +238,9 @@ namespace KerbalVR
         }
 
         public static void PrintDebug() {
-            GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
+            bool isEva = FlightGlobals.ActiveVessel.isEVA;
 
-            foreach (GameObject GO in allObjects) {
-                if (GO.activeInHierarchy) {
-                    Collider GO_coll = GO.GetComponent<Collider>();
-
-                    if (GO_coll != null) {
-                        Utils.Log("GO.name = " + GO.name);
-                        Utils.Log("GO.layer = " + GO.layer);
-                        Utils.Log("GO.collider = " + GO_coll);
-                    }
-                }
-                
-            }
+            Utils.Log("EVA Active? " + isEva);
         }
 
         public static void PrintAllLayers() {
