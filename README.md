@@ -39,6 +39,13 @@ For instructions on how to use the mod, see the [User Guide](https://github.com/
 For guidance on compiling this project and other project documentation, see the [Build Guide](https://github.com/Vivero/Kerbal-VR/wiki/Build-Guide)
 
 
+## Known Issues
+
+Actually there's a lot of [issues](https://github.com/Vivero/Kerbal-VR/issues), but this one is noteworthy: when I run KSP with KerbalVR, the part icons in the VAB/SPH appear blue! Hwo to fix!!1??1???
+
+Well this problem is not my fault, but there's a fix. [Issue #41](https://github.com/Vivero/Kerbal-VR/issues/41) talks about it a bit. You need to download [this fix](https://drive.google.com/file/d/1sb2_qyvBsBPrQFyGldK5x7uW2UJb14et/view), from this [forum post](https://forum.kerbalspaceprogram.com/index.php?/topic/168795-electrocutors-thread/). Place it in your `GameData` folder like any other mod.
+
+
 ## RasterProp Monitor
 
 There is experimental support for VR interaction with RPM. See the [User Guide](https://github.com/Vivero/Kerbal-VR/wiki/User-Guide) for more details. Note that using RPM may hinder performance in VR (lower FPS).
