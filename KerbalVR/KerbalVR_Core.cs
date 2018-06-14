@@ -15,6 +15,16 @@ namespace KerbalVR {
         protected static extern bool SetDllDirectory(string lpPathName);
 
 
+        #region Types
+        public enum HmdState {
+            Uninitialized,
+            Initializing,
+            Initialized,
+            InitFailed,
+        }
+        #endregion
+
+
         #region Properties
 
         /// <summary>
@@ -28,7 +38,7 @@ namespace KerbalVR {
         /// <summary>
         /// Returns true if VR is allowed to run in the current scene.
         /// </summary>
-        public static bool HmdIsAllowed { get; private set; } = false;
+        public static bool HmdIsAllowed { get; private set; }
 
         /// <summary>
         /// Returns true if VR is currently running, i.e. tracking devices
@@ -84,6 +94,7 @@ namespace KerbalVR {
 
             // init objects
             gui = new AppGUI();
+            HmdIsAllowed = false;
 
             // init GameObjects
             GameObject kvrDeviceManager = new GameObject("KVR_DeviceManager");
