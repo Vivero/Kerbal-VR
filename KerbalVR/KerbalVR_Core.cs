@@ -56,15 +56,15 @@ namespace KerbalVR {
         private static bool hmdFailed = false;
         private static bool hmdIsRunningPrev = false;
         private bool sceneSetup = false;
-        private DateTime lastAttempt;
+        private static DateTime hmdInitLastAttempt;
 
         // defines the bounds to texture bounds for rendering
-        private VRTextureBounds_t hmdTextureBounds;
+        private static VRTextureBounds_t hmdTextureBounds;
 
         // these arrays each hold one object for the corresponding eye, where
         // index 0 = Left_Eye, index 1 = Right_Eye
-        private Texture_t[] hmdEyeTexture = new Texture_t[2];
-        private RenderTexture[] hmdEyeRenderTexture = new RenderTexture[2];
+        private static Texture_t[] hmdEyeTexture = new Texture_t[2];
+        private static RenderTexture[] hmdEyeRenderTexture = new RenderTexture[2];
 
         // store the tracked device poses
         private static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
@@ -115,11 +115,11 @@ namespace KerbalVR {
 
         private void initOpenVR() {
             // initialize the OpenVR API
-            if (hmdFailed && DateTime.Now.Subtract(lastAttempt).TotalSeconds < 10) {
+            if (hmdFailed && DateTime.Now.Subtract(hmdInitLastAttempt).TotalSeconds < 10) {
                 return;
             }
             hmdInitializing = true;
-            lastAttempt = DateTime.Now;
+            hmdInitLastAttempt = DateTime.Now;
             try {
                 InitHMD();
                 Utils.Log("Initialized OpenVR.");
@@ -364,7 +364,8 @@ namespace KerbalVR {
         /// Initialize HMD using OpenVR API calls.
         /// </summary>
         /// <returns>True on successful initialization, false otherwise.</returns>
-        private void InitHMD() {
+        private static void InitHMD() {
+
             // return if HMD has already been initialized
             if (hmdIsInitialized) {
                 return;
@@ -379,7 +380,6 @@ namespace KerbalVR {
             }
 
             // check if SteamVR runtime is installed
-            OpenVR.IsRuntimeInstalled();
             if (!OpenVR.IsRuntimeInstalled()) {
                 throw new InvalidOperationException("SteamVR runtime not found on this system");
             }
@@ -437,15 +437,6 @@ namespace KerbalVR {
         }
 
         /// <summary>
-        /// Shuts down the OpenVR API.
-        /// </summary>
-        private void CloseHMD() {
-            HmdIsEnabled = false;
-            OpenVR.Shutdown();
-            hmdIsInitialized = false;
-        }
-
-        /// <summary>
         /// Sets the current real-world position of the HMD as the seated origin.
         /// </summary>
         public static void ResetInitialHmdPosition() {
@@ -460,6 +451,15 @@ namespace KerbalVR {
         /// <returns>True if seated pose can be reset.</returns>
         public static bool CanResetSeatedPose() {
             return HmdIsRunning && (Scene.Instance.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
+        }
+
+        /// <summary>
+        /// Shuts down the OpenVR API.
+        /// </summary>
+        private void CloseHMD() {
+            HmdIsEnabled = false;
+            OpenVR.Shutdown();
+            hmdIsInitialized = false;
         }
 
     } // class Core
