@@ -13,12 +13,19 @@ namespace KerbalVR
     public class Scene : MonoBehaviour
     {
         #region Constants
-        public static readonly string[] FLIGHT_SCENE_CAMERAS = {
+        public static readonly string[] FLIGHT_SCENE_IVA_CAMERAS = {
             "GalaxyCamera",
             "Camera ScaledSpace",
             "Camera 01",
             "Camera 00",
             "InternalCamera",
+        };
+
+        public static readonly string[] FLIGHT_SCENE_EVA_CAMERAS = {
+            "GalaxyCamera",
+            "Camera ScaledSpace",
+            "Camera 01",
+            "Camera 00",
         };
 
         public static readonly string[] SPACECENTER_SCENE_CAMERAS = {
@@ -144,7 +151,11 @@ namespace KerbalVR
         public void SetupScene() {
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
-                    SetupFlightScene();
+                    if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA) {
+                        SetupFlightIvaScene();
+                    } else if (FlightGlobals.ActiveVessel.isEVA) {
+                        SetupFlightEvaScene();
+                    }
                     break;
 
                 case GameScenes.EDITOR:
@@ -160,7 +171,7 @@ namespace KerbalVR
             CurrentRotation = InitialRotation;
         }
 
-        private void SetupFlightScene() {
+        private void SetupFlightIvaScene() {
             // use seated mode during IVA flight
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
@@ -168,7 +179,7 @@ namespace KerbalVR
             RenderLayer = 20;
 
             // generate list of cameras to render
-            PopulateCameraList(FLIGHT_SCENE_CAMERAS);
+            PopulateCameraList(FLIGHT_SCENE_IVA_CAMERAS);
 
             // set inital scene position
             InitialPosition = InternalCamera.Instance.transform.position;
@@ -181,6 +192,29 @@ namespace KerbalVR
                 InternalSpace.Instance.transform.rotation * Vector3.back);*/
 
             InitialRotation = InternalCamera.Instance.transform.rotation;
+        }
+
+        private void SetupFlightEvaScene() {
+            // use seated mode during EVA
+            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
+
+            // render KerbalVR objects on the InternalSpace layer
+            RenderLayer = 20;
+
+            // generate list of cameras to render
+            PopulateCameraList(FLIGHT_SCENE_EVA_CAMERAS);
+
+            // set inital scene position
+            InitialPosition = FlightGlobals.ActiveVessel.transform.position;
+
+            // set rotation to always point forward inside the cockpit
+            // NOTE: actually this code doesn't work for certain capsules
+            // with different internal origin orientations
+            /*InitialRotation = Quaternion.LookRotation(
+                InternalSpace.Instance.transform.rotation * Vector3.up,
+                InternalSpace.Instance.transform.rotation * Vector3.back);*/
+
+            InitialRotation = FlightGlobals.ActiveVessel.transform.rotation;
         }
 
         private void SetupEditorScene() {
@@ -218,7 +252,11 @@ namespace KerbalVR
 
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
-                    UpdateFlightScene(eye, hmdTransform, hmdEyeTransform);
+                    if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA) {
+                        UpdateFlightIvaScene(eye, hmdTransform, hmdEyeTransform);
+                    } else if (FlightGlobals.ActiveVessel.isEVA) {
+                        UpdateFlightEvaScene(eye, hmdTransform, hmdEyeTransform);
+                    }
                     break;
 
                 case GameScenes.EDITOR:
@@ -234,7 +272,7 @@ namespace KerbalVR
             HmdRotation = CurrentRotation * hmdTransform.rot;
         }
 
-        private void UpdateFlightScene(
+        private void UpdateFlightIvaScene(
             EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
@@ -257,6 +295,35 @@ namespace KerbalVR
 
             FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
             FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+
+            // store the eyeball position
+            HmdEyePosition[(int)eye] = updatedPosition;
+            HmdEyeRotation[(int)eye] = updatedRotation;
+        }
+
+        private void UpdateFlightEvaScene(
+            EVREye eye,
+            SteamVR_Utils.RigidTransform hmdTransform,
+            SteamVR_Utils.RigidTransform hmdEyeTransform) {
+
+            // in flight, don't allow movement of the origin point
+            CurrentPosition = InitialPosition;
+            CurrentRotation = InitialRotation;
+
+            // get position of your eyeball
+            Vector3 positionToHmd = hmdTransform.pos;
+            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+
+            // translate device space to Unity space, with world scaling
+            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
+            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
+
+            // in flight, update the flight cameras
+            FlightCamera.fetch.transform.position = updatedPosition;
+            FlightCamera.fetch.transform.rotation = updatedRotation;
+
+            ScaledCamera.Instance.transform.position = updatedPosition;
+            ScaledCamera.Instance.transform.rotation = updatedRotation;
 
             // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
@@ -335,8 +402,8 @@ namespace KerbalVR
             bool allowed;
             switch (HighLogic.LoadedScene) {
                 case GameScenes.FLIGHT:
-                    allowed = (CameraManager.Instance != null) &&
-                        (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
+                    allowed = ((CameraManager.Instance != null) && (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)) ||
+                        (FlightGlobals.ActiveVessel.isEVA);
                     break;
 
                 case GameScenes.EDITOR:
