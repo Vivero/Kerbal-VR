@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace KerbalVR
 {
+    /// <summary>
+    /// A class to manage global configuration settings for KerbalVR.
+    /// </summary>
     public class Configuration : MonoBehaviour
     {
         #region Constants
@@ -21,6 +24,10 @@ namespace KerbalVR
 
 
         #region Properties
+        /// <summary>
+        /// If true, initializes OpenVR as soon as KSP starts. Otherwise, OpenVR
+        /// initializes on the first time VR is enabled.
+        /// </summary>
         private bool _initOpenVrAtStartup;
         public bool InitOpenVrAtStartup {
             get {
@@ -54,6 +61,7 @@ namespace KerbalVR
                 return _instance;
             }
         }
+        #endregion
 
         // first-time initialization for this singleton class
         private void Initialize() {
@@ -80,7 +88,6 @@ namespace KerbalVR
                 File.WriteAllText(KERBALVR_SETTINGS_PATH, kvrSettingsText);
             }
         }
-#endregion
 
         private void SaveSettings() {
             Settings kvrSettings = new Settings();
@@ -92,8 +99,11 @@ namespace KerbalVR
         }
     }
 
+    /// <summary>
+    /// A serializable class to contain KerbalVR settings.
+    /// </summary>
     [Serializable]
     public class Settings {
-        public bool initOpenVrAtStartup = false;
+        public bool initOpenVrAtStartup = true;
     }
 }
