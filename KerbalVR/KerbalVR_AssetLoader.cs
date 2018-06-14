@@ -18,8 +18,8 @@ namespace KerbalVR
         public static string KERBALVR_ASSET_BUNDLE_PATH {
             get {
                 string gameDataPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData");
-                string kvrAssetsPath = Path.Combine(gameDataPath, Globals.KERBALVR_ASSETBUNDLES_DIR);
-                return Path.Combine(kvrAssetsPath, "kerbalvr.ksp");
+                string kvrAssetBundlesPath = Path.Combine(gameDataPath, Globals.KERBALVR_ASSETBUNDLES_DIR);
+                return Path.Combine(kvrAssetBundlesPath, "kerbalvr.ksp");
             }
         }
         #endregion
@@ -30,7 +30,7 @@ namespace KerbalVR
         private Dictionary<string, TMPro.TMP_FontAsset> fontsDictionary;
 
         #region Singleton
-        // this is a singleton class, and there must be one DeviceManager in the scene
+        // this is a singleton class, and there must be one AssetLoader in the scene
         private static AssetLoader _instance;
         public static AssetLoader Instance {
             get {

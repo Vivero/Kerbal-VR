@@ -96,6 +96,11 @@ namespace KerbalVR {
             Scene kvrSceneComponent = Scene.Instance; // init the singleton
             DontDestroyOnLoad(kvrScene);
 
+            GameObject kvrConfiguration = new GameObject("KVR_Configuration");
+            kvrConfiguration.AddComponent<Configuration>();
+            Configuration kvrConfigurationComponent = Configuration.Instance; // init the singleton
+            DontDestroyOnLoad(kvrConfiguration);
+
             // add an event triggered when game scene changes, to handle
             // shutting off the HMD outside of allowed VR scenes
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
