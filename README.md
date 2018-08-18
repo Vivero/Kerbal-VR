@@ -39,9 +39,21 @@ For instructions on how to use the mod, see the [User Guide](https://github.com/
 For guidance on compiling this project and other project documentation, see the [Build Guide](https://github.com/Vivero/Kerbal-VR/wiki/Build-Guide)
 
 
+## Known Issues
+
+Actually there's a lot of [issues](https://github.com/Vivero/Kerbal-VR/issues), but this one is noteworthy: when I run KSP with KerbalVR, the part icons in the VAB/SPH appear blue! Hwo to fix!!1??1???
+
+Well this problem is not my fault, but there's a fix. You need to download [this fix](https://drive.google.com/file/d/1sb2_qyvBsBPrQFyGldK5x7uW2UJb14et/view), and place it in your `GameData` folder like any other mod. You can read more about it [here](https://github.com/Vivero/Kerbal-VR/issues/41) and [here](https://forum.kerbalspaceprogram.com/index.php?/topic/168795-electrocutors-thread/). 
+
+
 ## RasterProp Monitor
 
 There is experimental support for VR interaction with RPM. See the [User Guide](https://github.com/Vivero/Kerbal-VR/wiki/User-Guide) for more details. Note that using RPM may hinder performance in VR (lower FPS).
+
+
+## VR Cockpits
+
+A set of VR-ready cockpits is provided by the [KVR Pods](https://github.com/Vivero/KVR-Pods) mod.
 
 
 ## Performance Tips
@@ -65,15 +77,18 @@ I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems ha
 
 ### Hardware
 
-| Headset     | Controllers  | OS        | CPU                          | GPU                  |
-|-------------|--------------|-----------|------------------------------|----------------------|
-| HTC Vive    | Vive Wands   | Win10 x64 | Intel Core i5-4590           | GeForce GTX 970      |
-| Oculus Rift | Oculus Touch |           | Intel Core i5-6600K (4.4GHz) | GeForce GTX 1070 8GB |
-| Windows MR  |              |           | Intel Core i7-4790K          | GeForce GTX 1080     |
-|             |              |           | Intel Core i7-6700K          | Radeon RX 480        |
+| Headset     | Controllers        | OS        | CPU                          | GPU                  |
+|-------------|--------------------|-----------|------------------------------|----------------------|
+| HTC Vive    | Vive Wands         | Win10 x64 | Intel Core i5-4590           | GeForce GTX 770 x2   |
+| Oculus Rift | Oculus Touch       |           | Intel Core i5-6600K (4.4GHz) | GeForce GTX 970      |
+| Windows MR  | Motion Controllers |           | Intel Core i5-7300HQ         | GeForce GTX 1050Ti   |
+|             |                    |           | Intel Core i7-4790K          | GeForce GTX 1070 8GB |
+|             |                    |           | Intel Core i7-6700K          | GeForce GTX 1080     |
+|             |                    |           | Intel Core i7-8700K          | Radeon RX 480        |
+|             |                    |           | AMD Ryzen 7                  |                      |
 
 ### Drivers
 
 | Nvidia | SteamVR         |
 |--------|-----------------|
-| 397.31 | beta 1526414906 |
+| 398.11 | beta 1528321160 |
