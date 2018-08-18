@@ -6,7 +6,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
-**Built for KSP v1.4.3**
+**Built for KSP v1.4.5**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
@@ -91,4 +91,4 @@ I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems ha
 
 | Nvidia | SteamVR         |
 |--------|-----------------|
-| 398.11 | beta 1528321160 |
+| 398.82 | beta 1534208722 |
