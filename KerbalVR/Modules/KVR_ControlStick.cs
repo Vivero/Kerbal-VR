@@ -19,7 +19,7 @@ namespace KerbalVR.Modules
 
         public float StickAxisX { get; private set; }
         public float StickAxisY { get; private set; }
-        public float RollAxis { get; private set; }
+        public float TwistAxis { get; private set; }
 
         private float stickAxisMaxX = 45f;
         private float stickAxisMaxY = 45f;
@@ -68,7 +68,7 @@ namespace KerbalVR.Modules
             // Utils.PrintGameObjectTree(gameObject);
             StickAxisX = 0f;
             StickAxisY = 0f;
-            RollAxis = 0f;
+            TwistAxis = 0f;
 
             // obtain the collider
             stickColliderTransform = internalProp.FindModelTransform(transformStickCollider);
@@ -228,23 +228,23 @@ namespace KerbalVR.Modules
                         float xTouchAxis = touchAxis.x;
 
                         if (Mathf.Abs(xTouchAxis) < rollDeadZoneRange) {
-                            RollAxis = 0f;
+                            TwistAxis = 0f;
                         } else {
                             isCommandingControl = true;
-                            RollAxis = xTouchAxis;
+                            TwistAxis = xTouchAxis;
                         }
                     } else {
-                        RollAxis = 0f;
+                        TwistAxis = 0f;
                     }
                 } else {
-                    RollAxis = 0f;
+                    TwistAxis = 0f;
                 }
 
             } else {
                 stickTransformGameObject.transform.rotation = stickInitialRotation;
                 StickAxisX = 0f;
                 StickAxisY = 0f;
-                RollAxis = 0f;
+                TwistAxis = 0f;
             }
         }
 
@@ -277,9 +277,9 @@ namespace KerbalVR.Modules
 
         private void VesselControl(FlightCtrlState state) {
             if (isCommandingControl) {
-                state.yaw = StickAxisX;
+                state.yaw = TwistAxis;
                 state.pitch = -StickAxisY;
-                state.roll = RollAxis;
+                state.roll = StickAxisX;
             }
         }
 
