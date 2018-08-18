@@ -81,7 +81,7 @@ namespace KerbalVR
         private bool appButtonGuiActive = false;
         private bool appButtonGuiActiveLastState = false;
 
-        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
+        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 200, 100);
 
         // text fields
         private string worldScaleStr;
@@ -268,6 +268,14 @@ namespace KerbalVR
                     worldScale <= 10) {
                     Scene.Instance.WorldScale = worldScale;
                 }
+            }
+            GUILayout.EndHorizontal();
+
+            // init at startup toggle
+            GUILayout.BeginHorizontal();
+            bool initOpenVrAtStartup = GUILayout.Toggle(Configuration.Instance.InitOpenVrAtStartup, "Init OpenVR at startup", HighLogic.Skin.toggle);
+            if (GUI.changed) {
+                Configuration.Instance.InitOpenVrAtStartup = initOpenVrAtStartup;
             }
             GUILayout.EndHorizontal();
 

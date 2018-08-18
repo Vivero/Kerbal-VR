@@ -61,11 +61,8 @@ namespace KerbalVR {
         private AppGUI gui;
 
         // keep track of when the HMD is rendering images
-        private static bool hmdIsInitialized = false;
-        private static bool hmdInitializing = false;
-        private static bool hmdFailed = false;
+        private static HmdState hmdState = HmdState.Uninitialized;
         private static bool hmdIsRunningPrev = false;
-        private bool sceneSetup = false;
         private static DateTime hmdInitLastAttempt;
 
         // defines the bounds to texture bounds for rendering
@@ -112,6 +109,11 @@ namespace KerbalVR {
             Configuration kvrConfigurationComponent = Configuration.Instance; // init the singleton
             DontDestroyOnLoad(kvrConfiguration);
 
+            // initialize OpenVR if allowed in config
+            if (Configuration.Instance.InitOpenVrAtStartup) {
+                InitializeHMD();
+            }
+
             // add an event triggered when game scene changes, to handle
             // shutting off the HMD outside of allowed VR scenes
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
@@ -122,26 +124,6 @@ namespace KerbalVR {
 
             // don't destroy this object when switching scenes
             DontDestroyOnLoad(this);
-        }
-
-        private void initOpenVR() {
-            // initialize the OpenVR API
-            if (hmdFailed && DateTime.Now.Subtract(hmdInitLastAttempt).TotalSeconds < 10) {
-                return;
-            }
-            hmdInitializing = true;
-            hmdInitLastAttempt = DateTime.Now;
-            try {
-                InitHMD();
-                Utils.Log("Initialized OpenVR.");
-                hmdIsInitialized = true;
-            } catch (Exception e) {
-                Utils.LogError("Unable to initialize VR headset: " + e);
-                hmdIsInitialized = false;
-                hmdFailed = true;
-            }
-            hmdInitializing = false;
-
         }
 
         /// <summary>
@@ -164,25 +146,18 @@ namespace KerbalVR {
         /// </summary>
         private void LateUpdate() {
             // dispatch any OpenVR events
-            if (hmdIsInitialized) {
+            if (hmdState == HmdState.Initialized) {
                 DispatchOpenVREvents();
             }
 
             // check if the current scene allows VR
             HmdIsAllowed = Scene.Instance.SceneAllowsVR();
 
-            if (HmdIsAllowed && HmdIsEnabled && !hmdIsInitialized & !hmdInitializing) {
-                initOpenVR();
-            }
-
-            if (!sceneSetup && hmdIsInitialized && HmdIsEnabled && HmdIsAllowed) {
-                Scene.Instance.SetupScene();
-                ResetInitialHmdPosition();
-                sceneSetup = true;
-            }
+            // process the state of OpenVR
+            ProcessHmdState();
 
             // check if we are running the HMD
-            HmdIsRunning = HmdIsAllowed && hmdIsInitialized && HmdIsEnabled;
+            HmdIsRunning = HmdIsAllowed && (hmdState == HmdState.Initialized) && HmdIsEnabled;
 
             // perform regular updates if HMD is initialized
             if (HmdIsRunning) {
@@ -191,6 +166,8 @@ namespace KerbalVR {
                 // we've just started VR
                 if (!hmdIsRunningPrev) {
                     Utils.Log("HMD is now on");
+                    Scene.Instance.SetupScene();
+                    ResetInitialHmdPosition();
                 }
 
                 try {
@@ -301,6 +278,38 @@ namespace KerbalVR {
             }
         }
 
+        private static void ProcessHmdState() {
+            switch (hmdState) {
+                case HmdState.Uninitialized:
+                    if (HmdIsEnabled) {
+                        hmdState = HmdState.Initializing;
+                    }
+                    break;
+
+                case HmdState.Initializing:
+                    InitializeHMD();
+                    break;
+
+                case HmdState.InitFailed:
+                    if (DateTime.Now.Subtract(hmdInitLastAttempt).TotalSeconds > 10) {
+                        hmdState = HmdState.Uninitialized;
+                    }
+                    break;
+            }
+        }
+
+        private static void InitializeHMD() {
+            hmdInitLastAttempt = DateTime.Now;
+            try {
+                InitializeOpenVR();
+                hmdState = HmdState.Initialized;
+            } catch (Exception e) {
+                hmdState = HmdState.InitFailed;
+                Utils.LogError("InitHMD failed: " + e);
+                HmdIsEnabled = false;
+            }
+        }
+
         /// <summary>
         /// Renders a set of cameras onto a RenderTexture, and submit the frame to the HMD.
         /// </summary>
@@ -368,17 +377,16 @@ namespace KerbalVR {
         /// <param name="scene">The scene being switched into.</param>
         private void OnGameSceneLoadRequested(GameScenes scene) {
             HmdIsEnabled = false;
-            sceneSetup = false;
         }
 
         /// <summary>
         /// Initialize HMD using OpenVR API calls.
         /// </summary>
         /// <returns>True on successful initialization, false otherwise.</returns>
-        private static void InitHMD() {
+        private static void InitializeOpenVR() {
 
             // return if HMD has already been initialized
-            if (hmdIsInitialized) {
+            if (hmdState == HmdState.Initialized) {
                 return;
             }
 
@@ -451,7 +459,7 @@ namespace KerbalVR {
         /// Sets the current real-world position of the HMD as the seated origin.
         /// </summary>
         public static void ResetInitialHmdPosition() {
-            if (hmdIsInitialized) {
+            if (hmdState == HmdState.Initialized) {
                 OpenVR.System.ResetSeatedZeroPose();
             }
         }
@@ -470,7 +478,7 @@ namespace KerbalVR {
         private void CloseHMD() {
             HmdIsEnabled = false;
             OpenVR.Shutdown();
-            hmdIsInitialized = false;
+            hmdState = HmdState.Uninitialized;
         }
 
     } // class Core
