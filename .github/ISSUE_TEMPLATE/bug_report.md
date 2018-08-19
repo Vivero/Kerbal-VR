@@ -25,8 +25,9 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Windows 10]
- - KSP Version: [e.g. 1.4.3]
+ - KSP Version: [e.g. 1.4.5]
  - VR Hardware: [e.g. Vive]
+ - Kerbal-VR Version: [e.g. 3.2.1]
 
 **Additional context**
 Add any other context about the problem here.
