@@ -6,6 +6,12 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
+*** **OCT-2018 UPDATE** ***
+
+Sorry this summer has been super busy and I haven't been able to tend to KerbalVR. I just learned KSP 1.5 came out but my dev machine is down at the moment, I don't think I'll be able to check for compatibility or update the mod for a few more weeks
+
+----
+
 **Built for KSP v1.4.5**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
