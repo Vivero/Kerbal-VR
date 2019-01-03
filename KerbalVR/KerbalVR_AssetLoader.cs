@@ -97,7 +97,7 @@ namespace KerbalVR
                     Utils.Log("Loading \"" + assetName + "\"");
                     GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
 
-                    Utils.Log("assetGameObject.name = " + assetGameObject.name);
+                    // Utils.Log("assetGameObject.name = " + assetGameObject.name);
                     gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
                 }
             }

@@ -6,13 +6,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
-*** **OCT-2018 UPDATE** ***
-
-Sorry this summer has been super busy and I haven't been able to tend to KerbalVR. I just learned KSP 1.5 came out but my dev machine is down at the moment, I don't think I'll be able to check for compatibility or update the mod for a few more weeks
-
-----
-
-**Built for KSP v1.4.5**
+**Built for KSP v1.6.0**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
@@ -88,13 +82,13 @@ I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems ha
 | HTC Vive    | Vive Wands         | Win10 x64 | Intel Core i5-4590           | GeForce GTX 770 x2   |
 | Oculus Rift | Oculus Touch       |           | Intel Core i5-6600K (4.4GHz) | GeForce GTX 970      |
 | Windows MR  | Motion Controllers |           | Intel Core i5-7300HQ         | GeForce GTX 1050Ti   |
-|             |                    |           | Intel Core i7-4790K          | GeForce GTX 1070 8GB |
+|             |                    |           | Intel Core i7-4790K          | GeForce GTX 1070     |
 |             |                    |           | Intel Core i7-6700K          | GeForce GTX 1080     |
 |             |                    |           | Intel Core i7-8700K          | Radeon RX 480        |
 |             |                    |           | AMD Ryzen 7                  |                      |
 
 ### Drivers
 
-| Nvidia | SteamVR         |
-|--------|-----------------|
-| 398.82 | beta 1534208722 |
+| Nvidia | SteamVR                 |
+|--------|-------------------------|
+| 417.35 | beta 1.2.3 (1545247019) |
