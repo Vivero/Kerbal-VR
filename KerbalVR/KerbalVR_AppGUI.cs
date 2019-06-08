@@ -279,6 +279,14 @@ namespace KerbalVR
             }
             GUILayout.EndHorizontal();
 
+            // swap control stick yaw and roll
+            GUILayout.BeginHorizontal();
+            bool swapYawRollControls = GUILayout.Toggle(Configuration.Instance.SwapYawRollControls, "Swap Yaw/Roll Controls", HighLogic.Skin.toggle);
+            if (GUI.changed) {
+                Configuration.Instance.SwapYawRollControls = swapYawRollControls;
+            }
+            GUILayout.EndHorizontal();
+
 
             //------------------------------------------------------------------
             GUILayout.EndVertical();

@@ -38,6 +38,21 @@ namespace KerbalVR
                 SaveSettings();
             }
         }
+
+        /// <summary>
+        /// If true, the control stick controls craft pitch and yaw, instead of
+        /// pitch and roll.
+        /// </summary>
+        private bool _swapYawRollControls;
+        public bool SwapYawRollControls {
+            get {
+                return _swapYawRollControls;
+            }
+            set {
+                _swapYawRollControls = value;
+                SaveSettings();
+            }
+        }
         #endregion
 
 
@@ -92,6 +107,7 @@ namespace KerbalVR
         private void SaveSettings() {
             Settings kvrSettings = new Settings();
             kvrSettings.initOpenVrAtStartup = this.InitOpenVrAtStartup;
+            kvrSettings.swapYawRollControls = this.SwapYawRollControls;
 
             // write to file
             string kvrSettingsText = JsonUtility.ToJson(kvrSettings, true);
@@ -105,5 +121,6 @@ namespace KerbalVR
     [Serializable]
     public class Settings {
         public bool initOpenVrAtStartup = true;
+        public bool swapYawRollControls = false;
     }
 }
