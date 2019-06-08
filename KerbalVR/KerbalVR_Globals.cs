@@ -12,7 +12,13 @@ namespace KerbalVR
         public static readonly string KERBALVR_NAME = "KerbalVR";
 
         // path to the KerbalVR Assets directory
-        public static readonly string KERBALVR_ASSETS_DIR = "KerbalVR/Assets/";
+        public static readonly string KERBALVR_ASSETS_DIR = Path.Combine(KERBALVR_NAME, "Assets");
+
+        // path to asset bundles
+        public static readonly string KERBALVR_ASSETBUNDLES_DIR = Path.Combine(KERBALVR_ASSETS_DIR, "AssetBundles");
+
+        // path to textures
+        public static readonly string KERBALVR_TEXTURES_DIR = Path.Combine(KERBALVR_ASSETS_DIR, "Textures");
 
         // define location of OpenVR library
         public static string OpenVRDllPath {

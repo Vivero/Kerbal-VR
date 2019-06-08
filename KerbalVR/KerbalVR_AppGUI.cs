@@ -1,7 +1,8 @@
 using UnityEngine;
 using KSP.UI.Screens;
-using System.Text.RegularExpressions;
 using System;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace KerbalVR
 {
@@ -23,7 +24,8 @@ namespace KerbalVR
                 GUILayout.Label(parameterName + ":", HighLogic.Skin.label);
                 valueStr = GUILayout.TextField(valueStr, HighLogic.Skin.textField);
                 if (GUI.changed) {
-                    bool parseSuccess = System.Single.TryParse(valueStr, out float updatedValue);
+                    float updatedValue;
+                    bool parseSuccess = System.Single.TryParse(valueStr, out updatedValue);
                     if (parseSuccess) {
                         parameterCallback(updatedValue);
                     }
@@ -35,7 +37,8 @@ namespace KerbalVR
         #region Constants
         public static string AppButtonLogo {
             get {
-                return Globals.KERBALVR_ASSETS_DIR + "app_button_logo";
+                string path = Path.Combine(Globals.KERBALVR_TEXTURES_DIR, "app_button_logo");
+                return path.Replace("\\", "/");
             }
         }
 
@@ -78,7 +81,7 @@ namespace KerbalVR
         private bool appButtonGuiActive = false;
         private bool appButtonGuiActiveLastState = false;
 
-        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 160, 100);
+        private Rect appGuiWindowRect = new Rect(Screen.width / 4, Screen.height / 4, 200, 100);
 
         // text fields
         private string worldScaleStr;
@@ -258,12 +261,29 @@ namespace KerbalVR
             GUILayout.Label("World Scale:", HighLogic.Skin.label);
             worldScaleStr = GUILayout.TextField(worldScaleStr, HighLogic.Skin.textField);
             if (GUI.changed) {
-                bool parseSuccess = System.Single.TryParse(worldScaleStr, out float worldScale);
+                float worldScale;
+                bool parseSuccess = System.Single.TryParse(worldScaleStr, out worldScale);
                 if (parseSuccess &&
                     worldScale >= 0.1 &&
                     worldScale <= 10) {
                     Scene.Instance.WorldScale = worldScale;
                 }
+            }
+            GUILayout.EndHorizontal();
+
+            // init at startup toggle
+            GUILayout.BeginHorizontal();
+            bool initOpenVrAtStartup = GUILayout.Toggle(Configuration.Instance.InitOpenVrAtStartup, "Init OpenVR at startup", HighLogic.Skin.toggle);
+            if (GUI.changed) {
+                Configuration.Instance.InitOpenVrAtStartup = initOpenVrAtStartup;
+            }
+            GUILayout.EndHorizontal();
+
+            // swap control stick yaw and roll
+            GUILayout.BeginHorizontal();
+            bool swapYawRollControls = GUILayout.Toggle(Configuration.Instance.SwapYawRollControls, "Swap Yaw/Roll Controls", HighLogic.Skin.toggle);
+            if (GUI.changed) {
+                Configuration.Instance.SwapYawRollControls = swapYawRollControls;
             }
             GUILayout.EndHorizontal();
 

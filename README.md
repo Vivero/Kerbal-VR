@@ -6,7 +6,7 @@ An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality 
 
 ----
 
-**Built for KSP v1.7.0**
+**Built for KSP v1.7.1**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
@@ -27,7 +27,7 @@ VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d
 
 ## Requirements
 
-- [Module Manager](https://forum.kerbalspaceprogram.com/index.php?/topic/50533-141-module-manager-307-may-5th-2018-its-dangerous-to-go-alone-take-those-cats-with-you/)
+- [Module Manager](https://forum.kerbalspaceprogram.com/index.php?/topic/50533-140-16x-module-manager-402-february-3rd-2019-right-to-ludicrous-speed/)
 
 
 ## Installation & Usage
@@ -91,4 +91,4 @@ I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems ha
 
 | Nvidia | SteamVR                  |
 |--------|--------------------------|
-| 425.31 | beta 1.3.23 (1555289821) |
+| 430.86 | 1.5.6 (1559872573)       |
