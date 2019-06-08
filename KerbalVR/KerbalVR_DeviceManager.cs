@@ -10,28 +10,10 @@ namespace KerbalVR
     /// </summary>
     public class DeviceManager : MonoBehaviour
     {
-        #region Constants
-        public readonly Vector3 GLOVE_POSITION = new Vector3(0f, 0.02f, -0.1f);
-        public readonly Vector3 GLOVE_ROTATION = new Vector3(-45f, 0f, 90f);
-        #endregion
-
-
         #region Properties
         // Manipulator objects
         public Manipulator ManipulatorLeft { get; private set; }
         public Manipulator ManipulatorRight { get; private set; }
-
-        // Manipulator object properties
-        private float _manipulatorSize = 0.45f;
-        public float ManipulatorSize {
-            get {
-                return _manipulatorSize;
-            }
-            set {
-                _manipulatorSize = value;
-                SetManipulatorSize(_manipulatorSize);
-            }
-        }
 
         // keep aliases of controller indices
         public uint ControllerIndexLeft { get; private set; }
@@ -200,48 +182,9 @@ namespace KerbalVR
             GameObject manipulator = new GameObject("KVR_Manipulator_" + role.ToString());
             DontDestroyOnLoad(manipulator);
 
-            // define the render model
-            GameObject glovePrefab = AssetLoader.Instance.GetGameObject("GlovePrefab");
-            if (glovePrefab == null) {
-                Utils.LogError("GameObject \"GlovePrefab\" was not found!");
-                return manipulator;
-            }
-            GameObject gloveObject = Instantiate(glovePrefab);
-            gloveObject.transform.SetParent(manipulator.transform);
-            Vector3 gloveObjectScale = Vector3.one * ManipulatorSize;
-            if (role == ETrackedControllerRole.RightHand) {
-                gloveObjectScale.y *= -1f;
-            }
-            gloveObject.transform.localPosition = GLOVE_POSITION;
-            gloveObject.transform.localRotation = Quaternion.Euler(GLOVE_ROTATION);
-            gloveObject.transform.localScale = gloveObjectScale;
-            Utils.SetLayer(gloveObject, 20);
-
-            // define the colliders
-            Transform colliderObject = gloveObject.transform.Find("HandDummy/Arm Bone L/Wrist Bone L/Finger Index Bone L1/Finger Index Bone L2/Finger Index Bone L3/Finger Index Bone L4");
-            if (colliderObject == null) {
-                Utils.LogWarning("Manipulator is missing fingertip collider child object");
-                return manipulator;
-            }
-            SphereCollider fingertipCollider = colliderObject.GetComponent<SphereCollider>();
-
-            colliderObject = gloveObject.transform.Find("HandDummy/Arm Bone L/Wrist Bone L");
-            if (colliderObject == null) {
-                Utils.LogWarning("Manipulator is missing grip collider child object");
-                return manipulator;
-            }
-            CapsuleCollider gripCollider = colliderObject.GetComponent<CapsuleCollider>();
-            
-
-            // retrieve the animator
-            Animator manipulatorAnimator = gloveObject.GetComponent<Animator>();
-
             // define the Manipulator component
             Manipulator manipulatorComponent = manipulator.AddComponent<Manipulator>();
             manipulatorComponent.role = role;
-            manipulatorComponent.fingertipCollider = fingertipCollider;
-            manipulatorComponent.gripCollider = gripCollider;
-            manipulatorComponent.manipulatorAnimator = manipulatorAnimator;
 
 #if DEBUG
             GameObject manipulatorGizmo = Utils.CreateGizmo();
@@ -267,19 +210,6 @@ namespace KerbalVR
                 ManipulatorRight = manipulatorRight.GetComponent<Manipulator>();
             } else if (!DeviceIndexIsValid(ControllerIndexRight) && manipulatorRight != null) {
                 Destroy(manipulatorRight);
-            }
-        }
-
-        /// <summary>
-        /// Sets the size of each "VR hand".
-        /// </summary>
-        /// <param name="size">Size of the hand, in meters.</param>
-        protected void SetManipulatorSize(float size) {
-            if (manipulatorLeft != null) {
-                manipulatorLeft.transform.localScale = Vector3.one * ManipulatorSize;
-            }
-            if (manipulatorRight != null) {
-                manipulatorRight.transform.localScale = Vector3.one * ManipulatorSize;
             }
         }
 

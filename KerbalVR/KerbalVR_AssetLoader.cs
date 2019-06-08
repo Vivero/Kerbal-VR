@@ -36,9 +36,7 @@ namespace KerbalVR
             get {
                 if (_instance == null) {
                     _instance = FindObjectOfType<AssetLoader>();
-                    if (_instance == null) {
-                        Utils.LogError("The scene needs to have one active GameObject with a AssetLoader script attached!");
-                    } else {
+                    if (_instance != null) {
                         _instance.Initialize();
                     }
                 }
@@ -96,8 +94,6 @@ namespace KerbalVR
                 if (assetName.EndsWith(".prefab")) {
                     Utils.Log("Loading \"" + assetName + "\"");
                     GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
-
-                    // Utils.Log("assetGameObject.name = " + assetGameObject.name);
                     gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
                 }
             }

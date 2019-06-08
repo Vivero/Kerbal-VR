@@ -303,6 +303,8 @@ namespace KerbalVR {
             try {
                 InitializeOpenVR();
                 hmdState = HmdState.Initialized;
+                Utils.Log("Initialized OpenVR.");
+
             } catch (Exception e) {
                 hmdState = HmdState.InitFailed;
                 Utils.LogError("InitHMD failed: " + e);
