@@ -120,8 +120,8 @@ robocopy "$(ProjectDir)lib" "$(TargetDir)\rel\GameData\KerbalVR\openvr" /E
 robocopy "$(ProjectDir)Assets" "$(TargetDir)\rel\GameData\KerbalVR\Assets" /E
 
 :: Copy release into KSP directory
-if EXIST "C:\KSP_win64\" (
-  robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_win64\GameData\KerbalVR" /E
+if EXIST "C:\KSP_dev\" (
+  robocopy "$(TargetDir)\rel\GameData\KerbalVR" "C:\KSP_dev\GameData\KerbalVR" /E
 )
 
 :: Do NOT make robocopy the last command here. It gives a "bad" return value.
