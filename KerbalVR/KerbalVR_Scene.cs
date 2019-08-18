@@ -323,14 +323,17 @@ namespace KerbalVR
             if(sc != null)
                 sc.transform.rotation = worldRot;
 
-            var gcFound = GameObject.Find("GalaxyCamera");
-            if(gcFound != null)
-                gcFound.transform.rotation = worldRot;
+            if(galaxyCam == null)
+                galaxyCam = GameObject.Find("GalaxyCamera"); 
+            if(galaxyCam != null)
+                galaxyCam.transform.rotation = worldRot;
 
             // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
             HmdEyeRotation[(int)eye] = updatedRotation;
         }
+
+        static GameObject galaxyCam = null;
 
         private void UpdateFlightEvaScene(
             EVREye eye,
@@ -422,6 +425,9 @@ namespace KerbalVR
                     VRCameras[i].originalProjectionMatrix = foundCamera.projectionMatrix;
                     VRCameras[i].hmdProjectionMatrixL = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projectionMatrixL);
                     VRCameras[i].hmdProjectionMatrixR = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projectionMatrixR);
+
+                    if(foundCamera.name.Equals("GalaxyCamera") || foundCamera.name.Equals("Camera ScaledSpace"))
+                        VRCameras[i].IsSkyBox = true;
 
                     // disable the camera so we can call Render directly
                     foundCamera.enabled = false;

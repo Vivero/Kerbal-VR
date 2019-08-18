@@ -11,6 +11,7 @@ namespace KerbalVR
         // struct to keep track of Camera properties
         public struct CameraData
         {
+            public bool IsSkyBox;
             public Camera camera;
             public Matrix4x4 originalProjectionMatrix;
             public Matrix4x4 hmdProjectionMatrixL;
