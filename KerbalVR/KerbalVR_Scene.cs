@@ -289,12 +289,43 @@ namespace KerbalVR
             Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
             Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
 
-            // in flight, update the internal and flight cameras
-            InternalCamera.Instance.transform.position = updatedPosition;
-            InternalCamera.Instance.transform.rotation = updatedRotation;
+            var worldPos = InternalSpace.InternalToWorld(updatedPosition);
+            var worldRot = InternalSpace.InternalToWorld(updatedRotation);
 
-            FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-            FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+            // in flight, update the internal and flight cameras
+            var ic = InternalCamera.Instance;
+            if(ic != null)
+            {
+                ic.transform.position = updatedPosition;
+                ic.transform.rotation = updatedRotation;
+            }
+
+            var fc = FlightCamera.fetch;
+            if(fc != null)
+            {
+                fc.transform.position = worldPos;
+                fc.transform.rotation = worldRot;
+            }
+
+
+            var fx = FXCamera.Instance;
+            if(fx != null)
+            {
+                fx.transform.position = worldPos;
+                fx.transform.rotation = worldRot;
+            }
+
+            var gc = GalaxyCameraControl.Instance;
+            if(gc != null)
+                gc.transform.rotation = worldRot;
+
+            var sc = ScaledCamera.Instance;
+            if(sc != null)
+                sc.transform.rotation = worldRot;
+
+            var gcFound = GameObject.Find("GalaxyCamera");
+            if(gcFound != null)
+                gcFound.transform.rotation = worldRot;
 
             // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
