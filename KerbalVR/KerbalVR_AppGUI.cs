@@ -8,25 +8,30 @@ namespace KerbalVR
 {
     public class AppGUI
     {
-        private class TextFieldFloat {
+        private class TextFieldFloat
+        {
             private string parameterName;
             private Action<float> parameterCallback;
             private string valueStr;
 
-            public TextFieldFloat(string parameterName, float parameter, Action<float> parameterCallback) {
+            public TextFieldFloat(string parameterName, float parameter, Action<float> parameterCallback)
+            {
                 this.parameterName = parameterName;
                 this.parameterCallback = parameterCallback;
                 valueStr = parameter.ToString("F3");
             }
 
-            public void UpdateGUI() {
+            public void UpdateGUI()
+            {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(parameterName + ":", HighLogic.Skin.label);
                 valueStr = GUILayout.TextField(valueStr, HighLogic.Skin.textField);
-                if (GUI.changed) {
+                if (GUI.changed)
+                {
                     float updatedValue;
                     bool parseSuccess = System.Single.TryParse(valueStr, out updatedValue);
-                    if (parseSuccess) {
+                    if (parseSuccess)
+                    {
                         parameterCallback(updatedValue);
                     }
                 }
@@ -35,15 +40,19 @@ namespace KerbalVR
         }
 
         #region Constants
-        public static string AppButtonLogo {
-            get {
+        public static string AppButtonLogo
+        {
+            get
+            {
                 string path = Path.Combine(Globals.KERBALVR_TEXTURES_DIR, "app_button_logo");
                 return path.Replace("\\", "/");
             }
         }
 
-        public static bool SceneAllowsAppGUI {
-            get {
+        public static bool SceneAllowsAppGUI
+        {
+            get
+            {
                 return (
 #if DEBUG
                     (HighLogic.LoadedScene == GameScenes.MAINMENU) ||
@@ -93,7 +102,8 @@ namespace KerbalVR
         /// application launcher. Note that this callback can be called multiple times
         /// throughout the game.
         /// </summary>
-        public void OnAppLauncherReady() {
+        public void OnAppLauncherReady()
+        {
             // define where should the app button be visible
 
             /*
@@ -107,7 +117,8 @@ namespace KerbalVR
             */
 
             // create new app button instance if it doesn't already exist
-            if (appButton == null) {
+            if (appButton == null)
+            {
 
                 // init variables
                 worldScaleStr = Scene.Instance.WorldScale.ToString("F1");
@@ -128,11 +139,13 @@ namespace KerbalVR
             }
         }
 
-        void OnShow() {
+        void OnShow()
+        {
             appButtonGuiActive = appButtonGuiActiveLastState;
         }
 
-        void OnHide() {
+        void OnHide()
+        {
             appButtonGuiActiveLastState = appButtonGuiActive;
             appButtonGuiActive = false;
         }
@@ -142,8 +155,10 @@ namespace KerbalVR
         /// at the time the plugin is loaded. It destroys the application button on the
         /// application launcher.
         /// </summary>
-        public void OnAppLauncherDestroyed() {
-            if (appButton != null) {
+        public void OnAppLauncherDestroyed()
+        {
+            if (appButton != null)
+            {
                 OnToggleFalse();
                 ApplicationLauncher.Instance.RemoveApplication(appButton);
                 ApplicationLauncher.Instance.RemoveOnShowCallback(OnShow);
@@ -154,19 +169,23 @@ namespace KerbalVR
         /// <summary>
         /// Callback when the application button is toggled on.
         /// </summary>
-        public void OnToggleTrue() {
+        public void OnToggleTrue()
+        {
             appButtonGuiActive = true;
         }
 
         /// <summary>
         /// Callback when the application button is toggled off.
         /// </summary>
-        public void OnToggleFalse() {
+        public void OnToggleFalse()
+        {
             appButtonGuiActive = false;
         }
 
-        public void OnGUI() {
-            if (SceneAllowsAppGUI && appButtonGuiActive) {
+        public void OnGUI()
+        {
+            if (SceneAllowsAppGUI && appButtonGuiActive)
+            {
                 appGuiWindowRect = GUILayout.Window(
                     APP_GUI_ID,
                     appGuiWindowRect,
@@ -176,20 +195,23 @@ namespace KerbalVR
             }
         }
 
-        private void GenerateGUI(int windowId) {
+        private void GenerateGUI(int windowId)
+        {
             string buttonStringToggleVr = BUTTON_STRING_ENABLE_VR;
             string labelStringVrActive = LABEL_STRING_VR_INACTIVE;
             string buttonStringToggleMirror = BUTTON_STRING_ENABLE_MIRROR;
             GUIStyle labelStyleVrActive = new GUIStyle(HighLogic.Skin.label);
             labelStyleVrActive.normal.textColor = Color.red;
 
-            if (Core.HmdIsRunning) {
+            if (Core.HmdIsRunning)
+            {
                 buttonStringToggleVr = BUTTON_STRING_DISABLE_VR;
                 labelStringVrActive = LABEL_STRING_VR_ACTIVE;
                 labelStyleVrActive.normal.textColor = Color.green;
             }
 
-            if (Core.RenderHmdToScreen) {
+            if (Core.RenderHmdToScreen)
+            {
                 buttonStringToggleMirror = BUTTON_STRING_DISABLE_MIRROR;
             }
 
@@ -198,25 +220,36 @@ namespace KerbalVR
             // VR toggle button
             //------------------------------------------------------------------
             UnityEngine.GUI.enabled = Scene.Instance.SceneAllowsVR();
-            if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button)) {
-                if (Core.HmdIsEnabled) {
+            if (GUILayout.Button(buttonStringToggleVr, HighLogic.Skin.button))
+            {
+                if (Core.HmdIsEnabled)
+                {
                     Core.HmdIsEnabled = false;
-                } else {
+                }
+                else
+                {
                     Core.HmdIsEnabled = true;
                 }
             }
 
-            if (Core.CanResetSeatedPose()) {
-                if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button)) {
+            if (Core.CanResetSeatedPose())
+            {
+                if (GUILayout.Button("Reset Headset Position", HighLogic.Skin.button))
+                {
                     Core.ResetInitialHmdPosition();
                 }
             }
 
-            if (Core.HmdIsRunning) {
-                if (GUILayout.Button(buttonStringToggleMirror, HighLogic.Skin.button)) {
-                    if (Core.RenderHmdToScreen) {
+            if (Core.HmdIsRunning)
+            {
+                if (GUILayout.Button(buttonStringToggleMirror, HighLogic.Skin.button))
+                {
+                    if (Core.RenderHmdToScreen)
+                    {
                         Core.RenderHmdToScreen = false;
-                    } else {
+                    }
+                    else
+                    {
                         Core.RenderHmdToScreen = true;
                     }
                 }
@@ -240,17 +273,37 @@ namespace KerbalVR
 #if DEBUG
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hand Size:", HighLogic.Skin.label);
-            int handSizeScale = (int)(DeviceManager.Instance.ManipulatorSize * 100f + 0.5f);
-            string handSizeStr = handSizeScale.ToString();
-            handSizeStr = GUILayout.TextField(handSizeStr, HighLogic.Skin.textField);
-            if (GUI.changed) {
-                bool parseSuccess = System.Int32.TryParse(handSizeStr, out handSizeScale);
-                if (parseSuccess &&
-                    handSizeScale >= 1 &&
-                    handSizeScale <= 100) {
-                    DeviceManager.Instance.ManipulatorSize = handSizeScale * 0.01f;
-                } else {
-                    DeviceManager.Instance.ManipulatorSize = 0.45f;
+            int handSizeScaleLeft = (int)(DeviceManager.Instance.ManipulatorLeft.ManipulatorSize * 100f + 0.5f);
+            int handSizeScaleRight = (int)(DeviceManager.Instance.ManipulatorRight.ManipulatorSize * 100f + 0.5f);
+            string handSizeStrLeft = handSizeScaleLeft.ToString();
+            string handSizeStrRight = handSizeScaleRight.ToString();
+            handSizeStrLeft = GUILayout.TextField(handSizeStrLeft, HighLogic.Skin.textField);
+            handSizeStrRight = GUILayout.TextField(handSizeStrRight, HighLogic.Skin.textField);
+            if (GUI.changed)
+            {
+                bool parseSuccessLeft = System.Int32.TryParse(handSizeStrLeft, out handSizeScaleLeft);
+                bool parseSuccessRight = System.Int32.TryParse(handSizeStrRight, out handSizeScaleRight);
+
+                if (parseSuccessLeft &&
+                    handSizeScaleLeft >= 1 &&
+                    handSizeScaleLeft <= 100)
+                {
+                    DeviceManager.Instance.ManipulatorLeft.ManipulatorSize = handSizeScaleLeft * 0.01f;
+                }
+                else
+                {
+                    DeviceManager.Instance.ManipulatorLeft.ManipulatorSize = 0.45f;
+                }
+
+                if (parseSuccessRight &&
+                    handSizeScaleRight >= 1 &&
+                    handSizeScaleRight <= 100)
+                {
+                    DeviceManager.Instance.ManipulatorRight.ManipulatorSize = handSizeScaleRight * 0.01f;
+                }
+                else
+                {
+                    DeviceManager.Instance.ManipulatorRight.ManipulatorSize = 0.45f;
                 }
             }
             GUILayout.EndHorizontal();
@@ -260,12 +313,14 @@ namespace KerbalVR
             GUILayout.BeginHorizontal();
             GUILayout.Label("World Scale:", HighLogic.Skin.label);
             worldScaleStr = GUILayout.TextField(worldScaleStr, HighLogic.Skin.textField);
-            if (GUI.changed) {
+            if (GUI.changed)
+            {
                 float worldScale;
                 bool parseSuccess = System.Single.TryParse(worldScaleStr, out worldScale);
                 if (parseSuccess &&
                     worldScale >= 0.1 &&
-                    worldScale <= 10) {
+                    worldScale <= 10)
+                {
                     Scene.Instance.WorldScale = worldScale;
                 }
             }
@@ -274,7 +329,8 @@ namespace KerbalVR
             // init at startup toggle
             GUILayout.BeginHorizontal();
             bool initOpenVrAtStartup = GUILayout.Toggle(Configuration.Instance.InitOpenVrAtStartup, "Init OpenVR at startup", HighLogic.Skin.toggle);
-            if (GUI.changed) {
+            if (GUI.changed)
+            {
                 Configuration.Instance.InitOpenVrAtStartup = initOpenVrAtStartup;
             }
             GUILayout.EndHorizontal();
@@ -282,7 +338,8 @@ namespace KerbalVR
             // swap control stick yaw and roll
             GUILayout.BeginHorizontal();
             bool swapYawRollControls = GUILayout.Toggle(Configuration.Instance.SwapYawRollControls, "Swap Yaw/Roll Controls", HighLogic.Skin.toggle);
-            if (GUI.changed) {
+            if (GUI.changed)
+            {
                 Configuration.Instance.SwapYawRollControls = swapYawRollControls;
             }
             GUILayout.EndHorizontal();
