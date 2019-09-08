@@ -21,6 +21,9 @@ namespace KerbalVR
         public SteamVR_Controller.Device State { get; private set; }
         public Vector3 GripPosition { get; private set; }
 
+        // if this is 0.66, then the fingertip's collider will be only 66% as big as the glove's model original fingertip sphere collider. 1.0 keeps the original size.
+        private float _overrideFingertipScale = 0.66f;
+
         // Manipulator object properties
         private float _manipulatorSize = 0.45f;
         public float ManipulatorSize {
@@ -94,6 +97,9 @@ namespace KerbalVR
                     return;
                 }
                 fingertipCollider = colliderObject.GetComponent<SphereCollider>();
+
+                // Reduce the size of the finger tip to avoid butterfingers on the square buttons around RasterPropMonitor (the regular fingerTip's sphere clicks 3 at once).
+                fingertipCollider.transform.localScale = _overrideFingertipScale * fingertipCollider.transform.localScale;
 
                 colliderObject = gloveGameObject.transform.Find("HandDummy/Arm Bone L/Wrist Bone L");
                 if (colliderObject == null) {
