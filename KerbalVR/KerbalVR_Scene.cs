@@ -12,11 +12,22 @@ namespace KerbalVR
     /// </summary>
     public class Scene : MonoBehaviour
     {
+        /*
+         * Camera 00
+        [LOG 21:31:53.750] [KerbalVR] Camera Found: Camera 00
+        [LOG 21:31:53.750] [KerbalVR] Camera Found: FXDepthCamera
+        [LOG 21:31:53.750] [KerbalVR] Camera Found: FXCamera
+        [LOG 21:31:53.750] [KerbalVR] Camera Found: InternalCamera
+        [LOG 21:31:53.750] [KerbalVR] Camera Found: UIMainCamera
+        [LOG 21:31:53.750] [KerbalVR] Camera Found: UIVectorCamera
+        [LOG 21:31:53.750] [KerbalVR] Camera Found: velocity camera
+
+           
+         */
         #region Constants
         public static readonly string[] FLIGHT_SCENE_IVA_CAMERAS = {
             "GalaxyCamera",
             "Camera ScaledSpace",
-            "Camera 01",
             "Camera 00",
             "InternalCamera",
         };
@@ -24,7 +35,6 @@ namespace KerbalVR
         public static readonly string[] FLIGHT_SCENE_EVA_CAMERAS = {
             "GalaxyCamera",
             "Camera ScaledSpace",
-            "Camera 01",
             "Camera 00",
         };
 
@@ -382,7 +392,7 @@ namespace KerbalVR
 
                 } else {
                     // determine clip plane and new projection matrices
-                    float nearClipPlane = (foundCamera.name.Equals("Camera 01")) ? 0.05f : foundCamera.nearClipPlane;
+                    float nearClipPlane = (foundCamera.name.Equals("Camera 00")) ? 0.05f : foundCamera.nearClipPlane;
                     HmdMatrix44_t projectionMatrixL = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, foundCamera.farClipPlane);
                     HmdMatrix44_t projectionMatrixR = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, foundCamera.farClipPlane);
 
