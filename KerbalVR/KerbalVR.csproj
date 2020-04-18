@@ -159,6 +159,7 @@ if EXIST "C:\KSP_dev\" (
 
 :: Do NOT make robocopy the last command here. It gives a "bad" return value.
 :: Make these simple copy commands the last events.
+copy /Y "$(SolutionDir)\LICENSE-aset_props" "$(TargetDir)\rel\"
 copy /Y "$(SolutionDir)\LICENSE-openvr" "$(TargetDir)\rel\"
 copy /Y "$(SolutionDir)\LICENSE-steamvr" "$(TargetDir)\rel\"
 copy /Y "$(SolutionDir)\LICENSE" "$(TargetDir)\rel\"
