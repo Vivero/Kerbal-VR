@@ -16,7 +16,6 @@ namespace KerbalVR
         public static readonly string[] FLIGHT_SCENE_IVA_CAMERAS = {
             "GalaxyCamera",
             "Camera ScaledSpace",
-            "Camera 01",
             "Camera 00",
             "InternalCamera",
         };
@@ -24,14 +23,12 @@ namespace KerbalVR
         public static readonly string[] FLIGHT_SCENE_EVA_CAMERAS = {
             "GalaxyCamera",
             "Camera ScaledSpace",
-            "Camera 01",
             "Camera 00",
         };
 
         public static readonly string[] SPACECENTER_SCENE_CAMERAS = {
             "GalaxyCamera",
             "Camera ScaledSpace",
-            "Camera 01",
             "Camera 00",
         };
 
@@ -382,7 +379,7 @@ namespace KerbalVR
 
                 } else {
                     // determine clip plane and new projection matrices
-                    float nearClipPlane = (foundCamera.name.Equals("Camera 01")) ? 0.05f : foundCamera.nearClipPlane;
+                    float nearClipPlane = 0.05f;
                     HmdMatrix44_t projectionMatrixL = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, foundCamera.farClipPlane);
                     HmdMatrix44_t projectionMatrixR = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, foundCamera.farClipPlane);
 

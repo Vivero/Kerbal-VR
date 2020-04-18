@@ -429,8 +429,6 @@ namespace KerbalVR {
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3:
                     textureType = ETextureType.OpenGL;
                     throw new InvalidOperationException(SystemInfo.graphicsDeviceType.ToString() + " does not support VR. You must use -force-d3d12");
-                case UnityEngine.Rendering.GraphicsDeviceType.Direct3D9:
-                    throw new InvalidOperationException(SystemInfo.graphicsDeviceType.ToString() + " does not support VR. You must use -force-d3d12");
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
                     textureType = ETextureType.DirectX;
                     break;

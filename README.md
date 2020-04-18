@@ -1,29 +1,35 @@
 # KerbalVR
 
-An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset (HTC Vive, Windows MR, Oculus Rift, etc), as supported by OpenVR. Supports in-flight IVA, and room-scale VAB / SPH.
+An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset
+(HTC Vive, Valve Index, Windows MR, Oculus Rift, etc), as supported by OpenVR.
+Supports in-flight IVA, and room-scale VAB / SPH.
 
 ### FOLLOW the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide), as there is a little bit more setup compared to other KSP mods.
 
 ----
 
-**Built for KSP v1.7.1**
+**Built for KSP v1.9.1**
 
 [Demonstration video](https://www.youtube.com/watch?v=DjQauN66rQA)
 
 ----
 
-This is a WIP mod to allow the use of the HTC Vive (and any other HMD supported by the OpenVR SDK) in KSP. The primary focus is for use in IVA, and can also be used to walk around inside the VAB or SPH (room-scale).
+This is a forever-WIP mod to allow the use of VR headsets in KSP. The primary focus is
+for flight control in IVA, but can also be used for room-scale viewing inside the VAB or SPH.
 
-IVA in VR puts you inside the cockpit of your craft. You can look around (and walk around if you have the physical space around you). Currently, it is possible to interact with cockpit instrumentation provided by the RPM mod (see note below); I am actively working on adding more immersive features for the cockpit (more **coming soon!**). The goal is to replace the use of the keyboard and mouse entirely with interactive cockpit controls (buttons, switches, control sticks, throttles, etc.)
+IVA in VR puts you inside the cockpit of your craft. You can look around (and walk around if
+you have the physical space around you). Currently, it is possible to interact with cockpit
+instrumentation provided by the RPM mod (see note below); more immersive features for the
+cockpit may come sometime in the future. The goal is to replace the use of the keyboard and
+mouse entirely with interactive cockpit controls (buttons, switches, control sticks, throttles, etc.)
 
 Room-scale VR in the VAB and SPH allows you to walk around inside the building and see your craft at a 1:1 scale.
 
-It is possible to get 90 FPS by following the **Performance Tips** below.
+Performance will vary wildly between setups. There is an infinite combination of PC specs,
+video cards, VR rendering resolutions, headset refresh rates, etc. It is difficult to achieve
+a smooth experience, but you may try the **Performance Tips** below.
 
 **You may experience random crashes while using the mod. You have been warned.**
-
-VR will only work with KSP using Direct3D 12, i.e. you need to use the `-force-d3d12` flag on the executable. It will not work if you try to run KSP normally. To enable the Direct3D 12 flag, create a Shortcut to either `KSP.exe` or `KSP_x64.exe`, and on the shortcut Properties, append `-force-d3d12` to the Target. Follow the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide) if you're having trouble.
-
 
 ## Requirements
 
@@ -41,9 +47,14 @@ For guidance on compiling this project and other project documentation, see the 
 
 ## Known Issues
 
-Actually there's a lot of [issues](https://github.com/Vivero/Kerbal-VR/issues), but this one is noteworthy: when I run KSP with KerbalVR, the part icons in the VAB/SPH appear blue! Hwo to fix!!1??1???
+- *There's lots of stuttering while in VR!*
 
-Well this problem is not my fault, but there's a fix. You need to download [this fix](https://drive.google.com/file/d/1sb2_qyvBsBPrQFyGldK5x7uW2UJb14et/view), and place it in your `GameData` folder like any other mod. You can read more about it [here](https://github.com/Vivero/Kerbal-VR/issues/41) and [here](https://forum.kerbalspaceprogram.com/index.php?/topic/168795-electrocutors-thread/). 
+  Yea I dunno what to do about that. No guarantees, but try the **Performance Tips** below. This game
+  wasn't designed with VR in mind, and there isn't a whole lot I can do from a modding perspective.
+
+- *When I enable VR in the VAB/SPH, everything looks blue!*
+
+  Yep. Dunno why. Have fun!
 
 
 ## RasterProp Monitor
@@ -58,37 +69,16 @@ A set of VR-ready cockpits is provided by the [KVR Pods](https://github.com/Vive
 
 ## Performance Tips
 
-For best performance, go to the Settings menu in Kerbal Space Program, and under the Graphics tab, set:
+You may need to tone down the graphics for best performance. Try these in the Settings menu, under the Graphics tab:
 
 - **Screen Resolution:** 1024 x 768
 - **Full Screen:** unchecked
 - **V-Sync:** Don't Sync
-- **Frame Limit:** 100 FPS (or higher)
+- **Frame Limit:** 180 FPS
 
-It is important to set V-Sync and Frame Limit as described above so that the Vive is able to render the game at 90 FPS. Experiment with the rest of the settings as you see fit.
+Something that seemed to help a lot was turning on **Legacy Reprojection Mode** in the SteamVR
+per-application settings for Kerbal Space Program.
 
-The **Render Quality** seems to have a large impact on performance; if it is set too high, you may experience erratic flickering while in VR (see [issue 21](https://github.com/Vivero/Kerbal-VR/issues/21)).
+![SteamVR Settings](https://imgur.com/LqTbD2u.png)
 
-
-## Tested System Configurations
-
-I'm developing this mod with a Vive / Core i5-6600K / GTX 1070. Other systems have been tested by users, as described below:
-
-
-### Hardware
-
-| Headset     | Controllers        | OS        | CPU                          | GPU                  |
-|-------------|--------------------|-----------|------------------------------|----------------------|
-| HTC Vive    | Vive Wands         | Win10 x64 | Intel Core i5-4590           | GeForce GTX 770 x2   |
-| Oculus Rift | Oculus Touch       |           | Intel Core i5-6600K (4.4GHz) | GeForce GTX 970      |
-| Windows MR  | Motion Controllers |           | Intel Core i5-7300HQ         | GeForce GTX 1050Ti   |
-|             |                    |           | Intel Core i7-4790K          | GeForce GTX 1070     |
-|             |                    |           | Intel Core i7-6700K          | GeForce GTX 1080     |
-|             |                    |           | Intel Core i7-8700K          | Radeon RX 480        |
-|             |                    |           | AMD Ryzen 7                  |                      |
-
-### Drivers
-
-| Nvidia | SteamVR                  |
-|--------|--------------------------|
-| 430.86 | 1.5.6 (1559872573)       |
+Make sure you update your graphics drivers and SteamVR.
