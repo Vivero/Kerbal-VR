@@ -10,6 +10,8 @@ namespace KerbalVR
     /// </summary>
     public class DeviceManager : MonoBehaviour
     {
+        public float ManipulatorSize = 1.0f;
+
         #region Properties
         // Manipulator objects
         public Manipulator ManipulatorLeft { get; private set; }
@@ -29,7 +31,6 @@ namespace KerbalVR
         private GameObject manipulatorLeft;
         private GameObject manipulatorRight;
         #endregion
-
 
         #region Singleton
         // this is a singleton class, and there must be one DeviceManager in the scene

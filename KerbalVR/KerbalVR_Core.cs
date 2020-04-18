@@ -346,18 +346,21 @@ namespace KerbalVR {
              */
 
             // position of the eye in the VR reference frame
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
             // update position of the cameras
             Scene.Instance.UpdateScene(eye, hmdTransform, hmdEyeTransform);
 
             // render the set of cameras
             for (int i = 0; i < Scene.Instance.NumVRCameras; i++) {
+
                 Types.CameraData camData = Scene.Instance.VRCameras[i];
+                Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+                if(camData.IsSkyBox)
+                    positionToEye = hmdTransform.pos;
 
                 // set projection matrix
                 camData.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
-                    camData.hmdProjectionMatrixL : camData.hmdProjectionMatrixR;
+                        camData.hmdProjectionMatrixL : camData.hmdProjectionMatrixR;
 
                 // set texture to render to, then render
                 camData.camera.targetTexture = hmdEyeRenderTexture;
