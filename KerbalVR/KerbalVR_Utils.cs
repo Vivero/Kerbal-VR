@@ -203,12 +203,16 @@ namespace KerbalVR
                 Utils.Log("* allowHDR? " + cam.allowHDR);
                 Utils.Log("* allowMSAA? " + cam.allowMSAA);
                 Utils.Log("* depthTextureMode: " + cam.depthTextureMode);
+
+                GameObject camGameObject = cam.gameObject;
+                PrintGameObjectTree(camGameObject);
+                Utils.Log(" ");
             }
         }
 
         public static void PrintGameObject(GameObject go) {
             Log("GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " +
-                go.name + " (layer: " + go.layer + ")");
+                go.name + " (layer: " + go.layer + ") (Parent: " + go.transform.parent.name + ")");
             Component[] components = go.GetComponents<Component>();
             for (int i = 0; i < components.Length; i++) {
                 Log("Component: " + components[i].ToString());
