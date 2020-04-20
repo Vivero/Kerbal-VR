@@ -31,6 +31,13 @@ namespace KerbalVR
         #endregion
 
 
+#if DEBUG
+        #region Debug Hooks
+        public float ManipulatorSize { get; set; }
+        #endregion
+#endif
+
+
         #region Singleton
         // this is a singleton class, and there must be one DeviceManager in the scene
         private static DeviceManager _instance;
@@ -56,6 +63,11 @@ namespace KerbalVR
 
             ControllerIndexLeft = OpenVR.k_unTrackedDeviceIndexInvalid;
             ControllerIndexRight = OpenVR.k_unTrackedDeviceIndexInvalid;
+
+#if DEBUG
+            // debug hooks
+            ManipulatorSize = 1f;
+#endif
         }
         #endregion
         
