@@ -127,6 +127,7 @@ namespace KerbalVR
         #region Private Members
         private Dictionary<GameScenes, float> inverseWorldScale;
         private float editorMovementSpeed = 1f;
+        private GameObject galaxyCamera = null;
         #endregion
 
 
@@ -279,19 +280,25 @@ namespace KerbalVR
             CurrentRotation = InitialRotation;
 
             // get position of your eyeball
-            Vector3 positionToHmd = hmdTransform.pos;
+            // Vector3 positionToHmd = hmdTransform.pos;
             Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
             // translate device space to Unity space, with world scaling
             Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
             Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
+            Vector3 updatedWorldPosition = InternalSpace.InternalToWorld(updatedPosition);
+            Quaternion updatedWorldRotation = InternalSpace.InternalToWorld(updatedRotation);
 
             // in flight, update the internal and flight cameras
             InternalCamera.Instance.transform.position = updatedPosition;
             InternalCamera.Instance.transform.rotation = updatedRotation;
 
-            FlightCamera.fetch.transform.position = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.position);
-            FlightCamera.fetch.transform.rotation = InternalSpace.InternalToWorld(InternalCamera.Instance.transform.rotation);
+            FlightCamera.fetch.transform.position = updatedWorldPosition;
+            FlightCamera.fetch.transform.rotation = updatedWorldRotation;
+
+            // update the sky cameras
+            ScaledCamera.Instance.transform.rotation = updatedWorldRotation;
+            galaxyCamera.transform.rotation = updatedWorldRotation;
 
             // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
@@ -319,8 +326,8 @@ namespace KerbalVR
             FlightCamera.fetch.transform.position = updatedPosition;
             FlightCamera.fetch.transform.rotation = updatedRotation;
 
-            ScaledCamera.Instance.transform.position = updatedPosition;
             ScaledCamera.Instance.transform.rotation = updatedRotation;
+            galaxyCamera.transform.rotation = updatedRotation;
 
             // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
@@ -379,9 +386,8 @@ namespace KerbalVR
 
                 } else {
                     // determine clip plane and new projection matrices
-                    float nearClipPlane = 0.05f;
-                    HmdMatrix44_t projectionMatrixL = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, nearClipPlane, foundCamera.farClipPlane);
-                    HmdMatrix44_t projectionMatrixR = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, nearClipPlane, foundCamera.farClipPlane);
+                    HmdMatrix44_t projectionMatrixL = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Left, foundCamera.nearClipPlane, foundCamera.farClipPlane);
+                    HmdMatrix44_t projectionMatrixR = OpenVR.System.GetProjectionMatrix(EVREye.Eye_Right, foundCamera.nearClipPlane, foundCamera.farClipPlane);
 
                     // store information about the camera
                     VRCameras[i].camera = foundCamera;
@@ -391,6 +397,11 @@ namespace KerbalVR
 
                     // disable the camera so we can call Render directly
                     foundCamera.enabled = false;
+
+                    // cache the galaxy camera object, we'll need to call on it directly during eyeball positioning
+                    if (foundCamera.name == "GalaxyCamera") {
+                        galaxyCamera = foundCamera.gameObject;
+                    }
                 }
             }
         }
