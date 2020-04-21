@@ -136,6 +136,7 @@ namespace KerbalVR
             // create callbacks for the buttons
             vrEnableButton = GameObject.Find("KVR_UI_EnableButton");
             Button vrEnableButtonComponent = vrEnableButton.GetComponent<Button>();
+            vrEnableButtonComponent.interactable = KerbalVR.Core.HmdIsAllowed;
             vrEnableButtonComponent.onClick.AddListener(OnVrEnableButtonClicked);
 
             resetPositionButton = GameObject.Find("KVR_UI_ResetPosButton");
@@ -183,6 +184,12 @@ namespace KerbalVR
             KerbalVR.Events.HmdStatusUpdated.Listen(OnHmdStatusUpdated);
         }
 
+        private void Update() {
+            // verify what buttons can be pressed
+            vrEnableButton.GetComponent<Button>().interactable = KerbalVR.Core.HmdIsAllowed;
+            resetPositionButton.GetComponent<Button>().interactable = KerbalVR.Core.CanResetSeatedPose();
+        }
+
         void OnVrEnableButtonClicked() {
             // toggle the VR enable
             if (KerbalVR.Core.HmdIsEnabled) {
@@ -227,7 +234,6 @@ namespace KerbalVR
                 vrStatusText.text = "DISABLED";
                 vrStatusText.color = Color.red;
             }
-            resetPositionButton.GetComponent<Button>().interactable = KerbalVR.Core.CanResetSeatedPose();
         }
 
         // this event fires when a drag event begins
