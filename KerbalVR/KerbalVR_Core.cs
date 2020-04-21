@@ -412,14 +412,14 @@ namespace KerbalVR {
             uint renderTextureHeight = 0;
             OpenVR.System.GetRecommendedRenderTargetSize(ref renderTextureWidth, ref renderTextureHeight);
 
-            // at the moment, only Direct3D12 is working with Kerbal Space Program
+            // at the moment, only Direct3D11 is working with Kerbal Space Program
             ETextureType textureType = ETextureType.DirectX;
             switch (SystemInfo.graphicsDeviceType) {
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2:
                 case UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3:
                     textureType = ETextureType.OpenGL;
-                    throw new InvalidOperationException(SystemInfo.graphicsDeviceType.ToString() + " does not support VR. You must use -force-d3d12");
+                    throw new InvalidOperationException(SystemInfo.graphicsDeviceType.ToString() + " does not support VR. You must use -force-d3d11");
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
                     textureType = ETextureType.DirectX;
                     break;
