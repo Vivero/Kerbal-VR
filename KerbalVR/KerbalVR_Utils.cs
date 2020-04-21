@@ -30,6 +30,10 @@ namespace KerbalVR
             Debug.LogError(Globals.LOG_PREFIX + obj);
         }
 
+        public static void PostScreenMessage(object obj) {
+            ScreenMessages.PostScreenMessage(Globals.LOG_PREFIX + obj);
+        }
+
         public static bool Is64BitProcess {
             get { return (IntPtr.Size == 8); }
         }

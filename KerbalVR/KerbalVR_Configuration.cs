@@ -53,10 +53,20 @@ namespace KerbalVR
                 SaveSettings();
             }
         }
-        #endregion
 
-
-        #region Private Members
+        /// <summary>
+        /// Scale of the world while in VR
+        /// </summary>
+        private float _worldScale;
+        public float WorldScale {
+            get {
+                return _worldScale;
+            }
+            set {
+                _worldScale = value;
+                SaveSettings();
+            }
+        }
         #endregion
 
 
@@ -86,12 +96,16 @@ namespace KerbalVR
                 string kvrSettingsText = File.ReadAllText(KERBALVR_SETTINGS_PATH);
                 Settings kvrSettings = JsonUtility.FromJson<Settings>(kvrSettingsText);
 
-                // store the settings
+                // store the settings from file
                 this._initOpenVrAtStartup = kvrSettings.initOpenVrAtStartup;
+                this._swapYawRollControls = kvrSettings.swapYawRollControls;
+                this._worldScale = kvrSettings.worldScale;
 
 #if DEBUG
                 Utils.Log("Loaded Configuration:");
                 Utils.Log("initOpenVrAtStartup = " + kvrSettings.initOpenVrAtStartup);
+                Utils.Log("swapYawRollControls = " + kvrSettings.swapYawRollControls);
+                Utils.Log("worldScale = " + kvrSettings.worldScale);
 #endif
 
             } else {
@@ -108,6 +122,7 @@ namespace KerbalVR
             Settings kvrSettings = new Settings();
             kvrSettings.initOpenVrAtStartup = this.InitOpenVrAtStartup;
             kvrSettings.swapYawRollControls = this.SwapYawRollControls;
+            kvrSettings.worldScale = this.WorldScale;
 
             // write to file
             string kvrSettingsText = JsonUtility.ToJson(kvrSettings, true);
@@ -122,5 +137,6 @@ namespace KerbalVR
     public class Settings {
         public bool initOpenVrAtStartup = true;
         public bool swapYawRollControls = false;
+        public float worldScale = 1f;
     }
 }

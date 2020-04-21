@@ -76,6 +76,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>ksp_lib\UnityEngine.UI.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>ksp_lib\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.VRModule">
       <HintPath>ksp_lib\UnityEngine.VRModule.dll</HintPath>
     </Reference>
@@ -91,12 +94,12 @@
     <Compile Include="Components\KVR_SwitchThreeState.cs" />
     <Compile Include="KerbalVR_Configuration.cs" />
     <Compile Include="KerbalVR_Core.cs" />
-    <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
     <Compile Include="KerbalVR_DeviceManager.cs" />
     <Compile Include="KerbalVR_Globals.cs" />
     <Compile Include="KerbalVR_Manipulator.cs" />
     <Compile Include="KerbalVR_MathUtils.cs" />
+    <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_Scene.cs" />
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />

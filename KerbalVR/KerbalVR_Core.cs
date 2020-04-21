@@ -239,7 +239,10 @@ namespace KerbalVR {
             }
 #endif
 
-            // keep track of whether we were running the HMD
+            // keep track of whether we were running the HMD, emit an update if the running status changed
+            if (HmdIsRunning != hmdIsRunningPrev) {
+                KerbalVR.Events.HmdStatusUpdated.Send(HmdIsRunning);
+            }
             hmdIsRunningPrev = HmdIsRunning;
         }
 

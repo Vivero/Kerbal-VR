@@ -138,7 +138,10 @@ namespace KerbalVR
 
         public static Event<SteamVR_Controller.Device> ManipulatorRightUpdated = new Event<SteamVR_Controller.Device>();
         public static Action ManipulatorRightUpdatedAction(UnityAction<SteamVR_Controller.Device> action) { return new Action<SteamVR_Controller.Device>(ManipulatorRightUpdated, action); }
-        
+
+        public static Event<bool> HmdStatusUpdated = new Event<bool>();
+        public static Action HmdStatusUpdatedAction(UnityAction<bool> action) { return new Action<bool>(HmdStatusUpdated, action); }
+
         static Dictionary<string, Event> avionicsSignals = new Dictionary<string, Event>();
         public static Event Avionics(string signalName) {
             Event e;

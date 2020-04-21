@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 namespace KerbalVR
 {
@@ -15,11 +16,14 @@ namespace KerbalVR
         /// <summary>
         /// Full path to the KerbalVR AssetBundle file.
         /// </summary>
-        public static string KERBALVR_ASSET_BUNDLE_PATH {
+        public static string[] KERBALVR_ASSET_BUNDLE_PATHS {
             get {
-                string gameDataPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData");
-                string kvrAssetBundlesPath = Path.Combine(gameDataPath, Globals.KERBALVR_ASSETBUNDLES_DIR);
-                return Path.Combine(kvrAssetBundlesPath, "kerbalvr.ksp");
+                string kvrAssetBundlesPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData", Globals.KERBALVR_ASSETBUNDLES_DIR);
+
+                string[] assetBundlePaths = new string[2];
+                assetBundlePaths[0] = Path.Combine(kvrAssetBundlesPath, "kerbalvr.ksp");
+                assetBundlePaths[1] = Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat");
+                return assetBundlePaths;
             }
         }
         #endregion
@@ -78,23 +82,26 @@ namespace KerbalVR
         }
 
         private void LoadAssets() {
-            // load asset bundle
-            AssetBundle bundle = AssetBundle.LoadFromFile(KERBALVR_ASSET_BUNDLE_PATH);
-            if (bundle == null) {
-                Utils.LogError("Error loading asset bundle from: " + KERBALVR_ASSET_BUNDLE_PATH);
-                return;
-            }
+            // load asset bundles
+            foreach (var path in KERBALVR_ASSET_BUNDLE_PATHS) {
+                AssetBundle bundle = AssetBundle.LoadFromFile(path);
+                if (bundle == null) {
+                    Utils.LogError("Error loading asset bundle from: " + path);
+                    return;
+                }
 
-            // enumerate assets
-            string[] assetNames = bundle.GetAllAssetNames();
-            for (int i = 0; i < assetNames.Length; i++) {
-                string assetName = assetNames[i];
+                // enumerate assets
+                Utils.Log("Inspecting asset bundle: " + path);
+                string[] assetNames = bundle.GetAllAssetNames();
+                for (int i = 0; i < assetNames.Length; i++) {
+                    string assetName = assetNames[i];
 
-                // find prefabs
-                if (assetName.EndsWith(".prefab")) {
-                    Utils.Log("Loading \"" + assetName + "\"");
-                    GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
-                    gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
+                    // find prefabs
+                    if (assetName.EndsWith(".prefab")) {
+                        Utils.Log("Loading \"" + assetName + "\"");
+                        GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
+                        gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
+                    }
                 }
             }
         }
