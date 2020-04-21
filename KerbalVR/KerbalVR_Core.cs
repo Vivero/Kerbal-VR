@@ -90,7 +90,6 @@ namespace KerbalVR {
 #endif
 
             // init objects
-            gui = new AppGUI();
             HmdIsAllowed = false;
 
             // init GameObjects
@@ -118,19 +117,8 @@ namespace KerbalVR {
             // shutting off the HMD outside of allowed VR scenes
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
 
-            // when ready for a GUI, load it
-            GameEvents.onGUIApplicationLauncherReady.Add(gui.OnAppLauncherReady);
-            GameEvents.onGUIApplicationLauncherDestroyed.Add(gui.OnAppLauncherDestroyed);
-
             // don't destroy this object when switching scenes
             DontDestroyOnLoad(this);
-        }
-
-        /// <summary>
-        /// Overrides the OnGUI method to render the application launcher GUI.
-        /// </summary>
-        private void OnGUI() {
-            gui.OnGUI();
         }
 
         /// <summary>

@@ -10,9 +10,16 @@ namespace KerbalVR
     public class AppGUILoader : MonoBehaviour //, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         #region Constants
-        public static string AppButtonLogo {
+        public static string APP_BUTTON_LOGO {
             get {
                 string path = Path.Combine(Globals.KERBALVR_TEXTURES_DIR, "app_button_logo");
+                return path.Replace("\\", "/");
+            }
+        }
+
+        public static string APP_BUTTON_LOGO_ALT {
+            get {
+                string path = Path.Combine(Globals.KERBALVR_TEXTURES_DIR, "app_button_logo_alt");
                 return path.Replace("\\", "/");
             }
         }
@@ -51,8 +58,6 @@ namespace KerbalVR
         /// throughout the game.
         /// </summary>
         public void OnAppLauncherReady() {
-            Utils.Log("NewGUILoader OnAppLauncherReady");
-
             // create new app button instance if it doesn't already exist
             if (appButton == null) {
                 appButton = ApplicationLauncher.Instance.AddModApplication(
@@ -60,7 +65,7 @@ namespace KerbalVR
                     OnToggleFalse,
                     null, null, null, null,
                     APP_VISIBILITY,
-                    GameDatabase.Instance.GetTexture(AppButtonLogo, false));
+                    GameDatabase.Instance.GetTexture(APP_BUTTON_LOGO, false));
             }
 
             // load the UI prefab
@@ -78,10 +83,8 @@ namespace KerbalVR
         /// application launcher.
         /// </summary>
         public void OnAppLauncherDestroyed() {
-            Utils.Log("NewGUILoader OnAppLauncherDestroyed");
-
             if (appButton != null) {
-                OnToggleFalse();
+                appButton.SetFalse(true);
                 ApplicationLauncher.Instance.RemoveApplication(appButton);
             }
         }
@@ -90,7 +93,6 @@ namespace KerbalVR
         /// Callback when the application button is toggled on.
         /// </summary>
         public void OnToggleTrue() {
-            Utils.Log("NewGUILoader OnToggleTrue");
             uiCanvas.SetActive(true);
         }
 
@@ -98,7 +100,6 @@ namespace KerbalVR
         /// Callback when the application button is toggled off.
         /// </summary>
         public void OnToggleFalse() {
-            Utils.Log("NewGUILoader OnToggleFalse");
             uiCanvas.SetActive(false);
         }
 
