@@ -17,10 +17,13 @@ namespace KerbalVR
         public readonly Vector3 GLOVE_ROTATION = new Vector3(-45f, 0f, 90f);
         #endregion
 
+
         #region Properties
         public SteamVR_Controller.Device State { get; private set; }
         public SteamVR_Utils.RigidTransform Pose { get; private set; }
         public Vector3 GripPosition { get; private set; }
+        public Collider FingertipCollider { get; private set; }
+        public Collider GripCollider { get; private set; }
 
         // Manipulator object properties
         private float _manipulatorSize = 0.45f;
@@ -39,12 +42,17 @@ namespace KerbalVR
 
 
         #region Members
-        public ETrackedControllerRole role;
-        public Collider fingertipCollider;
-        public Collider gripCollider;
-        public Animator manipulatorAnimator;
+        public ETrackedControllerRole role = ETrackedControllerRole.Invalid;
         public bool isGripping = false;
-        public GameObject gloveGameObject = null;
+        #endregion
+
+
+        #region Private Members
+        private Animator manipulatorAnimator;
+        private GameObject gloveGameObject = null;
+        private GameObject laserPointer = null;
+        private LineRenderer laserPointerRenderer = null;
+        private GameObject uiScreen;
         #endregion
 
 
@@ -61,7 +69,7 @@ namespace KerbalVR
             // apply logic once we have a Glove object
             if (gloveGameObject != null) {
                 // update transforms
-                GripPosition = gripCollider.transform.TransformPoint(((CapsuleCollider)gripCollider).center);
+                GripPosition = GripCollider.transform.TransformPoint(((CapsuleCollider)GripCollider).center);
 
                 // animate grip
                 manipulatorAnimator.SetBool("Hold", isGripping);
@@ -98,21 +106,54 @@ namespace KerbalVR
                     Utils.LogWarning("Manipulator is missing fingertip collider child object");
                     return;
                 }
-                fingertipCollider = colliderObject.GetComponent<SphereCollider>();
+                FingertipCollider = colliderObject.GetComponent<SphereCollider>();
 
                 colliderObject = gloveGameObject.transform.Find("HandDummy/Arm Bone L/Wrist Bone L");
                 if (colliderObject == null) {
                     Utils.LogWarning("Manipulator is missing grip collider child object");
                     return;
                 }
-                gripCollider = colliderObject.GetComponent<CapsuleCollider>();
+                GripCollider = colliderObject.GetComponent<CapsuleCollider>();
 
 
                 // retrieve the animator
                 manipulatorAnimator = gloveGameObject.GetComponent<Animator>();
 
-                FingertipManipulator fingertipManipulator = fingertipCollider.gameObject.AddComponent<FingertipManipulator>();
+                FingertipManipulator fingertipManipulator = FingertipCollider.gameObject.AddComponent<FingertipManipulator>();
                 FingertipCollidedGameObjects = fingertipManipulator.CollidedGameObjects;
+
+                // create a laser pointer
+                laserPointer = new GameObject();
+#if DEBUG
+                laserPointer.SetActive(true);
+#else
+                laserPointer.SetActive(false);
+#endif
+                Utils.SetLayer(laserPointer, KerbalVR.Scene.Instance.RenderLayer);
+                laserPointer.transform.SetParent(gloveGameObject.transform);
+                laserPointer.transform.localPosition = Vector3.zero;
+                laserPointerRenderer = laserPointer.AddComponent<LineRenderer>();
+                laserPointerRenderer.material = new Material(Shader.Find("KSP/Particles/Alpha Blended"));
+                laserPointerRenderer.startColor = Color.blue;
+                laserPointerRenderer.endColor = Color.red;
+                laserPointerRenderer.startWidth = 0.01f;
+                laserPointerRenderer.endWidth = 0.01f;
+
+                // create a UI screen
+                uiScreen = GameObject.CreatePrimitive(PrimitiveType.Quad);
+#if DEBUG
+                uiScreen.SetActive(true);
+#else
+                uiScreen.SetActive(false);
+#endif
+                Utils.SetLayer(uiScreen, KerbalVR.Scene.Instance.RenderLayer);
+                uiScreen.transform.SetParent(gloveGameObject.transform);
+                uiScreen.transform.localPosition = Vector3.forward * 0.4f;
+                uiScreen.transform.localRotation = Quaternion.Euler(0f, 270f, 0f);
+                uiScreen.transform.localScale = Vector3.one * 0.8f;
+                MeshRenderer uiScreenRenderer = uiScreen.GetComponent<MeshRenderer>();
+                uiScreenRenderer.material = new Material(Shader.Find("KSP/UnlitColor"));
+                uiScreenRenderer.material.color = Color.green;
             }
         }
 
@@ -139,13 +180,13 @@ namespace KerbalVR
 
     public class FingertipManipulator : MonoBehaviour {
 
-        #region Properties
+#region Properties
         public List<GameObject> CollidedGameObjects { get; private set; } = new List<GameObject>();
-        #endregion
+#endregion
 
-        #region Private Members
+#region Private Members
         private int numCollidersTouching = 0;
-        #endregion
+#endregion
 
         protected void OnTriggerEnter(Collider other) {
             // keep count of how many other colliders we've entered

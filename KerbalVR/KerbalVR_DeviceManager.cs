@@ -31,13 +31,6 @@ namespace KerbalVR
         #endregion
 
 
-#if DEBUG
-        #region Debug Hooks
-        public float ManipulatorSize { get; set; }
-        #endregion
-#endif
-
-
         #region Singleton
         // this is a singleton class, and there must be one DeviceManager in the scene
         private static DeviceManager _instance;
@@ -63,14 +56,9 @@ namespace KerbalVR
 
             ControllerIndexLeft = OpenVR.k_unTrackedDeviceIndexInvalid;
             ControllerIndexRight = OpenVR.k_unTrackedDeviceIndexInvalid;
-
-#if DEBUG
-            // debug hooks
-            ManipulatorSize = 1f;
-#endif
         }
         #endregion
-        
+
 
         /// <summary>
         /// When this GameObject is enabled, listen to OpenVR events.
@@ -198,15 +186,6 @@ namespace KerbalVR
             Manipulator manipulatorComponent = manipulator.AddComponent<Manipulator>();
             manipulatorComponent.role = role;
 
-#if DEBUG
-            GameObject manipulatorGizmo = Utils.CreateGizmo();
-            manipulatorGizmo.transform.SetParent(manipulator.transform);
-            manipulatorGizmo.transform.localPosition = Vector3.zero;
-            manipulatorGizmo.transform.localRotation = Quaternion.identity;
-            manipulatorGizmo.transform.localScale = Vector3.one * 0.5f;
-            Utils.SetLayer(manipulatorGizmo, KerbalVR.Scene.Instance.RenderLayer);
-#endif
-
             return manipulator;
         }
 
@@ -232,7 +211,7 @@ namespace KerbalVR
         /// <param name="collider">The Collider to check.</param>
         /// <returns>True if this is the left Manipulator's fingertip collider, false otherwise.</returns>
         public static bool IsManipulatorFingertipLeft(Collider collider) {
-            return Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.fingertipCollider;
+            return Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.FingertipCollider;
         }
 
         /// <summary>
@@ -241,7 +220,7 @@ namespace KerbalVR
         /// <param name="collider">The Collider to check.</param>
         /// <returns>True if this is the left Manipulator's grip collider, false otherwise.</returns>
         public static bool IsManipulatorGripLeft(Collider collider) {
-            return Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.gripCollider;
+            return Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.GripCollider;
         }
 
         /// <summary>
@@ -259,7 +238,7 @@ namespace KerbalVR
         /// <param name="collider">The Collider to check.</param>
         /// <returns>True if this is the right Manipulator's fingertip collider, false otherwise.</returns>
         public static bool IsManipulatorFingertipRight(Collider collider) {
-            return Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.fingertipCollider;
+            return Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.FingertipCollider;
         }
 
         /// <summary>
@@ -268,7 +247,7 @@ namespace KerbalVR
         /// <param name="collider">The Collider to check.</param>
         /// <returns>True if this is the right Manipulator's grip collider, false otherwise.</returns>
         public static bool IsManipulatorGripRight(Collider collider) {
-            return Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.gripCollider;
+            return Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.GripCollider;
         }
 
         /// <summary>
@@ -286,8 +265,8 @@ namespace KerbalVR
         /// <param name="collider">The Collider to check.</param>
         /// <returns>True if this is a Manipulator fingertip collider, false otherwise.</returns>
         public static bool IsManipulatorFingertip(Collider collider) {
-            return (Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.fingertipCollider) ||
-                (Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.fingertipCollider);
+            return (Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.FingertipCollider) ||
+                (Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.FingertipCollider);
         }
 
         /// <summary>
@@ -296,8 +275,8 @@ namespace KerbalVR
         /// <param name="collider">The Collider to check.</param>
         /// <returns>True if this is a Manipulator grip collider, false otherwise.</returns>
         public static bool IsManipulatorGrip(Collider collider) {
-            return (Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.gripCollider) ||
-                (Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.gripCollider);
+            return (Instance.manipulatorLeft != null && collider == Instance.ManipulatorLeft.GripCollider) ||
+                (Instance.manipulatorRight != null && collider == Instance.ManipulatorRight.GripCollider);
         }
 
         public static SteamVR_Controller.Device GetManipulatorLeftState() {
