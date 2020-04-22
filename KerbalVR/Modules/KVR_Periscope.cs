@@ -27,9 +27,6 @@ namespace KerbalVR.Modules
         // float crosshairOffset = 19f;
         float crosshairSize;
 
-        // DEBUG
-        private GameObject cameraGizmo;
-
         void Start() {
             // create a camera
             scopeCameraGameObject = new GameObject(gameObject.name + " PeriscopeCamera");

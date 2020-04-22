@@ -55,7 +55,7 @@ namespace KerbalVR.Components
             // sound effect
             try {
                 SoundEffect = ConfigUtils.SetupAudioClip(prop, configuration, "sound");
-            } catch (Exception e) {
+            } catch {
                 // specifying a sound should be optional, so catch the error but don't print any warnings.
             }
 

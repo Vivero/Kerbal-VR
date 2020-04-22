@@ -18,7 +18,7 @@ public class SteamVR_Camera : MonoBehaviour
 	public Transform offset { get { return _head; } } // legacy
 	public Transform origin { get { return _head.parent; } }
 
-	public new Camera camera { get; private set; }
+	public Camera camera { get; private set; }
 
 	[SerializeField]
 	private Transform _ears;
@@ -33,8 +33,8 @@ public class SteamVR_Camera : MonoBehaviour
 
 	static public float sceneResolutionScale
 	{
-		get { return UnityEngine.XR.XRSettings.renderScale; }
-		set { UnityEngine.XR.XRSettings.renderScale = value; }
+		get { return UnityEngine.XR.XRSettings.eyeTextureResolutionScale; }
+		set { UnityEngine.XR.XRSettings.eyeTextureResolutionScale = value; }
 	}
 
 	#region Enable / Disable
@@ -197,14 +197,6 @@ public class SteamVR_Camera : MonoBehaviour
 
 			while (transform.childCount > 0)
 				transform.GetChild(0).parent = head;
-#if !UNITY_2017_2_OR_NEWER
-			var guiLayer = GetComponent<GUILayer>();
-			if (guiLayer != null)
-			{
-				DestroyImmediate(guiLayer);
-				head.gameObject.AddComponent<GUILayer>();
-			}
-#endif
 			var audioListener = GetComponent<AudioListener>();
 			if (audioListener != null)
 			{
@@ -228,14 +220,6 @@ public class SteamVR_Camera : MonoBehaviour
 		// Move children and components from head back to camera.
 		while (head.childCount > 0)
 			head.GetChild(0).parent = transform;
-#if !UNITY_2017_2_OR_NEWER
-		var guiLayer = head.GetComponent<GUILayer>();
-		if (guiLayer != null)
-		{
-			DestroyImmediate(guiLayer);
-			gameObject.AddComponent<GUILayer>();
-		}
-#endif
 		if (ears != null)
 		{
 			while (ears.childCount > 0)

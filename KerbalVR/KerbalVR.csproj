@@ -137,7 +137,6 @@
     <Compile Include="SteamVR\Scripts\SteamVR_RenderModel.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_Skybox.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_SphericalProjection.cs" />
-    <Compile Include="SteamVR\Scripts\SteamVR_Stats.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_TestController.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_TrackedCamera.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_TrackedObject.cs" />
