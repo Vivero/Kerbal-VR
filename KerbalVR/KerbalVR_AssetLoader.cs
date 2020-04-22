@@ -6,15 +6,15 @@ using TMPro;
 namespace KerbalVR
 {
     /// <summary>
-    /// The AssetLoader plugin should load at the Main Menu,
-    /// when all the asset bundles have been loaded.
+    /// The AssetLoader plugin should load Instantly,
+    /// while resources are being loaded.
     /// </summary>
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class AssetLoader : MonoBehaviour
     {
         #region Constants
         /// <summary>
-        /// Full path to the KerbalVR AssetBundle file.
+        /// List of AssetBundle file paths to load.
         /// </summary>
         public static string[] KERBALVR_ASSET_BUNDLE_PATHS {
             get {
@@ -87,20 +87,22 @@ namespace KerbalVR
                 AssetBundle bundle = AssetBundle.LoadFromFile(path);
                 if (bundle == null) {
                     Utils.LogError("Error loading asset bundle from: " + path);
-                    return;
                 }
+                else {
+                    // enumerate assets
+#if DEBUG
+                    Utils.Log("Inspecting asset bundle: " + path);
+#endif
+                    string[] assetNames = bundle.GetAllAssetNames();
+                    for (int i = 0; i < assetNames.Length; i++) {
+                        string assetName = assetNames[i];
 
-                // enumerate assets
-                Utils.Log("Inspecting asset bundle: " + path);
-                string[] assetNames = bundle.GetAllAssetNames();
-                for (int i = 0; i < assetNames.Length; i++) {
-                    string assetName = assetNames[i];
-
-                    // find prefabs
-                    if (assetName.EndsWith(".prefab")) {
-                        GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
-                        gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
-                        Utils.Log("Loaded \"" + assetGameObject.name + "\" from \"" + assetName + "\"");
+                        // find prefabs
+                        if (assetName.EndsWith(".prefab")) {
+                            GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
+                            gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
+                            Utils.Log("Loaded \"" + assetGameObject.name + "\" from \"" + assetName + "\"");
+                        }
                     }
                 }
             }

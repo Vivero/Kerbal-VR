@@ -69,11 +69,17 @@ namespace KerbalVR
 
             // initialize world scale values
             inverseWorldScale = new Dictionary<GameScenes, float>();
+            inverseWorldScale.Add(GameScenes.LOADING, 1f);
+            inverseWorldScale.Add(GameScenes.LOADINGBUFFER, 1f);
             inverseWorldScale.Add(GameScenes.MAINMENU, 1f);
+            inverseWorldScale.Add(GameScenes.SETTINGS, 1f);
+            inverseWorldScale.Add(GameScenes.CREDITS, 1f);
             inverseWorldScale.Add(GameScenes.SPACECENTER, 1f);
-            inverseWorldScale.Add(GameScenes.TRACKSTATION, 1f);
-            inverseWorldScale.Add(GameScenes.FLIGHT, 1f);
             inverseWorldScale.Add(GameScenes.EDITOR, 1f);
+            inverseWorldScale.Add(GameScenes.FLIGHT, 1f);
+            inverseWorldScale.Add(GameScenes.TRACKSTATION, 1f);
+            inverseWorldScale.Add(GameScenes.PSYSTEM, 1f);
+            inverseWorldScale.Add(GameScenes.MISSIONBUILDER, 1f);
         }
         #endregion
 

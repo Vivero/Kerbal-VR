@@ -179,12 +179,12 @@ namespace KerbalVR
         /// <returns>The GameObject for the "VR hand".</returns>
         protected GameObject CreateManipulator(ETrackedControllerRole role) {
             // create new GameObject
-            GameObject manipulator = new GameObject("KVR_Manipulator_" + role.ToString());
+            GameObject manipulator = new GameObject("KVR_Manipulator");
             DontDestroyOnLoad(manipulator);
 
             // define the Manipulator component
             Manipulator manipulatorComponent = manipulator.AddComponent<Manipulator>();
-            manipulatorComponent.role = role;
+            manipulatorComponent.SetRole(role);
 
             return manipulator;
         }

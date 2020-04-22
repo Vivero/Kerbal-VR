@@ -19,6 +19,7 @@ namespace KerbalVR
 
 
         #region Properties
+        public ETrackedControllerRole Role { get; private set; } = ETrackedControllerRole.Invalid;
         public SteamVR_Controller.Device State { get; private set; }
         public SteamVR_Utils.RigidTransform Pose { get; private set; }
         public Vector3 GripPosition { get; private set; }
@@ -42,13 +43,13 @@ namespace KerbalVR
 
 
         #region Members
-        public ETrackedControllerRole role = ETrackedControllerRole.Invalid;
         public bool isGripping = false;
         #endregion
 
 
         #region Private Members
         private Animator manipulatorAnimator;
+        private GameObject glovePrefab = null;
         private GameObject gloveGameObject = null;
         private GameObject laserPointer = null;
         private LineRenderer laserPointerRenderer = null;
@@ -56,15 +57,16 @@ namespace KerbalVR
         #endregion
 
 
+        protected void Awake() {
+            // listen to when VR is enabled/disabled
+            KerbalVR.Events.HmdStatusUpdated.AddListener(OnHmdRunStatusUpdated);
+        }
+
         protected void Update() {
             // determine if we need to load the Glove object
             if (gloveGameObject == null) {
                 LoadManipulatorRenderGameObject();
             }
-
-            // enable this object while VR is active
-            // TODO: can we make this a little more efficient?
-            Utils.SetGameObjectChildrenActive(this.gameObject, Core.HmdIsEnabled);
 
             // apply logic once we have a Glove object
             if (gloveGameObject != null) {
@@ -80,11 +82,20 @@ namespace KerbalVR
             transform.rotation = Scene.Instance.DevicePoseToWorld(Pose.rot);
         }
 
+        protected void OnHmdRunStatusUpdated(bool isRunning) {
+            // when VR is turned on, enable this manipulator object so it renders on screen and is interactable
+            if (isRunning) {
+                gameObject.SetActive(true);
+            } else {
+                gameObject.SetActive(false);
+            }
+        }
+
         protected void LoadManipulatorRenderGameObject() {
             AssetLoader assetLoader = AssetLoader.Instance;
             if (assetLoader != null) {
                 // define the render model
-                GameObject glovePrefab = AssetLoader.Instance.GetGameObject("GlovePrefab");
+                glovePrefab = AssetLoader.Instance.GetGameObject("GlovePrefab");
                 if (glovePrefab == null) {
                     Utils.LogError("GameObject \"GlovePrefab\" was not found!");
                     return;
@@ -92,7 +103,7 @@ namespace KerbalVR
                 gloveGameObject = Instantiate(glovePrefab);
                 gloveGameObject.transform.SetParent(this.transform);
                 Vector3 gloveObjectScale = Vector3.one * ManipulatorSize;
-                if (role == ETrackedControllerRole.RightHand) {
+                if (Role == ETrackedControllerRole.RightHand) {
                     gloveObjectScale.y *= -1f;
                 }
                 gloveGameObject.transform.localPosition = GLOVE_POSITION;
@@ -176,17 +187,26 @@ namespace KerbalVR
             State = state;
             Pose = pose;
         }
+
+        public void SetRole(ETrackedControllerRole role) {
+            if (role != ETrackedControllerRole.LeftHand && role != ETrackedControllerRole.RightHand) {
+                throw new ArgumentException("Cannot assign controller role \"" + role.ToString() + "\"");
+            }
+
+            // assign role
+            this.Role = role;
+        }
     } // class Manipulator
+
 
     public class FingertipManipulator : MonoBehaviour {
 
-#region Properties
+        /// <summary>
+        /// A list of objects that are colliding with this fingertip.
+        /// </summary>
         public List<GameObject> CollidedGameObjects { get; private set; } = new List<GameObject>();
-#endregion
 
-#region Private Members
         private int numCollidersTouching = 0;
-#endregion
 
         protected void OnTriggerEnter(Collider other) {
             // keep count of how many other colliders we've entered
