@@ -38,6 +38,11 @@ namespace KerbalVR
             "Main Camera",
             "markerCam",
         };
+
+        public static readonly string[] MAINMENU_SCENE_CAMERAS = {
+            "GalaxyCamera",
+            "Landscape Camera",
+        };
         #endregion
 
         #region Singleton
@@ -128,6 +133,8 @@ namespace KerbalVR
         private Dictionary<GameScenes, float> inverseWorldScale;
         private float editorMovementSpeed = 1f;
         private GameObject galaxyCamera = null;
+        private GameObject landscapeCamera = null;
+        private MainMenuEnvLogic mainMenuLogic = null;
         #endregion
 
 
@@ -148,6 +155,10 @@ namespace KerbalVR
         /// </summary>
         public void SetupScene() {
             switch (HighLogic.LoadedScene) {
+                case GameScenes.MAINMENU:
+                    SetupMainMenuScene();
+                    break;
+
                 case GameScenes.FLIGHT:
                     if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA) {
                         SetupFlightIvaScene();
@@ -167,6 +178,25 @@ namespace KerbalVR
 
             CurrentPosition = InitialPosition;
             CurrentRotation = InitialRotation;
+        }
+
+        private void SetupMainMenuScene() {
+            // use seated mode during main menu
+            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
+
+            // render KerbalVR objects on the default layer
+            RenderLayer = 0;
+
+            // generate list of cameras to render
+            PopulateCameraList(MAINMENU_SCENE_CAMERAS);
+
+            // cache the menu logic object
+            mainMenuLogic = GameObject.FindObjectOfType<MainMenuEnvLogic>();
+            mainMenuLogic.fadeEndDistance = 10f;
+
+            // set inital scene position
+            InitialPosition = Vector3.zero;
+            InitialRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
         }
 
         private void SetupFlightIvaScene() {
@@ -249,6 +279,10 @@ namespace KerbalVR
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
             switch (HighLogic.LoadedScene) {
+                case GameScenes.MAINMENU:
+                    UpdateMainMenuScene(eye, hmdTransform, hmdEyeTransform);
+                    break;
+
                 case GameScenes.FLIGHT:
                     if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA) {
                         UpdateFlightIvaScene(eye, hmdTransform, hmdEyeTransform);
@@ -268,6 +302,38 @@ namespace KerbalVR
 
             HmdPosition = CurrentPosition + CurrentRotation * hmdTransform.pos;
             HmdRotation = CurrentRotation * hmdTransform.rot;
+        }
+
+        private void UpdateMainMenuScene(
+            EVREye eye,
+            SteamVR_Utils.RigidTransform hmdTransform,
+            SteamVR_Utils.RigidTransform hmdEyeTransform) {
+
+            // lock in the initial rotation
+            CurrentRotation = InitialRotation;
+
+            // position should be based on where we need to look at the main menu. need
+            // to keep track of when the stage position changes
+            CurrentPosition = Vector3.MoveTowards(CurrentPosition, mainMenuLogic.camPivots[mainMenuLogic.currentStage].targetPoint.position, 0.1f);
+
+            // get position of your eyeball
+            // Vector3 positionToHmd = hmdTransform.pos;
+            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
+
+            // translate device space to Unity space, with world scaling
+            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
+            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
+
+            // update the menu scene
+            landscapeCamera.transform.position = updatedPosition;
+            landscapeCamera.transform.rotation = updatedRotation;
+
+            // update the sky cameras
+            galaxyCamera.transform.rotation = updatedRotation;
+
+            // store the eyeball position
+            HmdEyePosition[(int)eye] = updatedPosition;
+            HmdEyeRotation[(int)eye] = updatedRotation;
         }
 
         private void UpdateFlightIvaScene(
@@ -401,14 +467,20 @@ namespace KerbalVR
                     // cache the galaxy camera object, we'll need to call on it directly during eyeball positioning
                     if (foundCamera.name == "GalaxyCamera") {
                         galaxyCamera = foundCamera.gameObject;
+                    } else if (foundCamera.name == "Landscape Camera") {
+                        landscapeCamera = foundCamera.gameObject;
                     }
                 }
             }
         }
 
         public bool SceneAllowsVR() {
-            bool allowed;
+            bool allowed = false;
             switch (HighLogic.LoadedScene) {
+                case GameScenes.MAINMENU:
+                    allowed = true;
+                    break;
+
                 case GameScenes.FLIGHT:
                     allowed = ((CameraManager.Instance != null) && (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)) ||
                         ((FlightGlobals.ActiveVessel != null) && (FlightGlobals.ActiveVessel.isEVA));
