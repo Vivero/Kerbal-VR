@@ -21,7 +21,7 @@ namespace KerbalVR
                 string kvrAssetBundlesPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData", Globals.KERBALVR_ASSETBUNDLES_DIR);
 
                 string[] assetBundlePaths = new string[2];
-                assetBundlePaths[0] = Path.Combine(kvrAssetBundlesPath, "kerbalvr.ksp");
+                assetBundlePaths[0] = Path.Combine(kvrAssetBundlesPath, "kerbalvr.dat");
                 assetBundlePaths[1] = Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat");
                 return assetBundlePaths;
             }
@@ -98,9 +98,9 @@ namespace KerbalVR
 
                     // find prefabs
                     if (assetName.EndsWith(".prefab")) {
-                        Utils.Log("Loading \"" + assetName + "\"");
                         GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
                         gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
+                        Utils.Log("Loaded \"" + assetGameObject.name + "\" from \"" + assetName + "\"");
                     }
                 }
             }
