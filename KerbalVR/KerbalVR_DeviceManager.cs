@@ -204,6 +204,7 @@ namespace KerbalVR
             manipulatorGizmo.transform.localPosition = Vector3.zero;
             manipulatorGizmo.transform.localRotation = Quaternion.identity;
             manipulatorGizmo.transform.localScale = Vector3.one * 0.5f;
+            Utils.SetLayer(manipulatorGizmo, KerbalVR.Scene.Instance.RenderLayer);
 #endif
 
             return manipulator;

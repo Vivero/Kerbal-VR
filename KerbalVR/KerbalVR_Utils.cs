@@ -10,8 +10,8 @@ namespace KerbalVR
     /// </summary>
     public class Utils
     {
-        public static Component GetOrAddComponent<T>(GameObject obj) where T : Component {
-            Component c = obj.GetComponent<T>();
+        public static T GetOrAddComponent<T>(GameObject obj) where T : Component {
+            T c = obj.GetComponent<T>();
             if (c == null) {
                 c = obj.AddComponent<T>();
             }
@@ -178,13 +178,13 @@ namespace KerbalVR
         }
 
         public static void PrintAllCameras() {
-            Utils.Log("Scene: " + HighLogic.LoadedScene);
-            Utils.Log("CameraMode: " + CameraManager.Instance.currentCameraMode);
+            Log("Scene: " + HighLogic.LoadedScene);
+            Log("CameraMode: " + (CameraManager.Instance != null ? CameraManager.Instance.currentCameraMode.ToString() : "null"));
             for (int i = 0; i < Camera.allCamerasCount; i++) {
                 Camera cam = Camera.allCameras[i];
-                Utils.Log("Camera: " + cam.name);
-                Utils.Log("* clearFlags: " + cam.clearFlags);
-                Utils.Log("* backgroundColor: " + cam.backgroundColor);
+                Log("Camera (" + (i + 1) + "/" + Camera.allCamerasCount + "): " + cam.name);
+                Log("* clearFlags: " + cam.clearFlags);
+                Log("* backgroundColor: " + cam.backgroundColor);
 
                 string maskString = "[";
                 int[] cullingMaskLayers = Int32MaskToArray(Camera.allCameras[i].cullingMask);
@@ -195,44 +195,50 @@ namespace KerbalVR
                 maskString += String.Join(",", cullingMaskLayersStr);
                 maskString += "]";
 
-                Utils.Log("* cullingMask: " + maskString);
-                Utils.Log("* orthographic? " + cam.orthographic);
-                Utils.Log("* fieldOfView: " + cam.fieldOfView.ToString("F3"));
-                Utils.Log("* nearClipPlane: " + cam.nearClipPlane.ToString("F3"));
-                Utils.Log("* farClipPlane: " + cam.farClipPlane.ToString("F3"));
-                Utils.Log("* rect: " + cam.rect.ToString("F3"));
-                Utils.Log("* depth: " + cam.depth.ToString("F1"));
-                Utils.Log("* renderingPath: " + cam.renderingPath);
-                Utils.Log("* useOcclusionCulling? " + cam.useOcclusionCulling);
-                Utils.Log("* allowHDR? " + cam.allowHDR);
-                Utils.Log("* allowMSAA? " + cam.allowMSAA);
-                Utils.Log("* depthTextureMode: " + cam.depthTextureMode);
+                Log("* cullingMask: " + maskString);
+                Log("* orthographic? " + cam.orthographic);
+                Log("* fieldOfView: " + cam.fieldOfView.ToString("F3"));
+                Log("* nearClipPlane: " + cam.nearClipPlane.ToString("F3"));
+                Log("* farClipPlane: " + cam.farClipPlane.ToString("F3"));
+                Log("* rect: " + cam.rect.ToString("F3"));
+                Log("* depth: " + cam.depth.ToString("F1"));
+                Log("* renderingPath: " + cam.renderingPath);
+                Log("* useOcclusionCulling? " + cam.useOcclusionCulling);
+                Log("* allowHDR? " + cam.allowHDR);
+                Log("* allowMSAA? " + cam.allowMSAA);
+                Log("* depthTextureMode: " + cam.depthTextureMode);
 
                 GameObject camGameObject = cam.gameObject;
                 PrintGameObjectTree(camGameObject);
-                Utils.Log(" ");
+                Log(" ");
             }
         }
 
         public static void PrintGameObject(GameObject go) {
-            Log("GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " +
-                go.name + " (layer: " + go.layer + ") (Parent: " + go.transform.parent.name + ")");
+            string header = "GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " + go.name + " (layer: " + go.layer + ")";
+            if (go.transform.parent != null) {
+                header += " (Parent: " + go.transform.parent.name + ")";
+            }
+            Log(header);
             Component[] components = go.GetComponents<Component>();
             for (int i = 0; i < components.Length; i++) {
                 Log("Component: " + components[i].ToString());
 
                 if (components[i] is MeshFilter) {
                     MeshFilter meshFilter = components[i] as MeshFilter;
-                    Log("MeshFilter: " + meshFilter.sharedMesh.name +
-                        " (" + meshFilter.sharedMesh.vertexCount + " vertices)");
+                    if (meshFilter.sharedMesh != null) {
+                        Log("MeshFilter: " + meshFilter.sharedMesh.name + " (" + meshFilter.sharedMesh.vertexCount + " vertices)");
+                    }
                 }
 
                 if (components[i] is MeshRenderer) {
                     MeshRenderer meshRenderer = components[i] as MeshRenderer;
-                    Log("MeshRenderer (" + (meshRenderer.enabled ? "on" : "off") + "): " +
-                        meshRenderer.sharedMaterial.name +
-                        ", shader \"" + meshRenderer.sharedMaterial.shader.name + "\", " +
-                        "color " + meshRenderer.sharedMaterial.color);
+                    string logMsg = "MeshRenderer (" + (meshRenderer.enabled ? "on" : "off") + ")";
+                    if (meshRenderer.sharedMaterial != null) {
+                        logMsg += " (sharedMaterial=" + meshRenderer.sharedMaterial.name + ")";
+                        logMsg += " (color=" + meshRenderer.sharedMaterial.color + ")";
+                    }
+                    Log(logMsg);
                 }
             }
         }
@@ -245,24 +251,34 @@ namespace KerbalVR
             }
         }
 
+        public static void PrintAllGameObjects() {
+            GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
+            foreach (GameObject go in allObjects) {
+                if (go.activeInHierarchy) {
+                    PrintGameObject(go);
+                    Log(" ");
+                }
+            }
+        }
+
         public static void PrintDebug() {
             bool isEva = FlightGlobals.ActiveVessel.isEVA;
 
-            Utils.Log("EVA Active? " + isEva);
+            Log("EVA Active? " + isEva);
         }
 
         public static void PrintAllLayers() {
             for (int i = 0; i < 32; i++) {
-                Utils.Log("Layer " + i + ": " + LayerMask.LayerToName(i));
+                Log("Layer " + i + ": " + LayerMask.LayerToName(i));
             }
         }
 
         public static void PrintFonts() {
             TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
-            Utils.Log("num fonts: " + fonts.Length);
+            Log("num fonts: " + fonts.Length);
             for (int i = 0; i < fonts.Length; i++) {
                 TMPro.TMP_FontAsset font = fonts[i];
-                Utils.Log("font name: " + font.name);
+                Log("font name: " + font.name);
             }
         }
 
@@ -271,15 +287,41 @@ namespace KerbalVR
             for (int i = 0; i < 32; i++) {
                 header += string.Format("{0,3}", i);
             }
-            Utils.Log(header);
+            Log(header);
 
             for (int y = 0; y < 32; y++) {
                 string line = string.Format("{0,22} {1,3}", LayerMask.LayerToName(y), y);
                 for (int x = 0; x < 32; x++) {
                     line += Physics.GetIgnoreLayerCollision(x, y) ? "   " : "  X";
                 }
-                Utils.Log(line);
+                Log(line);
             }
+        }
+
+        public static void PrintMainMenuInfo() {
+            Log("=== MainMenuEnvLogic ===");
+
+            MainMenuEnvLogic mainMenuLogic = GameObject.FindObjectOfType<MainMenuEnvLogic>();
+            if (mainMenuLogic != null) {
+                Log("GameObject position: " + mainMenuLogic.gameObject.transform.position);
+                Log("landscapeCamera position: " + mainMenuLogic.landscapeCamera.gameObject.transform.position);
+                Log("currentStage: " + mainMenuLogic.currentStage);
+
+                Log("areas (" + mainMenuLogic.areas.Length + "):");
+                foreach (GameObject area in mainMenuLogic.areas) {
+                    PrintGameObject(area);
+                }
+                Log("startingArea:");
+                PrintGameObject(mainMenuLogic.startingArea);
+
+                Log("camPivots (" + mainMenuLogic.camPivots.Length + "):");
+                foreach (MainMenuEnvLogic.MenuStage stage in mainMenuLogic.camPivots) {
+                    Log("MenuStage initial = " + stage.initialPoint.position + ", target = " + stage.targetPoint.position);
+                }
+            } else {
+                Log("No MainMenuEnvLogic component found.");
+            }
+            
         }
 #endif
 

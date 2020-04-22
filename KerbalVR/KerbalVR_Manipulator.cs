@@ -19,6 +19,7 @@ namespace KerbalVR
 
         #region Properties
         public SteamVR_Controller.Device State { get; private set; }
+        public SteamVR_Utils.RigidTransform Pose { get; private set; }
         public Vector3 GripPosition { get; private set; }
 
         // Manipulator object properties
@@ -65,6 +66,10 @@ namespace KerbalVR
                 // animate grip
                 manipulatorAnimator.SetBool("Hold", isGripping);
             }
+
+            // position the controller object
+            transform.position = Scene.Instance.DevicePoseToWorld(Pose.pos);
+            transform.rotation = Scene.Instance.DevicePoseToWorld(Pose.rot);
         }
 
         protected void LoadManipulatorRenderGameObject() {
@@ -85,7 +90,7 @@ namespace KerbalVR
                 gloveGameObject.transform.localPosition = GLOVE_POSITION;
                 gloveGameObject.transform.localRotation = Quaternion.Euler(GLOVE_ROTATION);
                 gloveGameObject.transform.localScale = gloveObjectScale;
-                Utils.SetLayer(gloveGameObject, 20);
+                Utils.SetLayer(gloveGameObject, KerbalVR.Scene.Instance.RenderLayer);
 
                 // define the colliders
                 Transform colliderObject = gloveGameObject.transform.Find("HandDummy/Arm Bone L/Wrist Bone L/Finger Index Bone L1/Finger Index Bone L2/Finger Index Bone L3/Finger Index Bone L4");
@@ -128,10 +133,7 @@ namespace KerbalVR
         /// <param name="state">Updated state data</param>
         public void UpdateState(SteamVR_Utils.RigidTransform pose, SteamVR_Controller.Device state) {
             State = state;
-
-            // position the controller object
-            transform.position = Scene.Instance.DevicePoseToWorld(pose.pos);
-            transform.rotation = Scene.Instance.DevicePoseToWorld(pose.rot);
+            Pose = pose;
         }
     } // class Manipulator
 

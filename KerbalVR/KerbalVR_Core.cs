@@ -57,9 +57,6 @@ namespace KerbalVR {
 
         #region Private Members
 
-        // hold a reference to the app launcher GUI
-        private AppGUI gui;
-
         // keep track of when the HMD is rendering images
         private static HmdState hmdState = HmdState.Uninitialized;
         private static bool hmdIsRunningPrev = false;
@@ -219,11 +216,13 @@ namespace KerbalVR {
 #if DEBUG
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
-                // Utils.PrintAllCameras();
-                // Utils.PrintAllLayers();
-                Utils.PrintDebug();
+                Utils.PrintAllCameras();
+                Utils.PrintAllLayers();
+                // Utils.PrintDebug();
                 // Utils.PrintFonts();
                 // Utils.PrintCollisionMatrix();
+                // Utils.PrintAllGameObjects();
+                // Utils.PrintMainMenuInfo();
             }
 #endif
 
@@ -335,9 +334,6 @@ namespace KerbalVR {
              *  2. Transform the calculated position into Unity world coordinates, offset from
              *     InitialPosition and InitialRotation.
              */
-
-            // position of the eye in the VR reference frame
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
 
             // update position of the cameras
             Scene.Instance.UpdateScene(eye, hmdTransform, hmdEyeTransform);
