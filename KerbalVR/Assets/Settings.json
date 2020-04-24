@@ -1,5 +1,6 @@
 {
     "initOpenVrAtStartup": true,
     "swapYawRollControls": false,
-    "worldScale": 1.0
+    "worldScale": 1.0,
+    "debugEnabled": false
 }

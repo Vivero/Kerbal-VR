@@ -25,13 +25,10 @@ namespace KerbalVR
         }
 
         private static readonly ApplicationLauncher.AppScenes APP_VISIBILITY =
-#if DEBUG
-            ApplicationLauncher.AppScenes.ALWAYS;
-#else
+            ApplicationLauncher.AppScenes.MAINMENU |
             ApplicationLauncher.AppScenes.FLIGHT |
             ApplicationLauncher.AppScenes.VAB |
             ApplicationLauncher.AppScenes.SPH;
-#endif
         #endregion
 
         #region Properties

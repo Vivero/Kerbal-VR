@@ -6,10 +6,8 @@ using TMPro;
 namespace KerbalVR
 {
     /// <summary>
-    /// The AssetLoader plugin should load Instantly,
-    /// while resources are being loaded.
+    /// Manage the loading of KerbalVR's asset bundles.
     /// </summary>
-    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class AssetLoader : MonoBehaviour
     {
         #region Constants
@@ -40,7 +38,9 @@ namespace KerbalVR
             get {
                 if (_instance == null) {
                     _instance = FindObjectOfType<AssetLoader>();
-                    if (_instance != null) {
+                    if (_instance == null) {
+                        Utils.LogError("The scene needs to have one active GameObject with a AssetLoader script attached!");
+                    } else {
                         _instance.Initialize();
                     }
                 }
@@ -50,20 +50,8 @@ namespace KerbalVR
 
         // first-time initialization for this singleton class
         private void Initialize() {
-            if (gameObjectsDictionary == null) {
-                gameObjectsDictionary = new Dictionary<string, GameObject>();
-            }
-            if (fontsDictionary == null) {
-                fontsDictionary = new Dictionary<string, TMPro.TMP_FontAsset>();
-            }
-        }
-        #endregion
-
-        void Awake() {
-            // keep this object around forever
-            DontDestroyOnLoad(this);
-
-            Initialize();
+            gameObjectsDictionary = new Dictionary<string, GameObject>();
+            fontsDictionary = new Dictionary<string, TMPro.TMP_FontAsset>();
 
             // load KerbalVR asset bundles
             LoadFonts();
@@ -71,6 +59,7 @@ namespace KerbalVR
 
             IsReady = true;
         }
+        #endregion
 
         private void LoadFonts() {
             TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
@@ -87,12 +76,8 @@ namespace KerbalVR
                 AssetBundle bundle = AssetBundle.LoadFromFile(path);
                 if (bundle == null) {
                     Utils.LogError("Error loading asset bundle from: " + path);
-                }
-                else {
+                } else {
                     // enumerate assets
-#if DEBUG
-                    Utils.Log("Inspecting asset bundle: " + path);
-#endif
                     string[] assetNames = bundle.GetAllAssetNames();
                     for (int i = 0; i < assetNames.Length; i++) {
                         string assetName = assetNames[i];

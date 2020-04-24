@@ -52,6 +52,11 @@ namespace KerbalVR {
         /// </summary>
         public static bool RenderHmdToScreen { get; set; } = true;
 
+        /// <summary>
+        /// Render texture that renders the game's UI
+        /// </summary>
+        public static RenderTexture KspUiRenderTexture { get; private set; }
+
         #endregion
 
 
@@ -82,31 +87,37 @@ namespace KerbalVR {
         /// Initialize the application GUI, singleton classes, and initialize OpenVR.
         /// </summary>
         private void Awake() {
-#if DEBUG
-            Utils.Log(Globals.KERBALVR_NAME + " plugin starting...");
-#endif
-
-            // init objects
+            // init class members
             HmdIsAllowed = false;
+            KspUiRenderTexture = new RenderTexture(
+                GameSettings.SCREEN_RESOLUTION_WIDTH,
+                GameSettings.SCREEN_RESOLUTION_HEIGHT,
+                24, RenderTextureFormat.ARGB32);
+            KspUiRenderTexture.Create();
 
             // init GameObjects
+            GameObject kvrConfiguration = new GameObject("KVR_Configuration");
+            kvrConfiguration.AddComponent<KerbalVR.Configuration>();
+            Configuration kvrConfigurationComponent = Configuration.Instance; // init the singleton
+            DontDestroyOnLoad(kvrConfiguration);
+
+            GameObject kvrAssetLoader = new GameObject("KVR_AssetLoader");
+            kvrAssetLoader.AddComponent<KerbalVR.AssetLoader>();
+            AssetLoader kvrAssetLoaderComponent = AssetLoader.Instance; // init the singleton
+            DontDestroyOnLoad(kvrAssetLoader);
+
             GameObject kvrDeviceManager = new GameObject("KVR_DeviceManager");
-            kvrDeviceManager.AddComponent<DeviceManager>();
+            kvrDeviceManager.AddComponent<KerbalVR.DeviceManager>();
             DeviceManager deviceManagerComponent = DeviceManager.Instance; // init the singleton
             DontDestroyOnLoad(kvrDeviceManager);
 
             GameObject kvrScene = new GameObject("KVR_Scene");
-            kvrScene.AddComponent<Scene>();
+            kvrScene.AddComponent<KerbalVR.Scene>();
             Scene kvrSceneComponent = Scene.Instance; // init the singleton
             DontDestroyOnLoad(kvrScene);
 
-            GameObject kvrConfiguration = new GameObject("KVR_Configuration");
-            kvrConfiguration.AddComponent<Configuration>();
-            Configuration kvrConfigurationComponent = Configuration.Instance; // init the singleton
-            DontDestroyOnLoad(kvrConfiguration);
-
             // initialize OpenVR if allowed in config
-            if (Configuration.Instance.InitOpenVrAtStartup) {
+            if (KerbalVR.Configuration.Instance.InitOpenVrAtStartup) {
                 InitializeHMD();
             }
 
@@ -122,7 +133,7 @@ namespace KerbalVR {
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
         private void OnDestroy() {
-            Utils.Log(Globals.KERBALVR_NAME + " is shutting down...");
+            Utils.Log(KerbalVR.Globals.KERBALVR_NAME + " is shutting down...");
             CloseHMD();
         }
 
@@ -136,7 +147,7 @@ namespace KerbalVR {
             }
 
             // check if the current scene allows VR
-            HmdIsAllowed = Scene.Instance.SceneAllowsVR();
+            HmdIsAllowed = KerbalVR.Scene.Instance.SceneAllowsVR();
 
             // process the state of OpenVR
             ProcessHmdState();
@@ -202,6 +213,18 @@ namespace KerbalVR {
                     HmdIsEnabled = false;
                     HmdIsRunning = false;
                 }
+
+                // render the UI to our own RenderTexture
+                Camera kspUiCamera = KerbalVR.Scene.Instance.KspUiCamera;
+                kspUiCamera.enabled = false;
+                kspUiCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                kspUiCamera.targetTexture = KspUiRenderTexture;
+                kspUiCamera.clearFlags = CameraClearFlags.SolidColor;
+                kspUiCamera.Render();
+                kspUiCamera.clearFlags = KerbalVR.Scene.Instance.KspUiCameraClearFlags;
+                kspUiCamera.targetTexture = null;
+                kspUiCamera.backgroundColor = KerbalVR.Scene.Instance.KspUiCameraBackgroundColor;
+                kspUiCamera.enabled = true;
             }
 
             // reset cameras when HMD is turned off
@@ -212,8 +235,6 @@ namespace KerbalVR {
                 // TODO: figure out why we can no longer manipulate the IVA camera in the regular game
             }
 
-
-#if DEBUG
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
                 Utils.PrintAllCameras();
@@ -224,7 +245,6 @@ namespace KerbalVR {
                 // Utils.PrintAllGameObjects();
                 // Utils.PrintMainMenuInfo();
             }
-#endif
 
             // keep track of whether we were running the HMD, emit an update if the running status changed
             if (HmdIsRunning != hmdIsRunningPrev) {

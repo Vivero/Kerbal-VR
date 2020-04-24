@@ -67,19 +67,12 @@ namespace KerbalVR
             HmdEyePosition = new Vector3[2];
             HmdEyeRotation = new Quaternion[2];
 
-            // initialize world scale values
+            // initialize world scale values for each Game Scene
             inverseWorldScale = new Dictionary<GameScenes, float>();
-            inverseWorldScale.Add(GameScenes.LOADING, 1f);
-            inverseWorldScale.Add(GameScenes.LOADINGBUFFER, 1f);
-            inverseWorldScale.Add(GameScenes.MAINMENU, 1f);
-            inverseWorldScale.Add(GameScenes.SETTINGS, 1f);
-            inverseWorldScale.Add(GameScenes.CREDITS, 1f);
-            inverseWorldScale.Add(GameScenes.SPACECENTER, 1f);
-            inverseWorldScale.Add(GameScenes.EDITOR, 1f);
-            inverseWorldScale.Add(GameScenes.FLIGHT, 1f);
-            inverseWorldScale.Add(GameScenes.TRACKSTATION, 1f);
-            inverseWorldScale.Add(GameScenes.PSYSTEM, 1f);
-            inverseWorldScale.Add(GameScenes.MISSIONBUILDER, 1f);
+            Array gameScenes = Enum.GetValues(typeof(GameScenes));
+            foreach (GameScenes scene in gameScenes) {
+                inverseWorldScale.Add(scene, 1f);
+            }
         }
         #endregion
 
@@ -125,13 +118,17 @@ namespace KerbalVR
         public ETrackingUniverseOrigin TrackingSpace { get; private set; }
 
         // defines what layer to render KerbalVR objects on
-        public int RenderLayer { get; private set; }
+        public int RenderLayer { get; private set; } = 0;
 
         // defines the world scaling factor (store the inverse)
         public float WorldScale {
             get { return (1f / inverseWorldScale[HighLogic.LoadedScene]); }
             set { inverseWorldScale[HighLogic.LoadedScene] = (1f / value); }
         }
+
+        public Camera KspUiCamera { get; private set; } = null;
+        public Color KspUiCameraBackgroundColor { get; private set; }
+        public CameraClearFlags KspUiCameraClearFlags { get; private set; }
         #endregion
 
 
@@ -160,6 +157,19 @@ namespace KerbalVR
         /// corresponding to the origin in the real world device coordinate system.
         /// </summary>
         public void SetupScene() {
+            // capture the UI camera
+            GameObject kspUiCameraGameObject = GameObject.Find("UIMainCamera");
+            if (kspUiCameraGameObject != null) {
+                KspUiCamera = kspUiCameraGameObject.GetComponent<Camera>();
+            }
+            if (KspUiCamera == null) {
+                Utils.LogError("Could not find UIMainCamera component!");
+            } else {
+                KspUiCameraBackgroundColor = KspUiCamera.backgroundColor;
+                KspUiCameraClearFlags = KspUiCamera.clearFlags;
+            }
+
+            // set up game-scene-specific cameras
             switch (HighLogic.LoadedScene) {
                 case GameScenes.MAINMENU:
                     SetupMainMenuScene();

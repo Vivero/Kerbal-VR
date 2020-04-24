@@ -100,7 +100,6 @@ namespace KerbalVR
             }
         }
 
-#if DEBUG
         public static GameObject CreateGizmo() {
             GameObject gizmo = new GameObject("gizmo");
             gizmo.transform.localScale = Vector3.one;
@@ -323,7 +322,5 @@ namespace KerbalVR
             }
             
         }
-#endif
-
     } // class Utils
 } // namespace KerbalVR

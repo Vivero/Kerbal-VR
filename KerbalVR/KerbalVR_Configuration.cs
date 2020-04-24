@@ -67,6 +67,20 @@ namespace KerbalVR
                 SaveSettings();
             }
         }
+
+        /// <summary>
+        /// Enable debugging tools
+        /// </summary>
+        private bool _debugEnabled;
+        public bool DebugEnabled {
+            get {
+                return _debugEnabled;
+            }
+            set {
+                _debugEnabled = value;
+                SaveSettings();
+            }
+        }
         #endregion
 
 
@@ -101,13 +115,6 @@ namespace KerbalVR
                 this._swapYawRollControls = kvrSettings.swapYawRollControls;
                 this._worldScale = kvrSettings.worldScale;
 
-#if DEBUG
-                Utils.Log("Loaded Configuration:");
-                Utils.Log("initOpenVrAtStartup = " + kvrSettings.initOpenVrAtStartup);
-                Utils.Log("swapYawRollControls = " + kvrSettings.swapYawRollControls);
-                Utils.Log("worldScale = " + kvrSettings.worldScale);
-#endif
-
             } else {
                 // if no settings file exists, create a default one
                 Settings kvrSettings = new Settings();
@@ -123,6 +130,7 @@ namespace KerbalVR
             kvrSettings.initOpenVrAtStartup = this.InitOpenVrAtStartup;
             kvrSettings.swapYawRollControls = this.SwapYawRollControls;
             kvrSettings.worldScale = this.WorldScale;
+            kvrSettings.debugEnabled = this.DebugEnabled;
 
             // write to file
             string kvrSettingsText = JsonUtility.ToJson(kvrSettings, true);
@@ -138,5 +146,6 @@ namespace KerbalVR
         public bool initOpenVrAtStartup = true;
         public bool swapYawRollControls = false;
         public float worldScale = 1f;
+        public bool debugEnabled = true;
     }
 }
