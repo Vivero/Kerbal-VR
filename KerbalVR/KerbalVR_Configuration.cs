@@ -5,7 +5,8 @@ using UnityEngine;
 namespace KerbalVR
 {
     /// <summary>
-    /// A class to manage global configuration settings for KerbalVR.
+    /// Manage global configuration settings for KerbalVR.
+    /// Reads/writes settings to/from a text file.
     /// </summary>
     public class Configuration : MonoBehaviour
     {
@@ -28,7 +29,7 @@ namespace KerbalVR
         /// If true, initializes OpenVR as soon as KSP starts. Otherwise, OpenVR
         /// initializes on the first time VR is enabled.
         /// </summary>
-        private bool _initOpenVrAtStartup;
+        protected bool _initOpenVrAtStartup;
         public bool InitOpenVrAtStartup {
             get {
                 return _initOpenVrAtStartup;
@@ -40,38 +41,9 @@ namespace KerbalVR
         }
 
         /// <summary>
-        /// If true, the control stick controls craft pitch and yaw, instead of
-        /// pitch and roll.
-        /// </summary>
-        private bool _swapYawRollControls;
-        public bool SwapYawRollControls {
-            get {
-                return _swapYawRollControls;
-            }
-            set {
-                _swapYawRollControls = value;
-                SaveSettings();
-            }
-        }
-
-        /// <summary>
-        /// Scale of the world while in VR
-        /// </summary>
-        private float _worldScale;
-        public float WorldScale {
-            get {
-                return _worldScale;
-            }
-            set {
-                _worldScale = value;
-                SaveSettings();
-            }
-        }
-
-        /// <summary>
         /// Enable debugging tools
         /// </summary>
-        private bool _debugEnabled;
+        protected bool _debugEnabled;
         public bool DebugEnabled {
             get {
                 return _debugEnabled;
@@ -85,8 +57,10 @@ namespace KerbalVR
 
 
         #region Singleton
-        // this is a singleton class, and there must be one Configuration in the scene
-        private static Configuration _instance;
+        /// <summary>
+        /// This is a singleton class, and there must be exactly one GameObject with this Component in the scene.
+        /// </summary>
+        protected static Configuration _instance;
         public static Configuration Instance {
             get {
                 if (_instance == null) {
@@ -102,8 +76,10 @@ namespace KerbalVR
         }
         #endregion
 
-        // first-time initialization for this singleton class
-        private void Initialize() {
+        /// <summary>
+        /// One-time initialization for this singleton class.
+        /// </summary>
+        protected void Initialize() {
 
             if (File.Exists(KERBALVR_SETTINGS_PATH)) {
                 // load the settings file if it exists
@@ -112,8 +88,7 @@ namespace KerbalVR
 
                 // store the settings from file
                 this._initOpenVrAtStartup = kvrSettings.initOpenVrAtStartup;
-                this._swapYawRollControls = kvrSettings.swapYawRollControls;
-                this._worldScale = kvrSettings.worldScale;
+                this._debugEnabled = kvrSettings.debugEnabled;
 
             } else {
                 // if no settings file exists, create a default one
@@ -125,11 +100,12 @@ namespace KerbalVR
             }
         }
 
-        private void SaveSettings() {
+        /// <summary>
+        /// Save settings to a JSON file on-disk.
+        /// </summary>
+        protected void SaveSettings() {
             Settings kvrSettings = new Settings();
             kvrSettings.initOpenVrAtStartup = this.InitOpenVrAtStartup;
-            kvrSettings.swapYawRollControls = this.SwapYawRollControls;
-            kvrSettings.worldScale = this.WorldScale;
             kvrSettings.debugEnabled = this.DebugEnabled;
 
             // write to file
@@ -139,13 +115,11 @@ namespace KerbalVR
     }
 
     /// <summary>
-    /// A serializable class to contain KerbalVR settings.
+    /// A serializable class to contain KerbalVR configuration settings.
     /// </summary>
     [Serializable]
     public class Settings {
         public bool initOpenVrAtStartup = true;
-        public bool swapYawRollControls = false;
-        public float worldScale = 1f;
         public bool debugEnabled = true;
     }
 }

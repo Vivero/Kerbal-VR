@@ -21,7 +21,7 @@ namespace KerbalVR
         public static readonly string KERBALVR_TEXTURES_DIR = Path.Combine(KERBALVR_ASSETS_DIR, "Textures");
 
         // define location of OpenVR library
-        public static string OpenVRDllPath {
+        public static string OPENVR_DLL_PATH {
             get {
                 string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string openVrPath = Path.Combine(currentPath, "openvr");

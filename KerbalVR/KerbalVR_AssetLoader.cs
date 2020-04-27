@@ -6,7 +6,7 @@ using TMPro;
 namespace KerbalVR
 {
     /// <summary>
-    /// Manage the loading of KerbalVR's asset bundles.
+    /// Manage KerbalVR's asset bundles.
     /// </summary>
     public class AssetLoader : MonoBehaviour
     {
@@ -18,27 +18,36 @@ namespace KerbalVR
             get {
                 string kvrAssetBundlesPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData", Globals.KERBALVR_ASSETBUNDLES_DIR);
 
-                string[] assetBundlePaths = new string[1];
-                assetBundlePaths[0] = Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat");
+                string[] assetBundlePaths = {
+                    Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat"),
+                };
                 return assetBundlePaths;
             }
         }
         #endregion
 
+        #region Properties
+        /// <summary>
+        /// Set to true when all asset bundles have been loaded.
+        /// </summary>
         public static bool IsReady { get; private set; } = false;
+        #endregion
 
-        private Dictionary<string, GameObject> gameObjectsDictionary;
-        private Dictionary<string, TMPro.TMP_FontAsset> fontsDictionary;
+        #region Private Members
+        protected Dictionary<string, GameObject> gameObjectsDictionary;
+        #endregion
 
         #region Singleton
-        // this is a singleton class, and there must be one AssetLoader in the scene
-        private static AssetLoader _instance;
+        /// <summary>
+        /// This is a singleton class, and there must be exactly one GameObject with this Component in the scene.
+        /// </summary>
+        protected static AssetLoader _instance;
         public static AssetLoader Instance {
             get {
                 if (_instance == null) {
                     _instance = FindObjectOfType<AssetLoader>();
                     if (_instance == null) {
-                        Utils.LogError("The scene needs to have one active GameObject with a AssetLoader script attached!");
+                        Utils.LogError("The scene needs to have one active GameObject with an AssetLoader script attached!");
                     } else {
                         _instance.Initialize();
                     }
@@ -47,10 +56,11 @@ namespace KerbalVR
             }
         }
 
-        // first-time initialization for this singleton class
-        private void Initialize() {
+        /// <summary>
+        /// One-time initialization for this singleton class.
+        /// </summary>
+        protected void Initialize() {
             gameObjectsDictionary = new Dictionary<string, GameObject>();
-            fontsDictionary = new Dictionary<string, TMPro.TMP_FontAsset>();
 
             // load KerbalVR asset bundles
             LoadAssets();
@@ -59,7 +69,10 @@ namespace KerbalVR
         }
         #endregion
 
-        private void LoadAssets() {
+        /// <summary>
+        /// Load prefabs from asset bundles.
+        /// </summary>
+        protected void LoadAssets() {
             // load asset bundles
             foreach (var path in KERBALVR_ASSET_BUNDLE_PATHS) {
                 AssetBundle bundle = AssetBundle.LoadFromFile(path);
@@ -82,6 +95,11 @@ namespace KerbalVR
             }
         }
 
+        /// <summary>
+        /// Get an asset that was loaded from an asset bundle.
+        /// </summary>
+        /// <param name="gameObjectName">Name of the asset</param>
+        /// <returns></returns>
         public GameObject GetGameObject(string gameObjectName) {
             if (gameObjectsDictionary.TryGetValue(gameObjectName, out GameObject obj)) {
                 return obj;

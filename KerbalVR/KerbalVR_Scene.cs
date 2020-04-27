@@ -113,7 +113,6 @@ namespace KerbalVR
 
 
         #region Private Members
-        private float editorMovementSpeed = 1f;
         private GameObject galaxyCamera = null;
         private GameObject landscapeCamera = null;
         #endregion

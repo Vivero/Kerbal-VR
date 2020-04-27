@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace KerbalVR
 {
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
-    public class AppGUILoader : MonoBehaviour //, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class AppGUILoader : MonoBehaviour
     {
         #region Constants
         public static string APP_BUTTON_LOGO {
@@ -24,24 +24,23 @@ namespace KerbalVR
             }
         }
 
-        private static readonly ApplicationLauncher.AppScenes APP_VISIBILITY =
+        protected static readonly ApplicationLauncher.AppScenes APP_VISIBILITY =
             ApplicationLauncher.AppScenes.MAINMENU |
+            ApplicationLauncher.AppScenes.SPACECENTER |
             ApplicationLauncher.AppScenes.FLIGHT |
             ApplicationLauncher.AppScenes.VAB |
             ApplicationLauncher.AppScenes.SPH;
         #endregion
 
-        #region Properties
-        #endregion
 
         #region Private Members
-        private ApplicationLauncherButton appMainButton = null;
-        private ApplicationLauncherButton appDebugButton = null;
-        private static GameObject uiMainCanvas = null;
-        private static GameObject uiDebugCanvas = null;
+        protected ApplicationLauncherButton appMainButton = null;
+        protected ApplicationLauncherButton appDebugButton = null;
+        protected static GameObject uiMainCanvas = null;
+        protected static GameObject uiDebugCanvas = null;
         #endregion
 
-        private void Awake() {
+        protected void Awake() {
             // when ready for a GUI, load it
             GameEvents.onGUIApplicationLauncherReady.Add(OnAppLauncherReady);
             GameEvents.onGUIApplicationLauncherDestroyed.Add(OnAppLauncherDestroyed);
@@ -80,6 +79,7 @@ namespace KerbalVR
             // load the UI prefab
             if (uiMainCanvas == null) {
                 uiMainCanvas = Instantiate(KerbalVR.AssetLoader.Instance.GetGameObject("KVR_UI_MainPanel"));
+                uiMainCanvas.name = "KVR_UI_MainPanel";
                 uiMainCanvas.transform.SetParent(MainCanvasUtil.MainCanvas.transform);
                 uiMainCanvas.AddComponent<AppMainGUI>();
                 uiMainCanvas.SetActive(false);
@@ -88,6 +88,7 @@ namespace KerbalVR
             // load the debugging UI prefab
             if (uiDebugCanvas == null) {
                 uiDebugCanvas = Instantiate(KerbalVR.AssetLoader.Instance.GetGameObject("KVR_UI_DebugPanel"));
+                uiMainCanvas.name = "KVR_UI_DebugPanel";
                 uiDebugCanvas.transform.SetParent(MainCanvasUtil.MainCanvas.transform);
                 uiDebugCanvas.AddComponent<AppDebugGUI>();
                 uiDebugCanvas.SetActive(false);
@@ -141,7 +142,7 @@ namespace KerbalVR
         /// <summary>
         /// Callback when the game changes scenes.
         /// </summary>
-        void OnSceneChange(GameEvents.FromToAction<GameScenes, GameScenes> fromToScenes) {
+        protected void OnSceneChange(GameEvents.FromToAction<GameScenes, GameScenes> fromToScenes) {
             // on scene change, command the button to toggle off, so the GUI closes
             appMainButton.SetFalse(true);
             appDebugButton.SetFalse(true);
@@ -152,8 +153,8 @@ namespace KerbalVR
     public class AppGUI : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
         #region Private Members
-        private Vector2 panelDragStart;
-        private Vector2 panelAltStart;
+        protected Vector2 panelDragStart;
+        protected Vector2 panelAltStart;
         #endregion
 
         // this event fires when a drag event begins
@@ -207,13 +208,11 @@ namespace KerbalVR
 
             swapYawRollControlsToggle = GameObject.Find("KVR_UI_SwapControlsToggle");
             Toggle swapYawRollControlsToggleComponent = swapYawRollControlsToggle.GetComponent<Toggle>();
-            swapYawRollControlsToggleComponent.SetIsOnWithoutNotify(KerbalVR.Configuration.Instance.SwapYawRollControls);
             swapYawRollControlsToggleComponent.onValueChanged.AddListener(OnSwapYawRollControlsClicked);
 
             // set slider states and create callbacks for sliders
             worldScaleSlider = GameObject.Find("KVR_UI_WorldScaleSlider");
             Slider worldScaleSliderComponent = worldScaleSlider.GetComponent<Slider>();
-            worldScaleSliderComponent.SetValueWithoutNotify(1f);
             worldScaleSliderComponent.onValueChanged.AddListener(OnWorldScaleSliderChanged);
 
             handSizeScaleSlider = GameObject.Find("KVR_UI_HandSizeSlider");
@@ -265,14 +264,10 @@ namespace KerbalVR
         }
 
         void OnSwapYawRollControlsClicked(bool isOn) {
-            KerbalVR.Configuration.Instance.SwapYawRollControls = isOn;
         }
 
         void OnWorldScaleSliderChanged(float value) {
             worldScaleLabel.text = "World Scale: " + value.ToString("F1");
-            if (value >= 0.5f && value <= 2f) {
-                KerbalVR.Configuration.Instance.WorldScale = value;
-            }
         }
 
         void OnHandSizeScaleSliderChanged(float value) {

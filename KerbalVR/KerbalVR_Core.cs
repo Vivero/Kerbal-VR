@@ -370,7 +370,7 @@ namespace KerbalVR {
             }
 
             // set the location of the OpenVR DLL
-            SetDllDirectory(Globals.OpenVRDllPath);
+            SetDllDirectory(Globals.OPENVR_DLL_PATH);
 
             // check if HMD is connected on the system
             if (!OpenVR.IsHmdPresent()) {
