@@ -18,9 +18,8 @@ namespace KerbalVR
             get {
                 string kvrAssetBundlesPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData", Globals.KERBALVR_ASSETBUNDLES_DIR);
 
-                string[] assetBundlePaths = new string[2];
-                assetBundlePaths[0] = Path.Combine(kvrAssetBundlesPath, "kerbalvr.dat");
-                assetBundlePaths[1] = Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat");
+                string[] assetBundlePaths = new string[1];
+                assetBundlePaths[0] = Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat");
                 return assetBundlePaths;
             }
         }
@@ -54,21 +53,11 @@ namespace KerbalVR
             fontsDictionary = new Dictionary<string, TMPro.TMP_FontAsset>();
 
             // load KerbalVR asset bundles
-            LoadFonts();
             LoadAssets();
 
             IsReady = true;
         }
         #endregion
-
-        private void LoadFonts() {
-            TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
-
-            for (int i = 0; i < fonts.Length; i++) {
-                TMPro.TMP_FontAsset font = fonts[i];
-                fontsDictionary.Add(font.name, font);
-            }
-        }
 
         private void LoadAssets() {
             // load asset bundles
@@ -91,13 +80,6 @@ namespace KerbalVR
                     }
                 }
             }
-        }
-
-        public TMPro.TMP_FontAsset GetFont(string fontName) {
-            if (fontsDictionary.TryGetValue(fontName, out TMPro.TMP_FontAsset font)) {
-                return font;
-            }
-            return null;
         }
 
         public GameObject GetGameObject(string gameObjectName) {

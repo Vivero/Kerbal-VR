@@ -66,13 +66,6 @@ namespace KerbalVR
         private void Initialize() {
             HmdEyePosition = new Vector3[2];
             HmdEyeRotation = new Quaternion[2];
-
-            // initialize world scale values for each Game Scene
-            inverseWorldScale = new Dictionary<GameScenes, float>();
-            Array gameScenes = Enum.GetValues(typeof(GameScenes));
-            foreach (GameScenes scene in gameScenes) {
-                inverseWorldScale.Add(scene, 1f);
-            }
         }
         #endregion
 
@@ -116,42 +109,14 @@ namespace KerbalVR
 
         // defines the tracking method to use
         public ETrackingUniverseOrigin TrackingSpace { get; private set; }
-
-        // defines what layer to render KerbalVR objects on
-        public int RenderLayer { get; private set; } = 0;
-
-        // defines the world scaling factor (store the inverse)
-        public float WorldScale {
-            get { return (1f / inverseWorldScale[HighLogic.LoadedScene]); }
-            set { inverseWorldScale[HighLogic.LoadedScene] = (1f / value); }
-        }
-
-        public Camera KspUiCamera { get; private set; } = null;
-        public Color KspUiCameraBackgroundColor { get; private set; }
-        public CameraClearFlags KspUiCameraClearFlags { get; private set; }
         #endregion
 
 
         #region Private Members
-        private Dictionary<GameScenes, float> inverseWorldScale;
         private float editorMovementSpeed = 1f;
         private GameObject galaxyCamera = null;
         private GameObject landscapeCamera = null;
-        private MainMenuEnvLogic mainMenuLogic = null;
-
-        private GameObject mainMenuUiScreen = null;
         #endregion
-
-
-        void OnEnable() {
-            Events.ManipulatorLeftUpdated.Listen(OnManipulatorLeftUpdated);
-            Events.ManipulatorRightUpdated.Listen(OnManipulatorRightUpdated);
-        }
-
-        void OnDisable() {
-            Events.ManipulatorLeftUpdated.Remove(OnManipulatorLeftUpdated);
-            Events.ManipulatorRightUpdated.Remove(OnManipulatorRightUpdated);
-        }
 
 
         /// <summary>
@@ -159,18 +124,6 @@ namespace KerbalVR
         /// corresponding to the origin in the real world device coordinate system.
         /// </summary>
         public void SetupScene() {
-            // capture the UI camera
-            GameObject kspUiCameraGameObject = GameObject.Find("UIMainCamera");
-            if (kspUiCameraGameObject != null) {
-                KspUiCamera = kspUiCameraGameObject.GetComponent<Camera>();
-            }
-            if (KspUiCamera == null) {
-                Utils.LogError("Could not find UIMainCamera component!");
-            } else {
-                KspUiCameraBackgroundColor = KspUiCamera.backgroundColor;
-                KspUiCameraClearFlags = KspUiCamera.clearFlags;
-            }
-
             // set up game-scene-specific cameras
             switch (HighLogic.LoadedScene) {
                 case GameScenes.MAINMENU:
@@ -202,41 +155,17 @@ namespace KerbalVR
             // use seated mode during main menu
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
-            // render KerbalVR objects on the default layer
-            RenderLayer = 0;
-
             // generate list of cameras to render
             PopulateCameraList(MAINMENU_SCENE_CAMERAS);
-
-            // cache the menu logic object
-            mainMenuLogic = GameObject.FindObjectOfType<MainMenuEnvLogic>();
-            mainMenuLogic.fadeEndDistance = 10f;
 
             // set inital scene position
             InitialPosition = Vector3.zero;
             InitialRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
-
-            // create a UI screen
-            if (mainMenuUiScreen == null) {
-                mainMenuUiScreen = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                mainMenuUiScreen.name = "KVR_KSP_UI_Screen";
-                mainMenuUiScreen.transform.position = CurrentPosition + new Vector3(0.4f, 0f, 0f);
-                mainMenuUiScreen.transform.rotation = Quaternion.Euler(0f, 30f, 0f);
-                Vector3 uiScreenScale = Vector3.one * 0.6f;
-                uiScreenScale.x = uiScreenScale.y * (16f / 9f);
-                mainMenuUiScreen.transform.localScale = uiScreenScale;
-                MeshRenderer mr = mainMenuUiScreen.GetComponent<MeshRenderer>();
-                mr.material = new Material(Shader.Find("KSP/Alpha/Unlit Transparent"));
-                mr.material.mainTexture = KerbalVR.Core.KspUiRenderTexture;
-            }
         }
 
         private void SetupFlightIvaScene() {
             // use seated mode during IVA flight
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
-
-            // render KerbalVR objects on the InternalSpace layer
-            RenderLayer = 20;
 
             // generate list of cameras to render
             PopulateCameraList(FLIGHT_SCENE_IVA_CAMERAS);
@@ -258,9 +187,6 @@ namespace KerbalVR
             // use seated mode during EVA
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
-            // render KerbalVR objects on the InternalSpace layer
-            RenderLayer = 20;
-
             // generate list of cameras to render
             PopulateCameraList(FLIGHT_SCENE_EVA_CAMERAS);
 
@@ -280,9 +206,6 @@ namespace KerbalVR
         private void SetupEditorScene() {
             // use room-scale in editor
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
-
-            // render KerbalVR objects on the default layer
-            RenderLayer = 0;
 
             // generate list of cameras to render
             PopulateCameraList(EDITOR_SCENE_CAMERAS);
@@ -341,12 +264,9 @@ namespace KerbalVR
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
 
-            // lock in the initial rotation
+            // lock in the initial pose
             CurrentRotation = InitialRotation;
-
-            // position should be based on where we need to look at the main menu. need
-            // to keep track of when the stage position changes
-            CurrentPosition = Vector3.MoveTowards(CurrentPosition, mainMenuLogic.camPivots[mainMenuLogic.currentStage].targetPoint.position, 0.1f);
+            CurrentPosition = InitialPosition;
 
             // get position of your eyeball
             // Vector3 positionToHmd = hmdTransform.pos;
@@ -366,9 +286,6 @@ namespace KerbalVR
             // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
             HmdEyeRotation[(int)eye] = updatedRotation;
-
-            // update the UI screen
-            mainMenuUiScreen.transform.position = CurrentPosition + new Vector3(1f, 0f, 1f);
         }
 
         private void UpdateFlightIvaScene(
@@ -538,8 +455,7 @@ namespace KerbalVR
         /// <param name="devicePosition">Device position in the device space coordinate system.</param>
         /// <returns>Unity world position corresponding to the device position.</returns>
         public Vector3 DevicePoseToWorld(Vector3 devicePosition) {
-            return CurrentPosition + CurrentRotation *
-                (devicePosition * inverseWorldScale[HighLogic.LoadedScene]);
+            return CurrentPosition + CurrentRotation * devicePosition;
         }
 
         /// <summary>
@@ -549,76 +465,6 @@ namespace KerbalVR
         /// <returns>Unity world rotation corresponding to the device rotation.</returns>
         public Quaternion DevicePoseToWorld(Quaternion deviceRotation) {
             return CurrentRotation * deviceRotation;
-        }
-
-        public void OnManipulatorLeftUpdated(SteamVR_Controller.Device state) {
-            // left touchpad
-            if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
-
-                Vector3 upDisplacement = Vector3.up *
-                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.y) * Time.deltaTime;
-
-                Vector3 newPosition = CurrentPosition + upDisplacement;
-                if (newPosition.y < 0f) newPosition.y = 0f;
-
-                CurrentPosition = newPosition;
-            }
-
-            // left menu button
-            if (state.GetPressDown(EVRButtonId.k_EButton_ApplicationMenu)) {
-                Core.ResetInitialHmdPosition();
-            }
-
-            // simulate mouse touch events with the trigger
-            if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
-                foreach (var obj in DeviceManager.Instance.ManipulatorLeft.FingertipCollidedGameObjects) {
-                    if (obj != null) obj.SendMessage("OnMouseDown");
-                }
-            }
-
-            if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
-                foreach (var obj in DeviceManager.Instance.ManipulatorLeft.FingertipCollidedGameObjects) {
-                    if (obj != null) obj.SendMessage("OnMouseUp");
-                }
-            }
-        }
-
-        public void OnManipulatorRightUpdated(SteamVR_Controller.Device state) {
-            // right touchpad
-            if (state.GetPress(EVRButtonId.k_EButton_SteamVR_Touchpad)) {
-                Vector2 touchAxis = state.GetAxis(EVRButtonId.k_EButton_SteamVR_Touchpad);
-
-                Vector3 fwdDirection = HmdRotation * Vector3.forward;
-                fwdDirection.y = 0f; // allow only planar movement
-                Vector3 fwdDisplacement = fwdDirection.normalized *
-                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.y) * Time.deltaTime;
-
-                Vector3 rightDirection = HmdRotation * Vector3.right;
-                rightDirection.y = 0f; // allow only planar movement
-                Vector3 rightDisplacement = rightDirection.normalized *
-                    (editorMovementSpeed * inverseWorldScale[HighLogic.LoadedScene] * touchAxis.x) * Time.deltaTime;
-
-                CurrentPosition += fwdDisplacement + rightDisplacement;
-            }
-
-            // right menu button
-            if (state.GetPressDown(EVRButtonId.k_EButton_ApplicationMenu)) {
-                Core.ResetInitialHmdPosition();
-            }
-
-            // simulate mouse touch events with the trigger
-            if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
-                foreach (var obj in DeviceManager.Instance.ManipulatorRight.FingertipCollidedGameObjects) {
-                    if (obj != null) obj.SendMessage("OnMouseDown");
-                }
-            }
-
-            if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
-                foreach (var obj in DeviceManager.Instance.ManipulatorRight.FingertipCollidedGameObjects) {
-                    if (obj != null) obj.SendMessage("OnMouseUp");
-                }
-            }
         }
     } // class Scene
 } // namespace KerbalVR

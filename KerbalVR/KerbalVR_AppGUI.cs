@@ -272,7 +272,6 @@ namespace KerbalVR
             worldScaleLabel.text = "World Scale: " + value.ToString("F1");
             if (value >= 0.5f && value <= 2f) {
                 KerbalVR.Configuration.Instance.WorldScale = value;
-                KerbalVR.Scene.Instance.WorldScale = value;
             }
         }
 

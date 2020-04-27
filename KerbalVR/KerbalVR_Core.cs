@@ -52,11 +52,6 @@ namespace KerbalVR {
         /// </summary>
         public static bool RenderHmdToScreen { get; set; } = true;
 
-        /// <summary>
-        /// Render texture that renders the game's UI
-        /// </summary>
-        public static RenderTexture KspUiRenderTexture { get; private set; }
-
         #endregion
 
 
@@ -89,11 +84,6 @@ namespace KerbalVR {
         private void Awake() {
             // init class members
             HmdIsAllowed = false;
-            KspUiRenderTexture = new RenderTexture(
-                GameSettings.SCREEN_RESOLUTION_WIDTH,
-                GameSettings.SCREEN_RESOLUTION_HEIGHT,
-                24, RenderTextureFormat.ARGB32);
-            KspUiRenderTexture.Create();
 
             // init GameObjects
             GameObject kvrConfiguration = new GameObject("KVR_Configuration");
@@ -105,11 +95,6 @@ namespace KerbalVR {
             kvrAssetLoader.AddComponent<KerbalVR.AssetLoader>();
             AssetLoader kvrAssetLoaderComponent = AssetLoader.Instance; // init the singleton
             DontDestroyOnLoad(kvrAssetLoader);
-
-            GameObject kvrDeviceManager = new GameObject("KVR_DeviceManager");
-            kvrDeviceManager.AddComponent<KerbalVR.DeviceManager>();
-            DeviceManager deviceManagerComponent = DeviceManager.Instance; // init the singleton
-            DontDestroyOnLoad(kvrDeviceManager);
 
             GameObject kvrScene = new GameObject("KVR_Scene");
             kvrScene.AddComponent<KerbalVR.Scene>();
@@ -186,9 +171,6 @@ namespace KerbalVR {
                     hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
                     hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
-                    // don't highlight parts with the mouse
-                    Mouse.HoveredPart = null;
-
                     // render each eye
                     for (int i = 0; i < 2; i++) {
                         RenderHmdCameras(
@@ -215,20 +197,6 @@ namespace KerbalVR {
                 }
             }
 
-            // render the UI to our own RenderTexture
-            Camera kspUiCamera = KerbalVR.Scene.Instance.KspUiCamera;
-            if (kspUiCamera != null) {
-                kspUiCamera.enabled = false;
-                kspUiCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
-                kspUiCamera.targetTexture = KspUiRenderTexture;
-                kspUiCamera.clearFlags = CameraClearFlags.SolidColor;
-                kspUiCamera.Render();
-                kspUiCamera.clearFlags = KerbalVR.Scene.Instance.KspUiCameraClearFlags;
-                kspUiCamera.targetTexture = null;
-                kspUiCamera.backgroundColor = KerbalVR.Scene.Instance.KspUiCameraBackgroundColor;
-                kspUiCamera.enabled = true;
-            }
-
             // reset cameras when HMD is turned off
             if (!HmdIsRunning && hmdIsRunningPrev) {
                 Utils.Log("HMD is now off, resetting cameras...");
@@ -244,7 +212,7 @@ namespace KerbalVR {
                 // Utils.PrintDebug();
                 // Utils.PrintFonts();
                 // Utils.PrintCollisionMatrix();
-                Utils.PrintAllGameObjects();
+                // Utils.PrintAllGameObjects();
                 // Utils.PrintMainMenuInfo();
             }
 
@@ -439,8 +407,6 @@ namespace KerbalVR {
                     textureType = ETextureType.OpenGL;
                     throw new InvalidOperationException(SystemInfo.graphicsDeviceType.ToString() + " does not support VR. You must use -force-d3d11");
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D11:
-                    textureType = ETextureType.DirectX;
-                    break;
                 case UnityEngine.Rendering.GraphicsDeviceType.Direct3D12:
                     textureType = ETextureType.DirectX;
                     break;

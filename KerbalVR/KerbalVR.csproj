@@ -84,38 +84,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\KVR_AvionicsComputer.cs" />
-    <Compile Include="Components\KVR_Button.cs" />
-    <Compile Include="Components\KVR_Cover.cs" />
-    <Compile Include="Components\KVR_IActionableCollider.cs" />
-    <Compile Include="Components\KVR_Label.cs" />
-    <Compile Include="Components\KVR_Switch.cs" />
-    <Compile Include="Components\KVR_SwitchTwoState.cs" />
-    <Compile Include="Components\KVR_SwitchThreeState.cs" />
     <Compile Include="KerbalVR_Configuration.cs" />
     <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_Events.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
-    <Compile Include="KerbalVR_DeviceManager.cs" />
     <Compile Include="KerbalVR_Globals.cs" />
-    <Compile Include="KerbalVR_GraphicRaycaster.cs" />
-    <Compile Include="KerbalVR_Manipulator.cs" />
     <Compile Include="KerbalVR_MathUtils.cs" />
     <Compile Include="KerbalVR_AppGUI.cs" />
     <Compile Include="KerbalVR_Scene.cs" />
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="KerbalVR_ConfigUtils.cs" />
-    <Compile Include="Modules\KVR_ControlStick.cs" />
-    <Compile Include="Modules\KVR_DigitalIndicator.cs" />
-    <Compile Include="Modules\KVR_Periscope.cs" />
-    <Compile Include="Modules\KVR_PushButton.cs" />
-    <Compile Include="Components\KVR_ActionableCollider.cs" />
-    <Compile Include="Components\KVR_SwitchMomentary.cs" />
-    <Compile Include="Modules\KVR_Throttle.cs" />
-    <Compile Include="Modules\KVR_ToggleSwitch.cs" />
-    <Compile Include="Modules\KVR_ToggleSwitchDouble.cs" />
-    <Compile Include="Components\KVR_ExternalCamera.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteamVR\Plugins\openvr_api.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_Controller.cs" />
