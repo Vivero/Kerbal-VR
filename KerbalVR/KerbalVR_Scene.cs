@@ -573,13 +573,13 @@ namespace KerbalVR
             // simulate mouse touch events with the trigger
             if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
                 foreach (var obj in DeviceManager.Instance.ManipulatorLeft.FingertipCollidedGameObjects) {
-                    obj.SendMessage("OnMouseDown");
+                    if (obj != null) obj.SendMessage("OnMouseDown");
                 }
             }
 
             if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
                 foreach (var obj in DeviceManager.Instance.ManipulatorLeft.FingertipCollidedGameObjects) {
-                    obj.SendMessage("OnMouseUp");
+                    if (obj != null) obj.SendMessage("OnMouseUp");
                 }
             }
         }
@@ -610,13 +610,13 @@ namespace KerbalVR
             // simulate mouse touch events with the trigger
             if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
                 foreach (var obj in DeviceManager.Instance.ManipulatorRight.FingertipCollidedGameObjects) {
-                    obj.SendMessage("OnMouseDown");
+                    if (obj != null) obj.SendMessage("OnMouseDown");
                 }
             }
 
             if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
                 foreach (var obj in DeviceManager.Instance.ManipulatorRight.FingertipCollidedGameObjects) {
-                    obj.SendMessage("OnMouseUp");
+                    if (obj != null) obj.SendMessage("OnMouseUp");
                 }
             }
         }

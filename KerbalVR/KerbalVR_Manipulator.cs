@@ -65,7 +65,7 @@ namespace KerbalVR
 
             // create game objects for this hand
             CreateGloveGameObject();
-            CreateOtherGameObjects();
+            // CreateOtherGameObjects();
         }
 
         protected void Update() {
@@ -317,23 +317,11 @@ namespace KerbalVR
                 if (TargetObject != null) {
                     TargetObject.SendMessage("OnMouseDown");
                 }
-
-                GameObject go = GameObject.Find("KVR_UI_ResetPosButton");
-                if (go != null) {
-                    Utils.Log("PointerDown KVR_UI_ResetPosButton");
-                    ExecuteEvents.Execute<IPointerDownHandler>(go, new PointerEventData(EventSystem.current), ExecuteEvents.pointerDownHandler);
-                }
             }
 
             if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
                 if (TargetObject != null) {
                     TargetObject.SendMessage("OnMouseUp");
-                }
-
-                GameObject go = GameObject.Find("KVR_UI_ResetPosButton");
-                if (go != null) {
-                    Utils.Log("PointerUp KVR_UI_ResetPosButton");
-                    ExecuteEvents.Execute<IPointerUpHandler>(go, new PointerEventData(EventSystem.current), ExecuteEvents.pointerUpHandler);
                 }
             }
         }
