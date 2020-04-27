@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Valve.VR;
 
 namespace KerbalVR
@@ -51,9 +52,10 @@ namespace KerbalVR
         private Animator manipulatorAnimator;
         private GameObject glovePrefab = null;
         private GameObject gloveGameObject = null;
-        private GameObject laserPointer = null;
-        private LineRenderer laserPointerRenderer = null;
         private GameObject uiScreen;
+
+        private GameObject laserPointer = null;
+        private LaserPointer laserPointerComponent = null;
         #endregion
 
 
@@ -67,6 +69,10 @@ namespace KerbalVR
         }
 
         protected void Update() {
+            // position the controller object
+            transform.position = Scene.Instance.DevicePoseToWorld(Pose.pos);
+            transform.rotation = Scene.Instance.DevicePoseToWorld(Pose.rot);
+
             // apply logic once we have a Glove object
             if (gloveGameObject != null) {
                 // update transforms
@@ -75,14 +81,6 @@ namespace KerbalVR
                 // animate grip
                 manipulatorAnimator.SetBool("Hold", isGripping);
             }
-
-            // position the laser pointer
-            laserPointerRenderer.SetPosition(0, this.transform.position);
-            laserPointerRenderer.SetPosition(1, this.transform.position + this.transform.forward * 2f);
-
-            // position the controller object
-            transform.position = Scene.Instance.DevicePoseToWorld(Pose.pos);
-            transform.rotation = Scene.Instance.DevicePoseToWorld(Pose.rot);
         }
 
         protected void OnHmdRunStatusUpdated(bool isRunning) {
@@ -137,30 +135,25 @@ namespace KerbalVR
         protected void CreateOtherGameObjects() {
             // create a laser pointer
             laserPointer = new GameObject();
+            laserPointerComponent = laserPointer.AddComponent<LaserPointer>();
+            laserPointerComponent.MaxLength = 3f;
             laserPointer.SetActive(true);
             Utils.SetLayer(laserPointer, KerbalVR.Scene.Instance.RenderLayer);
             laserPointer.transform.SetParent(this.transform);
             laserPointer.transform.localPosition = Vector3.zero;
-            laserPointerRenderer = laserPointer.AddComponent<LineRenderer>();
-            laserPointerRenderer.material = new Material(Shader.Find("KSP/Particles/Alpha Blended"));
-            laserPointerRenderer.startColor = Color.cyan;
-            laserPointerRenderer.endColor = Color.red;
-            laserPointerRenderer.startWidth = 0.005f;
-            laserPointerRenderer.endWidth = 0.005f;
 
             // create a UI screen
             uiScreen = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(uiScreen.GetComponent<MeshCollider>());
             uiScreen.SetActive(true);
             Utils.SetLayer(uiScreen, KerbalVR.Scene.Instance.RenderLayer);
             uiScreen.transform.SetParent(this.transform);
-            uiScreen.transform.localPosition = Vector3.forward * 0.3f;
+            uiScreen.transform.localPosition = Vector3.forward * 0.1f;
             uiScreen.transform.localRotation = Quaternion.Euler(30f, 0f, 0f);
             Vector3 uiScreenScale = Vector3.one * 0.6f;
             uiScreenScale.x = uiScreenScale.y * (16f / 9f);
             uiScreen.transform.localScale = uiScreenScale;
             MeshRenderer uiScreenRenderer = uiScreen.GetComponent<MeshRenderer>();
-            // Material uiScreenMaterial = new Material(Shader.Find("KSP/UnlitColor"));
-            // uiScreenMaterial.color = Color.green;
             Material uiScreenMaterial = new Material(Shader.Find("KSP/Alpha/Unlit Transparent"));
             uiScreenMaterial.mainTexture = Core.KspUiRenderTexture;
             uiScreenRenderer.material = uiScreenMaterial;
@@ -242,4 +235,107 @@ namespace KerbalVR
             }
         }
     } // class FingertipManipulator
+
+
+    public class LaserPointer : MonoBehaviour {
+        public GameObject TargetObject { get; private set; } = null;
+        public Vector3 Direction { get; set; } = Vector3.forward;
+        public float MaxLength { get; set; } = 1f;
+        public Vector2 HitCoordinates { get; private set; } = Vector2.zero;
+
+        private LineRenderer lineRenderer = null;
+        private GameObject laserStrike = null;
+
+        protected void Awake() {
+            // create a simple line renderer
+            lineRenderer = this.gameObject.AddComponent<LineRenderer>();
+            lineRenderer.material = new Material(Shader.Find("KSP/Particles/Alpha Blended"));
+            lineRenderer.startColor = new Color(0f, 1f, 1f, 0.9f);
+            lineRenderer.endColor = new Color(0f, 1f, 1f, 0.2f);
+            lineRenderer.startWidth = 0.009f;
+            lineRenderer.endWidth = 0.002f;
+
+            // create an object that represents where the laser is hitting
+            laserStrike = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Destroy(laserStrike.GetComponent<SphereCollider>());
+            laserStrike.SetActive(false);
+            laserStrike.transform.SetParent(this.transform);
+            laserStrike.transform.localPosition = Vector3.zero;
+            laserStrike.transform.localRotation = Quaternion.identity;
+            laserStrike.transform.localScale = Vector3.one * 0.04f;
+            MeshRenderer laserStrikeRenderer = laserStrike.GetComponent<MeshRenderer>();
+            Material laserStrikeMaterial = new Material(Shader.Find("KSP/Alpha/Unlit Transparent"));
+            laserStrikeMaterial.color = new Color(0f, 1f, 1f, 0.6f);
+            laserStrikeRenderer.material = laserStrikeMaterial;
+        }
+
+        protected void Update() {
+            Vector3 normalizedDirection = Vector3.Normalize(this.transform.rotation * Direction);
+            // position the laser pointer
+            lineRenderer.SetPosition(0, this.transform.position);
+            lineRenderer.SetPosition(1, this.transform.position + normalizedDirection * MaxLength);
+
+            // cast a ray to see what objects are being hit
+            RaycastHit laserHit;
+            Ray laserRay = new Ray(this.transform.position, normalizedDirection);
+            if (Physics.Raycast(laserRay, out laserHit, MaxLength)) {
+                if (laserHit.collider != null) {
+                    TargetObject = laserHit.collider.gameObject;
+                    TargetObject.SendMessage("OnMouseEnter"); // simulate hovering mouse over target
+                    laserStrike.SetActive(true); // show the laser strike
+                    laserStrike.transform.position = laserHit.point;
+                    lineRenderer.SetPosition(1, laserHit.point);
+
+
+                    HitCoordinates = laserHit.textureCoord;
+                }
+            } else {
+                if (TargetObject != null) {
+                    // if we were hitting a target, simulate the mouse leaving
+                    TargetObject.SendMessage("OnMouseExit");
+                }
+
+                // drop the target, if any. stop showing the laser strike
+                TargetObject = null;
+                laserStrike.SetActive(false);
+            }
+        }
+
+        void OnEnable() {
+            Events.ManipulatorLeftUpdated.Listen(OnManipulatorUpdated);
+            Events.ManipulatorRightUpdated.Listen(OnManipulatorUpdated);
+        }
+
+        void OnDisable() {
+            Events.ManipulatorLeftUpdated.Remove(OnManipulatorUpdated);
+            Events.ManipulatorRightUpdated.Remove(OnManipulatorUpdated);
+        }
+
+        protected void OnManipulatorUpdated(SteamVR_Controller.Device state) {
+            // simulate mouse touch events with the trigger
+            if (state.GetPressDown(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+                if (TargetObject != null) {
+                    TargetObject.SendMessage("OnMouseDown");
+                }
+
+                GameObject go = GameObject.Find("KVR_UI_ResetPosButton");
+                if (go != null) {
+                    Utils.Log("PointerDown KVR_UI_ResetPosButton");
+                    ExecuteEvents.Execute<IPointerDownHandler>(go, new PointerEventData(EventSystem.current), ExecuteEvents.pointerDownHandler);
+                }
+            }
+
+            if (state.GetPressUp(EVRButtonId.k_EButton_SteamVR_Trigger)) {
+                if (TargetObject != null) {
+                    TargetObject.SendMessage("OnMouseUp");
+                }
+
+                GameObject go = GameObject.Find("KVR_UI_ResetPosButton");
+                if (go != null) {
+                    Utils.Log("PointerUp KVR_UI_ResetPosButton");
+                    ExecuteEvents.Execute<IPointerUpHandler>(go, new PointerEventData(EventSystem.current), ExecuteEvents.pointerUpHandler);
+                }
+            }
+        }
+    }
 } // namespace KerbalVR

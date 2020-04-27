@@ -35,8 +35,10 @@ namespace KerbalVR
         #endregion
 
         #region Private Members
-        private ApplicationLauncherButton appButton = null;
-        private static GameObject uiCanvas = null;
+        private ApplicationLauncherButton appMainButton = null;
+        private ApplicationLauncherButton appDebugButton = null;
+        private static GameObject uiMainCanvas = null;
+        private static GameObject uiDebugCanvas = null;
         #endregion
 
         private void Awake() {
@@ -56,21 +58,39 @@ namespace KerbalVR
         /// </summary>
         public void OnAppLauncherReady() {
             // create new app button instance if it doesn't already exist
-            if (appButton == null) {
-                appButton = ApplicationLauncher.Instance.AddModApplication(
-                    OnToggleTrue,
-                    OnToggleFalse,
+            if (appMainButton == null) {
+                appMainButton = ApplicationLauncher.Instance.AddModApplication(
+                    OnMainToggleTrue,
+                    OnMainToggleFalse,
                     null, null, null, null,
                     APP_VISIBILITY,
                     GameDatabase.Instance.GetTexture(APP_BUTTON_LOGO, false));
             }
 
+            // create a debugging tools app button instance if it doesn't already exist
+            if (appDebugButton == null) {
+                appDebugButton = ApplicationLauncher.Instance.AddModApplication(
+                    OnDebugToggleTrue,
+                    OnDebugToggleFalse,
+                    null, null, null, null,
+                    APP_VISIBILITY,
+                    GameDatabase.Instance.GetTexture(APP_BUTTON_LOGO_ALT, false));
+            }
+
             // load the UI prefab
-            if (uiCanvas == null) {
-                uiCanvas = Instantiate(KerbalVR.AssetLoader.Instance.GetGameObject("KVR_UI_MainPanel"));
-                uiCanvas.transform.SetParent(MainCanvasUtil.MainCanvas.transform);
-                uiCanvas.AddComponent<AppGUI>();
-                uiCanvas.SetActive(false);
+            if (uiMainCanvas == null) {
+                uiMainCanvas = Instantiate(KerbalVR.AssetLoader.Instance.GetGameObject("KVR_UI_MainPanel"));
+                uiMainCanvas.transform.SetParent(MainCanvasUtil.MainCanvas.transform);
+                uiMainCanvas.AddComponent<AppMainGUI>();
+                uiMainCanvas.SetActive(false);
+            }
+
+            // load the debugging UI prefab
+            if (uiDebugCanvas == null) {
+                uiDebugCanvas = Instantiate(KerbalVR.AssetLoader.Instance.GetGameObject("KVR_UI_DebugPanel"));
+                uiDebugCanvas.transform.SetParent(MainCanvasUtil.MainCanvas.transform);
+                uiDebugCanvas.AddComponent<AppDebugGUI>();
+                uiDebugCanvas.SetActive(false);
             }
         }
 
@@ -80,24 +100,42 @@ namespace KerbalVR
         /// application launcher.
         /// </summary>
         public void OnAppLauncherDestroyed() {
-            if (appButton != null) {
-                appButton.SetFalse(true);
-                ApplicationLauncher.Instance.RemoveApplication(appButton);
+            if (appMainButton != null) {
+                appMainButton.SetFalse(true);
+                ApplicationLauncher.Instance.RemoveApplication(appMainButton);
+            }
+            if (appDebugButton != null) {
+                appDebugButton.SetFalse(true);
+                ApplicationLauncher.Instance.RemoveApplication(appDebugButton);
             }
         }
 
         /// <summary>
-        /// Callback when the application button is toggled on.
+        /// Callback when the main application button is toggled on.
         /// </summary>
-        public void OnToggleTrue() {
-            uiCanvas.SetActive(true);
+        public void OnMainToggleTrue() {
+            uiMainCanvas.SetActive(true);
         }
 
         /// <summary>
-        /// Callback when the application button is toggled off.
+        /// Callback when the debug application button is toggled on.
         /// </summary>
-        public void OnToggleFalse() {
-            uiCanvas.SetActive(false);
+        public void OnDebugToggleTrue() {
+            uiDebugCanvas.SetActive(true);
+        }
+
+        /// <summary>
+        /// Callback when the main application button is toggled off.
+        /// </summary>
+        public void OnMainToggleFalse() {
+            uiMainCanvas.SetActive(false);
+        }
+
+        /// <summary>
+        /// Callback when the debug application button is toggled off.
+        /// </summary>
+        public void OnDebugToggleFalse() {
+            uiDebugCanvas.SetActive(false);
         }
 
         /// <summary>
@@ -105,7 +143,8 @@ namespace KerbalVR
         /// </summary>
         void OnSceneChange(GameEvents.FromToAction<GameScenes, GameScenes> fromToScenes) {
             // on scene change, command the button to toggle off, so the GUI closes
-            appButton.SetFalse(true);
+            appMainButton.SetFalse(true);
+            appDebugButton.SetFalse(true);
         }
     }
 
@@ -113,9 +152,28 @@ namespace KerbalVR
     public class AppGUI : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
         #region Private Members
-        private Vector2 mainPanelDragStart;
-        private Vector2 mainPanelAltStart;
+        private Vector2 panelDragStart;
+        private Vector2 panelAltStart;
+        #endregion
 
+        // this event fires when a drag event begins
+        public void OnBeginDrag(PointerEventData data) {
+            panelDragStart = new Vector2(data.position.x - Screen.width * 0.5f, data.position.y - Screen.height * 0.5f);
+            panelAltStart = transform.position;
+        }
+
+        // this event fires while we're dragging. It's constantly moving the UI to a new position
+        public void OnDrag(PointerEventData data) {
+            Vector2 deltaPos = new Vector2(data.position.x - Screen.width * 0.5f, data.position.y - Screen.height * 0.5f);
+            Vector2 dragVector = deltaPos - panelDragStart;
+            transform.position = panelAltStart + dragVector;
+        }
+    }
+
+
+    public class AppMainGUI : AppGUI
+    {
+        #region Private Members
         private GameObject vrEnableButton;
         private GameObject resetPositionButton;
         private GameObject initOpenVrAtStartupToggle;
@@ -191,7 +249,8 @@ namespace KerbalVR
             // toggle the VR enable
             if (KerbalVR.Core.HmdIsEnabled) {
                 KerbalVR.Core.HmdIsEnabled = false;
-            } else {
+            }
+            else {
                 KerbalVR.Core.HmdIsEnabled = true;
             }
         }
@@ -226,24 +285,33 @@ namespace KerbalVR
                 vrEnableButtonText.text = "DISABLE VR";
                 vrStatusText.text = "ENABLED";
                 vrStatusText.color = Color.green;
-            } else {
+            }
+            else {
                 vrEnableButtonText.text = "ENABLE VR";
                 vrStatusText.text = "DISABLED";
                 vrStatusText.color = Color.red;
             }
         }
+    }
 
-        // this event fires when a drag event begins
-        public void OnBeginDrag(PointerEventData data) {
-            mainPanelDragStart = new Vector2(data.position.x - Screen.width * 0.5f, data.position.y - Screen.height * 0.5f);
-            mainPanelAltStart = transform.position;
+
+    public class AppDebugGUI : AppGUI
+    {
+        #region Private Members
+        private Text debugText;
+        #endregion
+
+        private void Awake() {
+            // get text label objects
+            GameObject debugTextObject = GameObject.Find("KVR_UI_DebugText");
+            debugText = debugTextObject.GetComponent<Text>();
+            debugText.fontSize = 12;
+
+            SetText("Debug Content");
         }
 
-        // this event fires while we're dragging. It's constantly moving the UI to a new position
-        public void OnDrag(PointerEventData data) {
-            Vector2 deltaPos = new Vector2(data.position.x - Screen.width * 0.5f, data.position.y - Screen.height * 0.5f);
-            Vector2 dragVector = deltaPos - mainPanelDragStart;
-            transform.position = mainPanelAltStart + dragVector;
+        public void SetText(object obj) {
+            debugText.text = obj.ToString();
         }
     }
 }

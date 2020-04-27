@@ -10,6 +10,8 @@ namespace KerbalVR
     /// </summary>
     public class Utils
     {
+        private static AppDebugGUI debugUi = null;
+
         public static T GetOrAddComponent<T>(GameObject obj) where T : Component {
             T c = obj.GetComponent<T>();
             if (c == null) {
@@ -32,6 +34,15 @@ namespace KerbalVR
 
         public static void PostScreenMessage(object obj) {
             ScreenMessages.PostScreenMessage(Globals.LOG_PREFIX + obj);
+        }
+
+        public static void SetDebugText(object obj) {
+            if (debugUi == null) {
+                debugUi = GameObject.FindObjectOfType<AppDebugGUI>();
+            }
+            if (debugUi != null) {
+                debugUi.SetText(obj);
+            }
         }
 
         public static bool Is64BitProcess {
@@ -176,6 +187,36 @@ namespace KerbalVR
             return gizmo;
         }
 
+        public static string GetGameObjectInfo(GameObject go) {
+            string msg = "GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " + go.name + " (layer: " + go.layer + ")";
+            if (go.transform.parent != null) {
+                msg += " (Parent: " + go.transform.parent.name + ")";
+            }
+            msg += "\n";
+            Component[] components = go.GetComponents<Component>();
+            for (int i = 0; i < components.Length; i++) {
+                msg += "Component: " + components[i].ToString() + "\n";
+
+                if (components[i] is MeshFilter) {
+                    MeshFilter meshFilter = components[i] as MeshFilter;
+                    if (meshFilter.sharedMesh != null) {
+                        msg += "MeshFilter: '" + meshFilter.sharedMesh.name + "' (" + meshFilter.sharedMesh.vertexCount + " vertices)\n";
+                    }
+                }
+
+                if (components[i] is MeshRenderer) {
+                    MeshRenderer meshRenderer = components[i] as MeshRenderer;
+                    msg += "MeshRenderer (" + (meshRenderer.enabled ? "on" : "off") + ")";
+                    if (meshRenderer.sharedMaterial != null) {
+                        msg += " (sharedMaterial=" + meshRenderer.sharedMaterial.name + ")";
+                        // msg += " (color=" + meshRenderer.sharedMaterial.color + ")";
+                    }
+                    msg += "\n";
+                }
+            }
+            return msg;
+        }
+
         public static void PrintAllCameras() {
             Log("Scene: " + HighLogic.LoadedScene);
             Log("CameraMode: " + (CameraManager.Instance != null ? CameraManager.Instance.currentCameraMode.ToString() : "null"));
@@ -214,32 +255,7 @@ namespace KerbalVR
         }
 
         public static void PrintGameObject(GameObject go) {
-            string header = "GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " + go.name + " (layer: " + go.layer + ")";
-            if (go.transform.parent != null) {
-                header += " (Parent: " + go.transform.parent.name + ")";
-            }
-            Log(header);
-            Component[] components = go.GetComponents<Component>();
-            for (int i = 0; i < components.Length; i++) {
-                Log("Component: " + components[i].ToString());
-
-                if (components[i] is MeshFilter) {
-                    MeshFilter meshFilter = components[i] as MeshFilter;
-                    if (meshFilter.sharedMesh != null) {
-                        Log("MeshFilter: " + meshFilter.sharedMesh.name + " (" + meshFilter.sharedMesh.vertexCount + " vertices)");
-                    }
-                }
-
-                if (components[i] is MeshRenderer) {
-                    MeshRenderer meshRenderer = components[i] as MeshRenderer;
-                    string logMsg = "MeshRenderer (" + (meshRenderer.enabled ? "on" : "off") + ")";
-                    if (meshRenderer.sharedMaterial != null) {
-                        logMsg += " (sharedMaterial=" + meshRenderer.sharedMaterial.name + ")";
-                        logMsg += " (color=" + meshRenderer.sharedMaterial.color + ")";
-                    }
-                    Log(logMsg);
-                }
-            }
+            Log(GetGameObjectInfo(go));
         }
 
         public static void PrintGameObjectTree(GameObject go) {

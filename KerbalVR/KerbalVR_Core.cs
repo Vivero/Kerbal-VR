@@ -213,9 +213,11 @@ namespace KerbalVR {
                     HmdIsEnabled = false;
                     HmdIsRunning = false;
                 }
+            }
 
-                // render the UI to our own RenderTexture
-                Camera kspUiCamera = KerbalVR.Scene.Instance.KspUiCamera;
+            // render the UI to our own RenderTexture
+            Camera kspUiCamera = KerbalVR.Scene.Instance.KspUiCamera;
+            if (kspUiCamera != null) {
                 kspUiCamera.enabled = false;
                 kspUiCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
                 kspUiCamera.targetTexture = KspUiRenderTexture;
@@ -237,12 +239,12 @@ namespace KerbalVR {
 
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
-                Utils.PrintAllCameras();
-                Utils.PrintAllLayers();
+                // Utils.PrintAllCameras();
+                // Utils.PrintAllLayers();
                 // Utils.PrintDebug();
                 // Utils.PrintFonts();
                 // Utils.PrintCollisionMatrix();
-                // Utils.PrintAllGameObjects();
+                Utils.PrintAllGameObjects();
                 // Utils.PrintMainMenuInfo();
             }
 

@@ -138,6 +138,8 @@ namespace KerbalVR
         private GameObject galaxyCamera = null;
         private GameObject landscapeCamera = null;
         private MainMenuEnvLogic mainMenuLogic = null;
+
+        private GameObject mainMenuUiScreen = null;
         #endregion
 
 
@@ -213,6 +215,20 @@ namespace KerbalVR
             // set inital scene position
             InitialPosition = Vector3.zero;
             InitialRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+
+            // create a UI screen
+            if (mainMenuUiScreen == null) {
+                mainMenuUiScreen = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                mainMenuUiScreen.name = "KVR_KSP_UI_Screen";
+                mainMenuUiScreen.transform.position = CurrentPosition + new Vector3(0.4f, 0f, 0f);
+                mainMenuUiScreen.transform.rotation = Quaternion.Euler(0f, 30f, 0f);
+                Vector3 uiScreenScale = Vector3.one * 0.6f;
+                uiScreenScale.x = uiScreenScale.y * (16f / 9f);
+                mainMenuUiScreen.transform.localScale = uiScreenScale;
+                MeshRenderer mr = mainMenuUiScreen.GetComponent<MeshRenderer>();
+                mr.material = new Material(Shader.Find("KSP/Alpha/Unlit Transparent"));
+                mr.material.mainTexture = KerbalVR.Core.KspUiRenderTexture;
+            }
         }
 
         private void SetupFlightIvaScene() {
@@ -350,6 +366,9 @@ namespace KerbalVR
             // store the eyeball position
             HmdEyePosition[(int)eye] = updatedPosition;
             HmdEyeRotation[(int)eye] = updatedRotation;
+
+            // update the UI screen
+            mainMenuUiScreen.transform.position = CurrentPosition + new Vector3(1f, 0f, 1f);
         }
 
         private void UpdateFlightIvaScene(
