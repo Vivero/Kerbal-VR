@@ -133,12 +133,6 @@ namespace KerbalVR
             public void Send(T0 arg0, T1 arg1, T2 arg2) { this.Invoke(arg0, arg1, arg2); }
         }
 
-        public static Event<SteamVR_Controller.Device> ManipulatorLeftUpdated = new Event<SteamVR_Controller.Device>();
-        public static Action ManipulatorLeftUpdatedAction(UnityAction<SteamVR_Controller.Device> action) { return new Action<SteamVR_Controller.Device>(ManipulatorLeftUpdated, action); }
-
-        public static Event<SteamVR_Controller.Device> ManipulatorRightUpdated = new Event<SteamVR_Controller.Device>();
-        public static Action ManipulatorRightUpdatedAction(UnityAction<SteamVR_Controller.Device> action) { return new Action<SteamVR_Controller.Device>(ManipulatorRightUpdated, action); }
-
         public static Event<bool> HmdStatusUpdated = new Event<bool>();
         public static Action HmdStatusUpdatedAction(UnityAction<bool> action) { return new Action<bool>(HmdStatusUpdated, action); }
 
