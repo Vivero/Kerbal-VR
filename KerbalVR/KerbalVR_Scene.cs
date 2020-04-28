@@ -46,7 +46,9 @@ namespace KerbalVR
         #endregion
 
         #region Singleton
-        // this is a singleton class, and there must be one Scene in the scene
+        /// <summary>
+        /// This is a singleton class, and there must be exactly one GameObject with this Component in the scene.
+        /// </summary>
         private static Scene _instance;
         public static Scene Instance {
             get {
@@ -62,7 +64,9 @@ namespace KerbalVR
             }
         }
 
-        // first-time initialization for this singleton class
+        /// <summary>
+        /// One-time initialization for this singleton class.
+        /// </summary>
         private void Initialize() {
             HmdEyePosition = new Vector3[2];
             HmdEyeRotation = new Quaternion[2];
@@ -109,6 +113,10 @@ namespace KerbalVR
 
         // defines the tracking method to use
         public ETrackingUniverseOrigin TrackingSpace { get; private set; }
+
+        public KerbalVR.Types.VRCameraEyeRig[] VRCameraRigs { get; private set; } = new Types.VRCameraEyeRig[2];
+        public bool IsVrCamerasReady { get; private set; } = false;
+        public bool IsVrCamerasEnabled { get; private set; } = false;
         #endregion
 
 
@@ -118,108 +126,118 @@ namespace KerbalVR
         #endregion
 
 
-        /// <summary>
-        /// Set up the list of cameras to render for this scene and the initial position
-        /// corresponding to the origin in the real world device coordinate system.
-        /// </summary>
-        public void SetupScene() {
-            // set up game-scene-specific cameras
-            switch (HighLogic.LoadedScene) {
-                case GameScenes.MAINMENU:
-                    SetupMainMenuScene();
-                    break;
+        protected void Awake() {
+            GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
+            VRCameraRigs[0] = new Types.VRCameraEyeRig(); // left eye
+            VRCameraRigs[1] = new Types.VRCameraEyeRig(); // right eye
+        }
 
-                case GameScenes.FLIGHT:
-                    if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA) {
-                        SetupFlightIvaScene();
-                    } else if (FlightGlobals.ActiveVessel.isEVA) {
-                        SetupFlightEvaScene();
-                    }
-                    break;
 
-                case GameScenes.EDITOR:
-                    SetupEditorScene();
-                    break;
-
-                default:
-                    throw new Exception("Cannot setup VR scene, current scene \"" +
-                        HighLogic.LoadedScene + "\" is invalid.");
+        protected void Update() {
+            // set up the cameras
+            if (!IsVrCamerasReady) {
+                SetupCameras();
+                return;
             }
 
-            CurrentPosition = InitialPosition;
-            CurrentRotation = InitialRotation;
+            // enable the cameras if VR is enabled
+            if (KerbalVR.Core.HmdIsRunning && !IsVrCamerasEnabled) {
+                SetCamerasEnabled(true);
+            }
+
+            // disabled the cameras if VR is off
+            if (!KerbalVR.Core.HmdIsRunning && IsVrCamerasEnabled) {
+                SetCamerasEnabled(false);
+            }
+
+            switch (HighLogic.LoadedScene) {
+                case GameScenes.MAINMENU:
+                    break;
+            }
         }
 
-        private void SetupMainMenuScene() {
-            // use seated mode during main menu
-            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
-            // generate list of cameras to render
-            PopulateCameraList(MAINMENU_SCENE_CAMERAS);
+        protected void OnGameSceneLoadRequested(GameScenes scene) {
+            Utils.Log("Setting up scene for " + scene.ToString());
 
-            // set inital scene position
-            InitialPosition = Vector3.zero;
-            InitialRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+            // tear down existing cameras
+            Utils.Log("Tearing down cameras");
+            for (int eyeIdx = 0; eyeIdx < 2; ++eyeIdx) {
+                if (VRCameraRigs[eyeIdx].cameraGameObjects != null) {
+                    Utils.Log("Eye " + eyeIdx + " has " + VRCameraRigs[eyeIdx].cameraGameObjects.Length + " cameras");
+                    for (int camIdx = 0; camIdx < VRCameraRigs[eyeIdx].cameraGameObjects.Length; ++camIdx) {
+                        Destroy(VRCameraRigs[eyeIdx].cameraGameObjects[camIdx]);
+                        VRCameraRigs[eyeIdx].cameraGameObjects[camIdx] = null;
+                        VRCameraRigs[eyeIdx].cameras[camIdx] = null;
+                    }
+                }
+            }
+            IsVrCamerasReady = false;
         }
 
-        private void SetupFlightIvaScene() {
-            // use seated mode during IVA flight
-            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
+        protected void SetupCameras() {
+            GameScenes scene = HighLogic.LoadedScene;
 
-            // generate list of cameras to render
-            PopulateCameraList(FLIGHT_SCENE_IVA_CAMERAS);
+            // create new cameras
+            switch (scene) {
+                case GameScenes.MAINMENU:
 
-            // set inital scene position
-            InitialPosition = InternalCamera.Instance.transform.position;
+                    // string kspCameraName = "GalaxyCamera";
+                    string kspCameraName = "Landscape Camera";
+                    GameObject kspCameraGameObject = GameObject.Find(kspCameraName);
+                    if (kspCameraGameObject == null) {
+                        return;
+                    }
 
-            // set rotation to always point forward inside the cockpit
-            // NOTE: actually this code doesn't work for certain capsules
-            // with different internal origin orientations
-            /*InitialRotation = Quaternion.LookRotation(
-                InternalSpace.Instance.transform.rotation * Vector3.up,
-                InternalSpace.Instance.transform.rotation * Vector3.back);*/
+                    for (int eyeIdx = 0; eyeIdx < 2; ++eyeIdx) {
+                        EVREye eye = (EVREye)eyeIdx;
 
-            InitialRotation = InternalCamera.Instance.transform.rotation;
+                        VRCameraRigs[eyeIdx].cameraGameObjects = new GameObject[1];
+                        VRCameraRigs[eyeIdx].cameras = new Camera[1];
+                        
+                        string kvrCameraName = "KVR_Eye_Camera (" + eye.ToString() + ") (" + kspCameraName + ")";
+                        GameObject kvrCameraGameObject = new GameObject(kvrCameraName);
+                        VREyeRenderer kvrCameraRenderer = kvrCameraGameObject.AddComponent<VREyeRenderer>();
+                        kvrCameraRenderer.eye = eye;
+                        Camera kvrCameraComponent = kvrCameraGameObject.AddComponent<Camera>();
+                        kvrCameraComponent.enabled = false;
+
+                        // copy camera settings
+                        Camera kspCameraComponent = kspCameraGameObject.GetComponent<Camera>();
+                        kvrCameraComponent.depth = kspCameraComponent.depth + eyeIdx;
+                        kvrCameraComponent.clearFlags = CameraClearFlags.SolidColor;
+                        kvrCameraComponent.backgroundColor = Color.red;
+                        kvrCameraComponent.cullingMask = kspCameraComponent.cullingMask;
+                        kvrCameraComponent.orthographic = kspCameraComponent.orthographic;
+                        kvrCameraComponent.nearClipPlane = 0.01f;
+                        kvrCameraComponent.farClipPlane = kspCameraComponent.farClipPlane;
+                        kvrCameraComponent.depthTextureMode = kspCameraComponent.depthTextureMode;
+                        kvrCameraComponent.targetTexture = KerbalVR.Core.hmdEyeRenderTexture[eyeIdx];
+
+                        // set VR specific settings
+                        HmdMatrix44_t projectionMatrix = OpenVR.System.GetProjectionMatrix(eye, kvrCameraComponent.nearClipPlane, kvrCameraComponent.farClipPlane);
+                        kvrCameraComponent.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projectionMatrix);
+
+                        // store references to objects
+                        VRCameraRigs[eyeIdx].cameraGameObjects[0] = kvrCameraGameObject;
+                        VRCameraRigs[eyeIdx].cameras[0] = kvrCameraComponent;
+
+                        Utils.Log("Set up camera for eye " + eye.ToString());
+                        IsVrCamerasReady = true;
+                    }
+                    break;
+            }
         }
 
-        private void SetupFlightEvaScene() {
-            // use seated mode during EVA
-            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
-
-            // generate list of cameras to render
-            PopulateCameraList(FLIGHT_SCENE_EVA_CAMERAS);
-
-            // set inital scene position
-            InitialPosition = FlightGlobals.ActiveVessel.transform.position;
-
-            // set rotation to always point forward inside the cockpit
-            // NOTE: actually this code doesn't work for certain capsules
-            // with different internal origin orientations
-            /*InitialRotation = Quaternion.LookRotation(
-                InternalSpace.Instance.transform.rotation * Vector3.up,
-                InternalSpace.Instance.transform.rotation * Vector3.back);*/
-
-            InitialRotation = FlightGlobals.ActiveVessel.transform.rotation;
-        }
-
-        private void SetupEditorScene() {
-            // use room-scale in editor
-            TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
-
-            // generate list of cameras to render
-            PopulateCameraList(EDITOR_SCENE_CAMERAS);
-
-            // set inital scene position
-
-            //Vector3 forwardDir = EditorCamera.Instance.transform.rotation * Vector3.forward;
-            //forwardDir.y = 0f; // make the camera point straight forward
-            //Vector3 startingPos = EditorCamera.Instance.transform.position;
-            //startingPos.y = 0f; // start at ground level
-
-            Vector3 startingPos = new Vector3(0f, 0f, -5f);
-
-            InitialPosition = startingPos;
-            InitialRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+        protected void SetCamerasEnabled(bool isEnabled) {
+            for (int eyeIdx = 0; eyeIdx < 2; ++eyeIdx) {
+                if (VRCameraRigs[eyeIdx].cameras != null) {
+                    for (int camIdx = 0; camIdx < VRCameraRigs[eyeIdx].cameras.Length; ++camIdx) {
+                        VRCameraRigs[eyeIdx].cameras[camIdx].enabled = isEnabled;
+                    }
+                }
+            }
+            IsVrCamerasEnabled = isEnabled;
         }
 
         /// <summary>
@@ -231,160 +249,6 @@ namespace KerbalVR
             EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform) {
-
-            switch (HighLogic.LoadedScene) {
-                case GameScenes.MAINMENU:
-                    UpdateMainMenuScene(eye, hmdTransform, hmdEyeTransform);
-                    break;
-
-                case GameScenes.FLIGHT:
-                    if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA) {
-                        UpdateFlightIvaScene(eye, hmdTransform, hmdEyeTransform);
-                    } else if (FlightGlobals.ActiveVessel.isEVA) {
-                        UpdateFlightEvaScene(eye, hmdTransform, hmdEyeTransform);
-                    }
-                    break;
-
-                case GameScenes.EDITOR:
-                    UpdateEditorScene(eye, hmdTransform, hmdEyeTransform);
-                    break;
-
-                default:
-                    throw new Exception("Cannot setup VR scene, current scene \"" +
-                        HighLogic.LoadedScene + "\" is invalid.");
-            }
-
-            HmdPosition = CurrentPosition + CurrentRotation * hmdTransform.pos;
-            HmdRotation = CurrentRotation * hmdTransform.rot;
-        }
-
-        private void UpdateMainMenuScene(
-            EVREye eye,
-            SteamVR_Utils.RigidTransform hmdTransform,
-            SteamVR_Utils.RigidTransform hmdEyeTransform) {
-
-            // lock in the initial pose
-            CurrentRotation = InitialRotation;
-            CurrentPosition = InitialPosition;
-
-            // get position of your eyeball
-            // Vector3 positionToHmd = hmdTransform.pos;
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
-
-            // translate device space to Unity space, with world scaling
-            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
-            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
-
-            // update the menu scene
-            landscapeCamera.transform.position = updatedPosition;
-            landscapeCamera.transform.rotation = updatedRotation;
-
-            // update the sky cameras
-            galaxyCamera.transform.rotation = updatedRotation;
-
-            // store the eyeball position
-            HmdEyePosition[(int)eye] = updatedPosition;
-            HmdEyeRotation[(int)eye] = updatedRotation;
-        }
-
-        private void UpdateFlightIvaScene(
-            EVREye eye,
-            SteamVR_Utils.RigidTransform hmdTransform,
-            SteamVR_Utils.RigidTransform hmdEyeTransform) {
-
-            // in flight, don't allow movement of the origin point
-            CurrentPosition = InitialPosition;
-            CurrentRotation = InitialRotation;
-
-            // get position of your eyeball
-            // Vector3 positionToHmd = hmdTransform.pos;
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
-
-            // translate device space to Unity space, with world scaling
-            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
-            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
-            Vector3 updatedWorldPosition = InternalSpace.InternalToWorld(updatedPosition);
-            Quaternion updatedWorldRotation = InternalSpace.InternalToWorld(updatedRotation);
-
-            // in flight, update the internal and flight cameras
-            InternalCamera.Instance.transform.position = updatedPosition;
-            InternalCamera.Instance.transform.rotation = updatedRotation;
-
-            FlightCamera.fetch.transform.position = updatedWorldPosition;
-            FlightCamera.fetch.transform.rotation = updatedWorldRotation;
-
-            // update the sky cameras
-            ScaledCamera.Instance.transform.rotation = updatedWorldRotation;
-            galaxyCamera.transform.rotation = updatedWorldRotation;
-
-            // store the eyeball position
-            HmdEyePosition[(int)eye] = updatedPosition;
-            HmdEyeRotation[(int)eye] = updatedRotation;
-        }
-
-        private void UpdateFlightEvaScene(
-            EVREye eye,
-            SteamVR_Utils.RigidTransform hmdTransform,
-            SteamVR_Utils.RigidTransform hmdEyeTransform) {
-
-            // in flight, don't allow movement of the origin point
-            CurrentPosition = InitialPosition;
-            CurrentRotation = InitialRotation;
-
-            // get position of your eyeball
-            Vector3 positionToHmd = hmdTransform.pos;
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
-
-            // translate device space to Unity space, with world scaling
-            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
-            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
-
-            // in flight, update the flight cameras
-            FlightCamera.fetch.transform.position = updatedPosition;
-            FlightCamera.fetch.transform.rotation = updatedRotation;
-
-            ScaledCamera.Instance.transform.rotation = updatedRotation;
-            galaxyCamera.transform.rotation = updatedRotation;
-
-            // store the eyeball position
-            HmdEyePosition[(int)eye] = updatedPosition;
-            HmdEyeRotation[(int)eye] = updatedRotation;
-        }
-
-        private void UpdateEditorScene(
-            EVREye eye,
-            SteamVR_Utils.RigidTransform hmdTransform,
-            SteamVR_Utils.RigidTransform hmdEyeTransform) {
-
-            // get position of your eyeball
-            Vector3 positionToHmd = hmdTransform.pos;
-            Vector3 positionToEye = hmdTransform.pos + hmdTransform.rot * hmdEyeTransform.pos;
-
-            // translate device space to Unity space, with world scaling
-            Vector3 updatedPosition = DevicePoseToWorld(positionToEye);
-            Quaternion updatedRotation = DevicePoseToWorld(hmdTransform.rot);
-
-            // update the editor camera position
-            EditorCamera.Instance.transform.position = updatedPosition;
-            EditorCamera.Instance.transform.rotation = updatedRotation;
-
-            // store the eyeball position
-            HmdEyePosition[(int)eye] = updatedPosition;
-            HmdEyeRotation[(int)eye] = updatedRotation;
-        }
-
-        /// <summary>
-        /// Resets game cameras back to their original settings
-        /// </summary>
-        public void CloseScene() {
-            // reset cameras to their original settings
-            if (VRCameras != null) {
-                for (int i = 0; i < VRCameras.Length; i++) {
-                    VRCameras[i].camera.targetTexture = null;
-                    VRCameras[i].camera.projectionMatrix = VRCameras[i].originalProjectionMatrix;
-                    VRCameras[i].camera.enabled = true;
-                }
-            }
         }
 
         /// <summary>
@@ -466,4 +330,40 @@ namespace KerbalVR
             return CurrentRotation * deviceRotation;
         }
     } // class Scene
+
+
+    public class VREyeRenderer : MonoBehaviour {
+        public EVREye eye { get; set; }
+
+        protected Camera camera;
+        protected VRTextureBounds_t hmdTextureBounds;
+
+        protected void Awake() {
+            camera = this.gameObject.GetComponent<Camera>();
+            hmdTextureBounds = new VRTextureBounds_t();
+            hmdTextureBounds.uMin = 0.0f;
+            hmdTextureBounds.uMax = 1.0f;
+            hmdTextureBounds.vMin = 1.0f; // flip the vertical coordinate for some reason
+            hmdTextureBounds.vMax = 0.0f;
+        }
+
+        protected void OnPostRender() {
+            Utils.Log("OnPostRender Eye: " + eye);
+
+            // Submit frames to HMD
+            Texture_t hmdEyeTexture = new Texture_t {
+                handle = KerbalVR.Core.hmdEyeRenderTexture[(int)eye].GetNativeTexturePtr(),
+                eColorSpace = EColorSpace.Auto,
+                eType = ETextureType.DirectX
+            };
+            EVRCompositorError vrCompositorError = OpenVR.Compositor.Submit(eye, ref hmdEyeTexture, ref hmdTextureBounds, EVRSubmitFlags.Submit_Default);
+            if (vrCompositorError != EVRCompositorError.None) {
+                Utils.Log("Submit (" + eye + ") failed: (" + (int)vrCompositorError + ") " + vrCompositorError.ToString());
+            }
+
+            /*if (eye == EVREye.Eye_Right) {
+                OpenVR.Compositor.PostPresentHandoff();
+            }*/
+        }
+    }
 } // namespace KerbalVR

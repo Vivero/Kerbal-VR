@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Valve.VR;
 
 namespace KerbalVR {
@@ -26,7 +27,6 @@ namespace KerbalVR {
 
 
         #region Properties
-
         /// <summary>
         /// Returns true if VR is currently enabled. Enabled
         /// does not necessarily mean VR is currently running, only
@@ -38,53 +38,44 @@ namespace KerbalVR {
         /// <summary>
         /// Returns true if VR is allowed to run in the current scene.
         /// </summary>
-        public static bool HmdIsAllowed { get; private set; }
+        public static bool HmdIsAllowed { get; private set; } = true;
 
         /// <summary>
         /// Returns true if VR is currently running, i.e. tracking devices
         /// and rendering images to the headset.
         /// </summary>
-        public static bool HmdIsRunning { get; private set; }
+        public static bool HmdIsRunning { get; private set; } = false;
 
-        /// <summary>
-        /// Set to true to allow the VR images to be rendered
-        /// to the game screen. False to disable.
-        /// </summary>
-        public static bool RenderHmdToScreen { get; set; } = true;
-
+        // these arrays each hold one object for the corresponding eye, where
+        // index 0 = Left_Eye, index 1 = Right_Eye
+        public static RenderTexture[] hmdEyeRenderTexture { get; private set; } = new RenderTexture[2];
         #endregion
 
 
         #region Private Members
-
         // keep track of when the HMD is rendering images
-        private static HmdState hmdState = HmdState.Uninitialized;
-        private static bool hmdIsRunningPrev = false;
-        private static DateTime hmdInitLastAttempt;
+        protected static HmdState hmdState = HmdState.Uninitialized;
+        protected static bool hmdIsRunningPrev = false;
+        protected static DateTime hmdInitLastAttempt;
 
         // defines the bounds to texture bounds for rendering
-        private static VRTextureBounds_t hmdTextureBounds;
+        protected static VRTextureBounds_t hmdTextureBounds;
 
         // these arrays each hold one object for the corresponding eye, where
         // index 0 = Left_Eye, index 1 = Right_Eye
-        private static Texture_t[] hmdEyeTexture = new Texture_t[2];
-        private static RenderTexture[] hmdEyeRenderTexture = new RenderTexture[2];
+        protected static Texture_t[] hmdEyeTexture = new Texture_t[2];
 
         // store the tracked device poses
-        private static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        private static TrackedDevicePose_t[] renderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        private static TrackedDevicePose_t[] gamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-
+        public static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        public static TrackedDevicePose_t[] renderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        public static TrackedDevicePose_t[] gamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         #endregion
 
 
         /// <summary>
         /// Initialize the application GUI, singleton classes, and initialize OpenVR.
         /// </summary>
-        private void Awake() {
-            // init class members
-            HmdIsAllowed = false;
-
+        protected void Awake() {
             // init GameObjects
             GameObject kvrConfiguration = new GameObject("KVR_Configuration");
             kvrConfiguration.AddComponent<KerbalVR.Configuration>();
@@ -106,114 +97,91 @@ namespace KerbalVR {
                 InitializeHMD();
             }
 
-            // add an event triggered when game scene changes, to handle
-            // shutting off the HMD outside of allowed VR scenes
+            // add an event triggered when game scene changes
             GameEvents.onGameSceneLoadRequested.Add(OnGameSceneLoadRequested);
 
             // don't destroy this object when switching scenes
             DontDestroyOnLoad(this);
+
+            // Ensure various settings to minimize latency.
+            Application.targetFrameRate = -1;
+            Application.runInBackground = true; // don't require companion window focus
+            QualitySettings.maxQueuedFrames = -1;
+            QualitySettings.vSyncCount = 0; // this applies to the companion window
         }
 
         /// <summary>
         /// Overrides the OnDestroy method, called when plugin is destroyed.
         /// </summary>
-        private void OnDestroy() {
+        protected void OnDestroy() {
             Utils.Log(KerbalVR.Globals.KERBALVR_NAME + " is shutting down...");
             CloseHMD();
         }
 
-        /// <summary>
-        /// On LateUpdate, dispatch OpenVR events, run the main HMD loop code.
-        /// </summary>
-        private void LateUpdate() {
-            // dispatch any OpenVR events
-            if (hmdState == HmdState.Initialized) {
-                DispatchOpenVREvents();
+        protected void Update() {
+            if (Input.GetKeyDown(KeyCode.Y)) {
+                Utils.Log("Debug");
             }
+        }
 
-            // check if the current scene allows VR
-            HmdIsAllowed = KerbalVR.Scene.Instance.SceneAllowsVR();
+        /// <summary>
+        /// On Update, dispatch OpenVR events, run the main HMD loop code.
+        /// </summary>
+        protected void LateUpdate() {
+            // dispatch any OpenVR events
+            DispatchOpenVREvents();
 
             // process the state of OpenVR
             ProcessHmdState();
 
             // check if we are running the HMD
-            HmdIsRunning = HmdIsAllowed && (hmdState == HmdState.Initialized) && HmdIsEnabled;
+            HmdIsRunning = (hmdState == HmdState.Initialized) && HmdIsEnabled;
 
-            // perform regular updates if HMD is initialized
             if (HmdIsRunning) {
                 EVRCompositorError vrCompositorError = EVRCompositorError.None;
 
                 // we've just started VR
                 if (!hmdIsRunningPrev) {
                     Utils.Log("HMD is now on");
-                    Scene.Instance.SetupScene();
                     ResetInitialHmdPosition();
                 }
 
-                try {
-                    // get latest device poses, emit an event to indicate devices have been updated
-                    float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
-                    OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, secondsToPhotons, devicePoses);
-                    SteamVR_Events.NewPoses.Send(devicePoses);
+                // get latest device poses, emit an event to indicate devices have been updated
+                float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
+                OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, secondsToPhotons, devicePoses);
+                // SteamVR_Events.NewPoses.Send(devicePoses);
 
-                    HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
-                    HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
-                    vrCompositorError = OpenVR.Compositor.WaitGetPoses(renderPoses, gamePoses);
+                // HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
+                // HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
+                vrCompositorError = OpenVR.Compositor.WaitGetPoses(renderPoses, gamePoses);
 
-                    if (vrCompositorError != EVRCompositorError.None) {
-                        throw new Exception("WaitGetPoses failed: (" + (int)vrCompositorError + ") " + vrCompositorError.ToString());
-                    }
-
-                    // convert SteamVR poses to Unity coordinates
-                    var hmdTransform = new SteamVR_Utils.RigidTransform(devicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
-                    SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
-                    hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
-                    hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
-
-                    // render each eye
-                    for (int i = 0; i < 2; i++) {
-                        RenderHmdCameras(
-                            (EVREye)i,
-                            hmdTransform,
-                            hmdEyeTransform[i],
-                            hmdEyeRenderTexture[i],
-                            hmdEyeTexture[i]);
-                    }
-
-                    // [insert dark magic here]
-                    OpenVR.Compositor.PostPresentHandoff();
-
-                    // render to the game screen
-                    if (RenderHmdToScreen) {
-                        Graphics.Blit(hmdEyeRenderTexture[0], null as RenderTexture);
-                    }
-
-                } catch (Exception e) {
-                    // shut off VR when an error occurs
-                    Utils.LogError(e);
-                    HmdIsEnabled = false;
-                    HmdIsRunning = false;
+                if (vrCompositorError != EVRCompositorError.None) {
+                    throw new Exception("WaitGetPoses failed: (" + (int)vrCompositorError + ") " + vrCompositorError.ToString());
                 }
+
+                // convert SteamVR poses to Unity coordinates
+                /*var hmdTransform = new SteamVR_Utils.RigidTransform(devicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+                SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
+                hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
+                hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);*/
+
+                // render each eye
+                /*for (int i = 0; i < 2; i++) {
+                    RenderHmdCameras(
+                        (EVREye)i,
+                        hmdTransform,
+                        hmdEyeTransform[i],
+                        hmdEyeRenderTexture[i],
+                        hmdEyeTexture[i]);
+                }
+
+                // [insert dark magic here]
+                OpenVR.Compositor.PostPresentHandoff();*/
             }
 
             // reset cameras when HMD is turned off
             if (!HmdIsRunning && hmdIsRunningPrev) {
-                Utils.Log("HMD is now off, resetting cameras...");
-                Scene.Instance.CloseScene();
-
-                // TODO: figure out why we can no longer manipulate the IVA camera in the regular game
-            }
-
-            // debug hooks
-            if (Input.GetKeyDown(KeyCode.Y)) {
-                // Utils.PrintAllCameras();
-                // Utils.PrintAllLayers();
-                // Utils.PrintDebug();
-                // Utils.PrintFonts();
-                // Utils.PrintCollisionMatrix();
-                // Utils.PrintAllGameObjects();
-                // Utils.PrintMainMenuInfo();
+                Utils.Log("HMD is now off");
             }
 
             // keep track of whether we were running the HMD, emit an update if the running status changed
@@ -226,8 +194,7 @@ namespace KerbalVR {
         /// <summary>
         /// Dispatch other miscellaneous OpenVR-specific events.
         /// </summary>
-        private void DispatchOpenVREvents() {
-            // copied from SteamVR_Render
+        protected void DispatchOpenVREvents() {
             var vrEvent = new VREvent_t();
             var size = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VREvent_t));
             for (int i = 0; i < 64; i++) {
@@ -258,7 +225,7 @@ namespace KerbalVR {
             }
         }
 
-        private static void ProcessHmdState() {
+        protected static void ProcessHmdState() {
             switch (hmdState) {
                 case HmdState.Uninitialized:
                     if (HmdIsEnabled) {
@@ -278,16 +245,16 @@ namespace KerbalVR {
             }
         }
 
-        private static void InitializeHMD() {
+        protected static void InitializeHMD() {
             hmdInitLastAttempt = DateTime.Now;
             try {
                 InitializeOpenVR();
                 hmdState = HmdState.Initialized;
-                Utils.Log("Initialized OpenVR.");
+                Utils.Log("Initialized OpenVR");
 
             } catch (Exception e) {
                 hmdState = HmdState.InitFailed;
-                Utils.LogError("InitHMD failed: " + e);
+                Utils.LogError("InitializeHMD failed with error: " + e);
                 HmdIsEnabled = false;
             }
         }
@@ -295,7 +262,7 @@ namespace KerbalVR {
         /// <summary>
         /// Renders a set of cameras onto a RenderTexture, and submit the frame to the HMD.
         /// </summary>
-        private void RenderHmdCameras(
+        protected void RenderHmdCameras(
             EVREye eye,
             SteamVR_Utils.RigidTransform hmdTransform,
             SteamVR_Utils.RigidTransform hmdEyeTransform,
@@ -325,23 +292,7 @@ namespace KerbalVR {
              *     InitialPosition and InitialRotation.
              */
 
-            // update position of the cameras
-            Scene.Instance.UpdateScene(eye, hmdTransform, hmdEyeTransform);
-
-            // render the set of cameras
-            for (int i = 0; i < Scene.Instance.NumVRCameras; i++) {
-                Types.CameraData camData = Scene.Instance.VRCameras[i];
-
-                // set projection matrix
-                camData.camera.projectionMatrix = (eye == EVREye.Eye_Left) ?
-                    camData.hmdProjectionMatrixL : camData.hmdProjectionMatrixR;
-
-                // set texture to render to, then render
-                camData.camera.targetTexture = hmdEyeRenderTexture;
-                camData.camera.Render();
-            }
-
-            hmdEyeTexture.handle = hmdEyeRenderTexture.GetNativeTexturePtr();
+            // hmdEyeTexture.handle = hmdEyeRenderTexture.GetNativeTexturePtr();
 
             // Submit frames to HMD
             EVRCompositorError vrCompositorError = OpenVR.Compositor.Submit(eye, ref hmdEyeTexture, ref hmdTextureBounds, EVRSubmitFlags.Submit_Default);
@@ -354,7 +305,7 @@ namespace KerbalVR {
         /// An event called when the game is switching scenes. The VR headset should be disabled.
         /// </summary>
         /// <param name="scene">The scene being switched into.</param>
-        private void OnGameSceneLoadRequested(GameScenes scene) {
+        protected void OnGameSceneLoadRequested(GameScenes scene) {
             HmdIsEnabled = false;
         }
 
@@ -362,7 +313,7 @@ namespace KerbalVR {
         /// Initialize HMD using OpenVR API calls.
         /// </summary>
         /// <returns>True on successful initialization, false otherwise.</returns>
-        private static void InitializeOpenVR() {
+        protected static void InitializeOpenVR() {
 
             // return if HMD has already been initialized
             if (hmdState == HmdState.Initialized) {
@@ -442,7 +393,7 @@ namespace KerbalVR {
         /// <summary>
         /// Check if we can reset the seated pose (only when in Seated Mode)
         /// </summary>
-        /// <returns>True if seated pose can be reset.</returns>
+        /// <returns>True if seated pose can be reset</returns>
         public static bool CanResetSeatedPose() {
             return HmdIsRunning && (Scene.Instance.TrackingSpace == ETrackingUniverseOrigin.TrackingUniverseSeated);
         }
@@ -450,7 +401,7 @@ namespace KerbalVR {
         /// <summary>
         /// Shuts down the OpenVR API.
         /// </summary>
-        private void CloseHMD() {
+        protected void CloseHMD() {
             HmdIsEnabled = false;
             OpenVR.Shutdown();
             hmdState = HmdState.Uninitialized;

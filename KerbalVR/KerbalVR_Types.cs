@@ -16,5 +16,10 @@ namespace KerbalVR
             public Matrix4x4 hmdProjectionMatrixL;
             public Matrix4x4 hmdProjectionMatrixR;
         }
+
+        public class VRCameraEyeRig {
+            public GameObject[] cameraGameObjects;
+            public Camera[] cameras;
+        }
     }
 }
