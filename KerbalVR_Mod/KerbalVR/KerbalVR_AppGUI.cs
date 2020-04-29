@@ -192,12 +192,12 @@ namespace KerbalVR
             // create callbacks for the buttons
             vrEnableButton = GameObject.Find("KVR_UI_EnableButton");
             Button vrEnableButtonComponent = vrEnableButton.GetComponent<Button>();
-            vrEnableButtonComponent.interactable = KerbalVR.Core.HmdIsAllowed;
+            vrEnableButtonComponent.interactable = KerbalVR.Core.VrIsAllowed;
             vrEnableButtonComponent.onClick.AddListener(OnVrEnableButtonClicked);
 
             resetPositionButton = GameObject.Find("KVR_UI_ResetPosButton");
             Button resetPositionButtonComponent = resetPositionButton.GetComponent<Button>();
-            resetPositionButtonComponent.interactable = KerbalVR.Core.CanResetSeatedPose();
+            resetPositionButtonComponent.interactable = true;
             resetPositionButtonComponent.onClick.AddListener(OnResetPositionButtonClicked);
 
             // set toggle states and create callbacks for toggle buttons
@@ -240,17 +240,16 @@ namespace KerbalVR
 
         private void Update() {
             // verify what buttons can be pressed
-            vrEnableButton.GetComponent<Button>().interactable = KerbalVR.Core.HmdIsAllowed;
-            resetPositionButton.GetComponent<Button>().interactable = KerbalVR.Core.CanResetSeatedPose();
+            vrEnableButton.GetComponent<Button>().interactable = KerbalVR.Core.VrIsAllowed;
         }
 
         void OnVrEnableButtonClicked() {
             // toggle the VR enable
-            if (KerbalVR.Core.HmdIsEnabled) {
-                KerbalVR.Core.HmdIsEnabled = false;
+            if (KerbalVR.Core.VrIsEnabled) {
+                KerbalVR.Core.VrIsEnabled = false;
             }
             else {
-                KerbalVR.Core.HmdIsEnabled = true;
+                KerbalVR.Core.VrIsEnabled = true;
             }
         }
 

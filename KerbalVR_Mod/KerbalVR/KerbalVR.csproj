@@ -103,10 +103,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>:: Create a release folder
-mkdir "$(TargetDir)rel\GameData\KerbalVR\openvr"
+mkdir "$(TargetDir)rel\GameData\KerbalVR\lib"
 mkdir "$(TargetDir)rel\GameData\KerbalVR\Assets"
 copy /Y "$(TargetDir)"\"$(TargetFileName)" "$(TargetDir)\rel\GameData\KerbalVR\"
-robocopy "$(ProjectDir)lib" "$(TargetDir)\rel\GameData\KerbalVR\openvr" /E
+robocopy "$(ProjectDir)lib" "$(TargetDir)\rel\GameData\KerbalVR\lib" /E
 robocopy "$(ProjectDir)Assets" "$(TargetDir)\rel\GameData\KerbalVR\Assets" /E
 
 :: Copy release into KSP directory
@@ -116,11 +116,11 @@ if EXIST "E:\Games\KSP_win64\" (
 
 :: Do NOT make robocopy the last command here. It gives a "bad" return value.
 :: Make these simple copy commands the last events.
-copy /Y "$(SolutionDir)\LICENSE-aset_props" "$(TargetDir)\rel\"
-copy /Y "$(SolutionDir)\LICENSE-openvr" "$(TargetDir)\rel\"
-copy /Y "$(SolutionDir)\LICENSE-steamvr" "$(TargetDir)\rel\"
-copy /Y "$(SolutionDir)\LICENSE" "$(TargetDir)\rel\"
-copy /Y "$(SolutionDir)\README.md" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\..\LICENSE-aset_props" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\..\LICENSE-openvr" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\..\LICENSE-steamvr" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\..\LICENSE" "$(TargetDir)\rel\"
+copy /Y "$(SolutionDir)\..\README.md" "$(TargetDir)\rel\"
   </PostBuildEvent>
   </PropertyGroup>
   <Target Name="AfterClean">
