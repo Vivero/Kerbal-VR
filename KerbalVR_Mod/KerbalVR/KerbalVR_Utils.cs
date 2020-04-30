@@ -121,7 +121,7 @@ namespace KerbalVR
             gizmoX.transform.localScale = new Vector3(.1f, .01f, .01f);
             gizmoX.transform.localPosition = new Vector3(.05f, 0f, 0f);
             gizmoX.GetComponent<MeshRenderer>().material.color = Color.red;
-            gizmoX.layer = 20;
+            gizmoX.layer = 0;
 
             GameObject gizmoY = GameObject.CreatePrimitive(PrimitiveType.Cube);
             UnityEngine.Object.Destroy(gizmoY.GetComponent<BoxCollider>());
@@ -129,7 +129,7 @@ namespace KerbalVR
             gizmoY.transform.localScale = new Vector3(.01f, .1f, .01f);
             gizmoY.transform.localPosition = new Vector3(.0f, .05f, 0f);
             gizmoY.GetComponent<MeshRenderer>().material.color = Color.green;
-            gizmoY.layer = 20;
+            gizmoY.layer = 0;
 
             GameObject gizmoZ = GameObject.CreatePrimitive(PrimitiveType.Cube);
             UnityEngine.Object.Destroy(gizmoZ.GetComponent<BoxCollider>());
@@ -137,7 +137,7 @@ namespace KerbalVR
             gizmoZ.transform.localScale = new Vector3(.01f, .01f, .1f);
             gizmoZ.transform.localPosition = new Vector3(.0f, 0f, .05f);
             gizmoZ.GetComponent<MeshRenderer>().material.color = Color.blue;
-            gizmoZ.layer = 20;
+            gizmoZ.layer = 0;
 
             GameObject gizmoPivot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             UnityEngine.Object.Destroy(gizmoPivot.GetComponent<SphereCollider>());
@@ -145,7 +145,7 @@ namespace KerbalVR
             gizmoPivot.transform.localScale = new Vector3(.02f, .02f, .02f);
             gizmoPivot.transform.localPosition = Vector3.zero;
             gizmoPivot.GetComponent<MeshRenderer>().material.color = Color.gray;
-            gizmoPivot.layer = 20;
+            gizmoPivot.layer = 0;
 
             return gizmo;
         }
