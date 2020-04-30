@@ -169,9 +169,6 @@ namespace KerbalVR
             QualitySettings.vSyncCount = 0; // this applies to the companion window
 
             // initialize SteamVR input
-            // SteamVR_Settings settings = SteamVR_Settings.instance;
-            // settings.inputUpdateMode = SteamVR_UpdateModes.OnLateUpdate;
-            // settings.poseUpdateMode = SteamVR_UpdateModes.OnLateUpdate;
             SteamVR_Actions.PreInitialize();
             SteamVR_Input.IdentifyActionsFile();
             SteamVR_Input.Initialize();
