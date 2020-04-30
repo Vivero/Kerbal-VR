@@ -14,14 +14,20 @@ namespace KerbalVR
             public Matrix4x4 hmdProjectionMatrixR;
         }
 
-        public struct VREyeCameraRig {
-            public List<VREyeCamera> cameras;
+        public struct VRCameraSet {
+            public VREyeCamera[] vrCameras;
+            public string kspCameraName;
+            public Camera kspCameraComponent;
+            public CameraState kspCameraState;
         }
 
         public struct VREyeCamera {
             public GameObject cameraGameObject;
             public Camera cameraComponent;
-            public string kspCameraName;
+        }
+
+        public class CameraState {
+            public bool enabled;
         }
     }
 }

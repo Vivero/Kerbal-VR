@@ -79,12 +79,60 @@ namespace KerbalVR {
         #endregion
 
 
+        //
+        // DEBUG HOOKS ---------------------------------------------------------
+        //
+        private class TimingData {
+            public bool isCollecting;
+            public double[] data;
+            public int index;
+        }
+        private TimingData[] samples = new TimingData[2];
+        private const int NUM_SAMPLES = 1000;
+
+        private void CollectTimeSamples(int type) {
+            if (samples[type].isCollecting) {
+                if (samples[type].index < NUM_SAMPLES) {
+                    samples[type].data[samples[type].index] =
+                        (double)DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                    samples[type].index += 1;
+                }
+                else {
+                    samples[type].isCollecting = false;
+                    samples[type].index = 0;
+
+                    string logMsg = "DATA COLLECTION " + type + "\n";
+                    for (int i = 0; i < NUM_SAMPLES; ++i) {
+                        logMsg += samples[type].data[i].ToString("F6") + "\n";
+                    }
+                    Debug.Log(logMsg);
+                }
+            }
+        }
+        //
+        // ---------------------------------------------------------------------
+
         /// <summary>
         /// Initialize the KerbalVR-related GameObjects, singleton classes, and initialize OpenVR.
         /// </summary>
         protected void Awake() {
             // set the location of the native plugin DLLs
             SetDllDirectory(Globals.EXTERNAL_DLL_PATH);
+
+            //
+            // DEBUG HOOKS -----------------------------------------------------
+            //
+            samples[0] = new TimingData();
+            samples[0].isCollecting = false;
+            samples[0].data = new double[NUM_SAMPLES];
+            samples[0].index = 0;
+
+            samples[1] = new TimingData();
+            samples[1].isCollecting = false;
+            samples[1].data = new double[NUM_SAMPLES];
+            samples[1].index = 0;
+            //
+            // -----------------------------------------------------------------
 
             // initialize KerbalVR GameObjects
             GameObject kvrConfiguration = new GameObject("KVR_Configuration");
@@ -137,6 +185,33 @@ namespace KerbalVR {
                 // wait until all frame rendering is done
                 yield return new WaitForEndOfFrame();
 
+                // timing data collection
+                // CollectTimeSamples(0);
+
+                // need to obtain the latest poses for tracked devices. there seems to be two
+                // methods, and the latter looks/feels better than the other. I should note
+                // here that this function (CallPluginAtEndOfFrames) runs at a faster rate
+                // than LateUpdate. getting the pose data in LateUpdate results in unpleasant
+                // stuttering of the rendered images in the headset.
+
+                //
+                // (1) method: use this predicted photons stuff
+                //
+
+                // get latest device poses, emit an event to indicate devices have been updated
+                // float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
+                // OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, 0f, devicePoses);
+
+                //
+                // (2) method: get the latest poses
+                //
+                EVRCompositorError vrCompositorError = OpenVR.Compositor.GetLastPoses(renderPoses, gamePoses);
+                if (vrCompositorError != EVRCompositorError.None) {
+                    Debug.LogError("GetLastPoses error: " + vrCompositorError.ToString());
+                    VrIsEnabled = false;
+                }
+                SteamVR_Events.NewPoses.Send(gamePoses);
+
                 // if VR is active, issue the render callback
                 if (VrIsRunning) {
                     // the "0" currently does nothing on the native plugin code,
@@ -154,6 +229,7 @@ namespace KerbalVR {
             CloseVr();
         }
 
+
         /// <summary>
         /// On Update, dispatch OpenVR events, retrieve tracked device poses.
         /// </summary>
@@ -161,7 +237,10 @@ namespace KerbalVR {
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
                 // Utils.Log("Debug");
-                Utils.PrintAllCameras();
+                // Utils.PrintAllCameras();
+                // debugOn = !debugOn;
+                samples[0].isCollecting = true;
+                samples[1].isCollecting = true;
             }
 
             // dispatch any OpenVR events
@@ -180,15 +259,11 @@ namespace KerbalVR {
                     ResetInitialHmdPosition();
                 }
 
-                // get latest device poses, emit an event to indicate devices have been updated
-                // float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
-                // OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, 0f, devicePoses);
-                EVRCompositorError vrCompositorError = OpenVR.Compositor.GetLastPoses(renderPoses, gamePoses);
-                if (vrCompositorError != EVRCompositorError.None) {
-                    Debug.LogError("GetLastPoses error: " + vrCompositorError.ToString());
-                    VrIsEnabled = false;
-                }
-                SteamVR_Events.NewPoses.Send(gamePoses);
+                // timing data collection
+                // CollectTimeSamples(1);
+
+                // copy the rendered image onto the screen (the KSP window)
+                Graphics.Blit(HmdEyeRenderTexture[0], null as RenderTexture);
 
                 /**
                  * hmdEyeTransform is in a coordinate system that follows the headset, where
