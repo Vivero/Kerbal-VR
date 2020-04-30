@@ -317,10 +317,25 @@ namespace Valve.VR
             }
         }
 
+        /* KerbalVR: Cannot start Awake routine until other variables are assigned.
+         *   Moving this into an Initialize function. Also, SteamVR is not used.
         protected virtual void Awake()
         {
-            // SteamVR.Initialize();
+            SteamVR.Initialize();
 
+            AssignBonesArray();
+
+            proximals = new Transform[] { thumbProximal, indexProximal, middleProximal, ringProximal, pinkyProximal };
+            middles = new Transform[] { thumbMiddle, indexMiddle, middleMiddle, ringMiddle, pinkyMiddle };
+            distals = new Transform[] { thumbDistal, indexDistal, middleDistal, ringDistal, pinkyDistal };
+            tips = new Transform[] { thumbTip, indexTip, middleTip, ringTip, pinkyTip };
+            auxs = new Transform[] { thumbAux, indexAux, middleAux, ringAux, pinkyAux };
+
+            CheckSkeletonAction();
+        }
+        */
+
+        public void Initialize() {
             AssignBonesArray();
 
             proximals = new Transform[] { thumbProximal, indexProximal, middleProximal, ringProximal, pinkyProximal };
@@ -771,8 +786,10 @@ namespace Valve.VR
         /// <param name="joint">The joint index of the bone. Specified in SteamVR_Skeleton_JointIndexes</param>
         public virtual Transform GetBone(int joint)
         {
-            if (bones == null || bones.Length == 0)
-                Awake();
+            if (bones == null || bones.Length == 0) {
+                // Awake();
+                Initialize();
+            }
 
             return bones[joint];
         }
@@ -942,7 +959,8 @@ namespace Valve.VR
             if (Application.isEditor && Application.isPlaying == false)
             {
                 // temporarySession = SteamVR.InitializeTemporarySession(true);
-                Awake();
+                // Awake();
+                Initialize();
 
 #if UNITY_EDITOR
                 //gotta wait a bit for steamvr input to startup //todo: implement steamvr_input.isready

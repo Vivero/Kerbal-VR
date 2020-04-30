@@ -1511,6 +1511,7 @@ namespace Valve.VR
 
         public static string GetActionsFileFolder(bool fullPath = true)
         {
+            /* KerbalVR: move this dir to the mod directory
             string streamingAssets = Application.streamingAssetsPath;
             if (Directory.Exists(streamingAssets) == false)
                 Directory.CreateDirectory(streamingAssets);
@@ -1520,6 +1521,8 @@ namespace Valve.VR
                 Directory.CreateDirectory(streamingAssets_SteamVR);
 
             return streamingAssets_SteamVR;
+            */
+            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Input");
         }
 
         public static string GetActionsFilePath(bool fullPath = true)
