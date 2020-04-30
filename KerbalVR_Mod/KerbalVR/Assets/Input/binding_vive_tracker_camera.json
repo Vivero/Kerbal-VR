@@ -1,0 +1,10 @@
+{
+   "alias_info" : {},
+  "bindings": {
+  },
+   "controller_type" : "vive_tracker_camera",
+   "description" : "",
+   "name" : "tracker_forcamera",
+   "options" : {},
+   "simulated_actions" : []
+}
