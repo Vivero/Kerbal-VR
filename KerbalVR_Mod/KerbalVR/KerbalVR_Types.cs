@@ -18,7 +18,6 @@ namespace KerbalVR
             public VREyeCamera[] vrCameras;
             public string kspCameraName;
             public Camera kspCameraComponent;
-            public CameraState kspCameraState;
         }
 
         public struct VREyeCamera {

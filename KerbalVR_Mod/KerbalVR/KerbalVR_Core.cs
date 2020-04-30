@@ -4,7 +4,8 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using Valve.VR;
 
-namespace KerbalVR {
+namespace KerbalVR 
+{
     /// <summary>
     /// The entry point for the KerbalVR plugin. This mod should
     /// start up once, when the game starts.
@@ -237,10 +238,10 @@ namespace KerbalVR {
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
                 // Utils.Log("Debug");
-                // Utils.PrintAllCameras();
+                Utils.PrintAllCameras();
                 // debugOn = !debugOn;
-                samples[0].isCollecting = true;
-                samples[1].isCollecting = true;
+                // samples[0].isCollecting = true;
+                // samples[1].isCollecting = true;
             }
 
             // dispatch any OpenVR events

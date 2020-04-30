@@ -28,6 +28,7 @@ namespace KerbalVR
             ApplicationLauncher.AppScenes.MAINMENU |
             ApplicationLauncher.AppScenes.SPACECENTER |
             ApplicationLauncher.AppScenes.FLIGHT |
+            ApplicationLauncher.AppScenes.MAPVIEW |
             ApplicationLauncher.AppScenes.VAB |
             ApplicationLauncher.AppScenes.SPH;
         #endregion
