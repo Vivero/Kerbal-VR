@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace KerbalVR
@@ -17,9 +14,14 @@ namespace KerbalVR
             public Matrix4x4 hmdProjectionMatrixR;
         }
 
-        public class VRCameraEyeRig {
-            public GameObject[] cameraGameObjects;
-            public Camera[] cameras;
+        public struct VREyeCameraRig {
+            public List<VREyeCamera> cameras;
+        }
+
+        public struct VREyeCamera {
+            public GameObject cameraGameObject;
+            public Camera cameraComponent;
+            public string kspCameraName;
         }
     }
 }

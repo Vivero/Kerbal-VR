@@ -223,6 +223,8 @@ namespace KerbalVR
             for (int i = 0; i < Camera.allCamerasCount; i++) {
                 Camera cam = Camera.allCameras[i];
                 Log("Camera (" + (i + 1) + "/" + Camera.allCamerasCount + "): " + cam.name);
+                Log("* position: " + cam.transform.position);
+                Log("* rotation: " + cam.transform.rotation);
                 Log("* clearFlags: " + cam.clearFlags);
                 Log("* backgroundColor: " + cam.backgroundColor);
 

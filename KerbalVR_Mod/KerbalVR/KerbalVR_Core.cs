@@ -62,6 +62,7 @@ namespace KerbalVR {
         // these arrays each hold one object for the corresponding eye, where
         // index 0 = Left_Eye, index 1 = Right_Eye
         public static RenderTexture[] HmdEyeRenderTexture { get; private set; } = new RenderTexture[2];
+
         #endregion
 
 
@@ -72,9 +73,9 @@ namespace KerbalVR {
         protected static DateTime openVrInitLastAttempt;
 
         // store the tracked device poses
-        public static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        public static TrackedDevicePose_t[] renderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-        public static TrackedDevicePose_t[] gamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        protected static TrackedDevicePose_t[] devicePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        protected static TrackedDevicePose_t[] renderPoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+        protected static TrackedDevicePose_t[] gamePoses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
         #endregion
 
 
@@ -96,12 +97,10 @@ namespace KerbalVR {
             AssetLoader kvrAssetLoaderComponent = AssetLoader.Instance; // init the singleton
             DontDestroyOnLoad(kvrAssetLoader);
 
-            /*
             GameObject kvrScene = new GameObject("KVR_Scene");
             kvrScene.AddComponent<KerbalVR.Scene>();
             Scene kvrSceneComponent = Scene.Instance; // init the singleton
             DontDestroyOnLoad(kvrScene);
-            */
 
             // initialize OpenVR immediately if allowed in config
             if (KerbalVR.Configuration.Instance.InitOpenVrAtStartup) {
@@ -158,10 +157,11 @@ namespace KerbalVR {
         /// <summary>
         /// On Update, dispatch OpenVR events, retrieve tracked device poses.
         /// </summary>
-        protected void Update() {
+        protected void LateUpdate() {
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
-                Utils.Log("Debug");
+                // Utils.Log("Debug");
+                Utils.PrintAllCameras();
             }
 
             // dispatch any OpenVR events
@@ -182,17 +182,13 @@ namespace KerbalVR {
 
                 // get latest device poses, emit an event to indicate devices have been updated
                 // float secondsToPhotons = Utils.CalculatePredictedSecondsToPhotons();
-                // OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, secondsToPhotons, devicePoses);
-                // SteamVR_Events.NewPoses.Send(devicePoses);
-
-                // HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
-                // HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
-
-                // convert SteamVR poses to Unity coordinates
-                /*var hmdTransform = new SteamVR_Utils.RigidTransform(devicePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
-                SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
-                hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
-                hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);*/
+                // OpenVR.System.GetDeviceToAbsoluteTrackingPose(Scene.Instance.TrackingSpace, 0f, devicePoses);
+                EVRCompositorError vrCompositorError = OpenVR.Compositor.GetLastPoses(renderPoses, gamePoses);
+                if (vrCompositorError != EVRCompositorError.None) {
+                    Debug.LogError("GetLastPoses error: " + vrCompositorError.ToString());
+                    VrIsEnabled = false;
+                }
+                SteamVR_Events.NewPoses.Send(gamePoses);
 
                 /**
                  * hmdEyeTransform is in a coordinate system that follows the headset, where
@@ -264,6 +260,9 @@ namespace KerbalVR {
             }
         }
 
+        /// <summary>
+        /// State machine which re-attempts to initialize OpenVR periodically if it fails.
+        /// </summary>
         protected static void ProcessOpenVrState() {
             switch (openVrState) {
                 case OpenVrState.Uninitialized:
@@ -365,6 +364,15 @@ namespace KerbalVR {
 
                 // send the textures to the native renderer plugin
                 SetTextureFromUnity(i, HmdEyeRenderTexture[i].GetNativeTexturePtr(), 0f, 1f, 1f, 0f);
+            }
+        }
+
+        /// <summary>
+        /// Sets the tracking space for the HMD
+        /// </summary>
+        public static void SetHmdTrackingSpace(ETrackingUniverseOrigin origin) {
+            if (openVrState == OpenVrState.Initialized) {
+                OpenVR.Compositor.SetTrackingSpace(origin);
             }
         }
 
