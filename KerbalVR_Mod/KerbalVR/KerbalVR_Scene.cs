@@ -72,7 +72,6 @@ namespace KerbalVR
         #endregion
 
 
-
         #region Properties
         // The initial world position of the cameras for the current scene. This
         // position corresponds to the origin in the real world physical device
@@ -170,6 +169,29 @@ namespace KerbalVR
             SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
             hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
             hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
+
+            /**
+             * hmdEyeTransform is in a coordinate system that follows the headset, where
+             * the origin is the headset device position. Therefore the eyes are at a fixed
+             * offset from the device.
+             *      hmdEyeTransform.x+  towards the right of the headset
+             *      hmdEyeTransform.y+  towards the top the headset
+             *      hmdEyeTransform.z+  towards the front of the headset
+             *
+             * hmdTransform is in a coordinate system set in physical space, where the
+             * origin is the initial seated position. Or for room-scale, the physical origin of the room.
+             *      hmdTransform.x+     towards the right
+             *      hmdTransform.y+     upwards
+             *      hmdTransform.z+     towards the front
+             *
+             *  Scene.InitialPosition and Scene.InitialRotation are the Unity world coordinates where
+             *  we initialize the VR scene, i.e. the origin of a coordinate system that maps
+             *  1-to-1 with physical space.
+             *
+             *  1. Calculate the position of the eye in the physical coordinate system.
+             *  2. Transform the calculated position into Unity world coordinates, offset from
+             *     InitialPosition and InitialRotation.
+             */
 
             // set camera positions to match device positions
             for (int camIdx = 0; camIdx < VRCameraSets.Count; ++camIdx) {

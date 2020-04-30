@@ -219,33 +219,9 @@ namespace KerbalVR
 
                 // copy the rendered image onto the screen (the KSP window)
                 Graphics.Blit(HmdEyeRenderTexture[0], null as RenderTexture);
-
-                /**
-                 * hmdEyeTransform is in a coordinate system that follows the headset, where
-                 * the origin is the headset device position. Therefore the eyes are at a constant
-                 * offset from the device. hmdEyeTransform does not change (per eye).
-                 *      hmdEyeTransform.x+  towards the right of the headset
-                 *      hmdEyeTransform.y+  towards the top the headset
-                 *      hmdEyeTransform.z+  towards the front of the headset
-                 *
-                 * hmdTransform is in a coordinate system set in physical space, where the
-                 * origin is the initial seated position. Or for room-scale, the physical origin of the room.
-                 *      hmdTransform.x+     towards the right
-                 *      hmdTransform.y+     upwards
-                 *      hmdTransform.z+     towards the front
-                 *
-                 *  Scene.InitialPosition and Scene.InitialRotation are the Unity world coordinates where
-                 *  we initialize the VR scene, i.e. the origin of a coordinate system that maps
-                 *  1-to-1 with physical space.
-                 *
-                 *  1. Calculate the position of the eye in the physical coordinate system.
-                 *  2. Transform the calculated position into Unity world coordinates, offset from
-                 *     InitialPosition and InitialRotation.
-                 */
             }
 
-
-            // update controllers input
+            // update controllers input logic
             SteamVR_Input.Update();
 
             // VR has been deactivated
