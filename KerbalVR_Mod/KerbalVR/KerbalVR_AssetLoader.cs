@@ -19,6 +19,7 @@ namespace KerbalVR
                 string kvrAssetBundlesPath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData", Globals.KERBALVR_ASSETBUNDLES_DIR);
 
                 string[] assetBundlePaths = {
+                    Path.Combine(kvrAssetBundlesPath, "kerbalvr.dat"),
                     Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat"),
                 };
                 return assetBundlePaths;
