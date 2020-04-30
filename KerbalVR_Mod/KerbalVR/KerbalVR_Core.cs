@@ -167,6 +167,21 @@ namespace KerbalVR
             Application.runInBackground = true; // don't require companion window focus
             QualitySettings.maxQueuedFrames = -1;
             QualitySettings.vSyncCount = 0; // this applies to the companion window
+
+            // initialize SteamVR input
+            // SteamVR_Settings settings = SteamVR_Settings.instance;
+            // settings.inputUpdateMode = SteamVR_UpdateModes.OnLateUpdate;
+            // settings.poseUpdateMode = SteamVR_UpdateModes.OnLateUpdate;
+            SteamVR_Actions.PreInitialize();
+            SteamVR_Input.IdentifyActionsFile();
+            SteamVR_Input.Initialize();
+            SteamVR_ActionSet actionSet = SteamVR_Input.GetActionSet("default", false, true);
+            if (actionSet != null) {
+                actionSet.Activate(SteamVR_Input_Sources.Any);
+            }
+            else {
+                Utils.LogError("Action Set 'default' does not exist");
+            }
         }
 
         /// <summary>
@@ -289,6 +304,58 @@ namespace KerbalVR
                  *     InitialPosition and InitialRotation.
                  */
             }
+
+
+            // update controllers input
+            SteamVR_Input.Update();
+
+            SteamVR_Action_Boolean action = SteamVR_Input.GetBooleanAction("default", "grabgrip");
+            string logMsg = "GrabGrip: ";
+            bool state = action.GetState(SteamVR_Input_Sources.LeftHand);
+            logMsg += (state ? "LEFT" : "") + " ";
+            state = action.GetState(SteamVR_Input_Sources.RightHand);
+            logMsg += (state ? "RIGHT" : "") + "\n";
+
+            logMsg += "Squeeze: ";
+            SteamVR_Action_Single action2 = SteamVR_Input.GetSingleAction("default", "squeeze");
+            float state2 = action2.GetAxis(SteamVR_Input_Sources.LeftHand);
+            logMsg += "LEFT " + state2.ToString("F3") + ", ";
+            state2 = action2.GetAxis(SteamVR_Input_Sources.RightHand);
+            logMsg += "RIGHT " + state2.ToString("F3") + "\n";
+
+            logMsg += "FlightStick: ";
+            SteamVR_Action_Vector2 action3 = SteamVR_Input.GetVector2Action("default", "flightstick");
+            Vector2 state3 = action3.GetAxis(SteamVR_Input_Sources.LeftHand);
+            logMsg += "LEFT " + state3.ToString() + ", ";
+            state3 = action3.GetAxis(SteamVR_Input_Sources.RightHand);
+            logMsg += "RIGHT " + state3.ToString() + "\n";
+
+            logMsg += "Yaw: ";
+            action2 = SteamVR_Input.GetSingleAction("default", "yawcontrol");
+            state2 = action2.GetAxis(SteamVR_Input_Sources.LeftHand);
+            logMsg += "LEFT " + state2.ToString("F3") + ", ";
+            state2 = action2.GetAxis(SteamVR_Input_Sources.RightHand);
+            logMsg += "RIGHT " + state2.ToString("F3") + "\n";
+
+            logMsg += "Thrust: ";
+            action2 = SteamVR_Input.GetSingleAction("default", "thrustcontrol");
+            state2 = action2.GetAxis(SteamVR_Input_Sources.LeftHand);
+            logMsg += "LEFT " + state2.ToString("F3") + ", ";
+            state2 = action2.GetAxis(SteamVR_Input_Sources.RightHand);
+            logMsg += "RIGHT " + state2.ToString("F3") + "\n";
+
+
+            logMsg += "\n";
+            SteamVR_ActionSet[] actionSets = SteamVR_Input.GetActionSets();
+            foreach (var a in actionSets) {
+                logMsg += a.fullPath + " " + (a.IsActive(SteamVR_Input_Sources.Any) ? "active" : "not active") + "\n";
+                foreach (var b in a.allActions) {
+                    logMsg += "* " + b.fullPath + " " + (b.active ? "bound" : "unbound") + "\n";
+                }
+            }
+            Utils.SetDebugText(logMsg);
+
+
 
             // VR has been deactivated
             if (!VrIsRunning && vrIsRunningPrev) {

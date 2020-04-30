@@ -96,7 +96,7 @@ namespace KerbalVR
 
 
         #region Private Members
-        protected Dictionary<string, Types.CameraState> KSPCameraSavedStates = new Dictionary<string, Types.CameraState>();
+        protected Dictionary<string, Types.CameraState> kspCameraSavedStates = new Dictionary<string, Types.CameraState>();
         #endregion
 
 
@@ -388,12 +388,12 @@ namespace KerbalVR
                 }
                 else {
                     // otherwise, restore the state of the KSP cameras
-                    if (!KSPCameraSavedStates.ContainsKey(kspCameraName)) {
+                    if (!kspCameraSavedStates.ContainsKey(kspCameraName)) {
                         // shouldn't happen, log a warning
                         Debug.LogWarning("Unexpected state: key '" + kspCameraName + "' does not exist in KSPCameraSavedStates");
                         VRCameraSets[camIdx].kspCameraComponent.enabled = true;
                     } else {
-                        VRCameraSets[camIdx].kspCameraComponent.enabled = KSPCameraSavedStates[kspCameraName].enabled;
+                        VRCameraSets[camIdx].kspCameraComponent.enabled = kspCameraSavedStates[kspCameraName].enabled;
                     }
                 }
 
@@ -403,13 +403,13 @@ namespace KerbalVR
         }
 
         protected void SaveKspCameraState(string kspCameraName, Camera kspCameraComponent) {
-            if (!KSPCameraSavedStates.ContainsKey(kspCameraName)) {
+            if (!kspCameraSavedStates.ContainsKey(kspCameraName)) {
                 Types.CameraState kspCameraState = new Types.CameraState();
                 kspCameraState.enabled = kspCameraComponent.enabled;
-                KSPCameraSavedStates.Add(kspCameraName, kspCameraState);
+                kspCameraSavedStates.Add(kspCameraName, kspCameraState);
             }
             else {
-                KSPCameraSavedStates[kspCameraName].enabled = kspCameraComponent.enabled;
+                kspCameraSavedStates[kspCameraName].enabled = kspCameraComponent.enabled;
             }
         }
 
