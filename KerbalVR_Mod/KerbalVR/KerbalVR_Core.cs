@@ -80,60 +80,12 @@ namespace KerbalVR
         #endregion
 
 
-        //
-        // DEBUG HOOKS ---------------------------------------------------------
-        //
-        private class TimingData {
-            public bool isCollecting;
-            public double[] data;
-            public int index;
-        }
-        private TimingData[] samples = new TimingData[2];
-        private const int NUM_SAMPLES = 1000;
-
-        private void CollectTimeSamples(int type) {
-            if (samples[type].isCollecting) {
-                if (samples[type].index < NUM_SAMPLES) {
-                    samples[type].data[samples[type].index] =
-                        (double)DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                    samples[type].index += 1;
-                }
-                else {
-                    samples[type].isCollecting = false;
-                    samples[type].index = 0;
-
-                    string logMsg = "DATA COLLECTION " + type + "\n";
-                    for (int i = 0; i < NUM_SAMPLES; ++i) {
-                        logMsg += samples[type].data[i].ToString("F6") + "\n";
-                    }
-                    Debug.Log(logMsg);
-                }
-            }
-        }
-        //
-        // ---------------------------------------------------------------------
-
         /// <summary>
         /// Initialize the KerbalVR-related GameObjects, singleton classes, and initialize OpenVR.
         /// </summary>
         protected void Awake() {
             // set the location of the native plugin DLLs
             SetDllDirectory(Globals.EXTERNAL_DLL_PATH);
-
-            //
-            // DEBUG HOOKS -----------------------------------------------------
-            //
-            samples[0] = new TimingData();
-            samples[0].isCollecting = false;
-            samples[0].data = new double[NUM_SAMPLES];
-            samples[0].index = 0;
-
-            samples[1] = new TimingData();
-            samples[1].isCollecting = false;
-            samples[1].data = new double[NUM_SAMPLES];
-            samples[1].index = 0;
-            //
-            // -----------------------------------------------------------------
 
             // initialize KerbalVR GameObjects
             GameObject kvrConfiguration = new GameObject("KVR_Configuration");
@@ -198,9 +150,6 @@ namespace KerbalVR
                 // wait until all frame rendering is done
                 yield return new WaitForEndOfFrame();
 
-                // timing data collection
-                // CollectTimeSamples(0);
-
                 // need to obtain the latest poses for tracked devices. there seems to be two
                 // methods, and the latter looks/feels better than the other. I should note
                 // here that this function (CallPluginAtEndOfFrames) runs at a faster rate
@@ -249,11 +198,7 @@ namespace KerbalVR
         protected void LateUpdate() {
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
-                // Utils.Log("Debug");
                 Utils.PrintAllCameras();
-                // debugOn = !debugOn;
-                // samples[0].isCollecting = true;
-                // samples[1].isCollecting = true;
             }
 
             // dispatch any OpenVR events
@@ -271,9 +216,6 @@ namespace KerbalVR
                     Utils.Log("VR is now turned on");
                     ResetInitialHmdPosition();
                 }
-
-                // timing data collection
-                // CollectTimeSamples(1);
 
                 // copy the rendered image onto the screen (the KSP window)
                 Graphics.Blit(HmdEyeRenderTexture[0], null as RenderTexture);
@@ -305,54 +247,6 @@ namespace KerbalVR
 
             // update controllers input
             SteamVR_Input.Update();
-
-            SteamVR_Action_Boolean action = SteamVR_Input.GetBooleanAction("default", "grabgrip");
-            string logMsg = "GrabGrip: ";
-            bool state = action.GetState(SteamVR_Input_Sources.LeftHand);
-            logMsg += (state ? "LEFT" : "") + " ";
-            state = action.GetState(SteamVR_Input_Sources.RightHand);
-            logMsg += (state ? "RIGHT" : "") + "\n";
-
-            logMsg += "Squeeze: ";
-            SteamVR_Action_Single action2 = SteamVR_Input.GetSingleAction("default", "squeeze");
-            float state2 = action2.GetAxis(SteamVR_Input_Sources.LeftHand);
-            logMsg += "LEFT " + state2.ToString("F3") + ", ";
-            state2 = action2.GetAxis(SteamVR_Input_Sources.RightHand);
-            logMsg += "RIGHT " + state2.ToString("F3") + "\n";
-
-            logMsg += "FlightStick: ";
-            SteamVR_Action_Vector2 action3 = SteamVR_Input.GetVector2Action("default", "flightstick");
-            Vector2 state3 = action3.GetAxis(SteamVR_Input_Sources.LeftHand);
-            logMsg += "LEFT " + state3.ToString() + ", ";
-            state3 = action3.GetAxis(SteamVR_Input_Sources.RightHand);
-            logMsg += "RIGHT " + state3.ToString() + "\n";
-
-            logMsg += "Yaw: ";
-            action2 = SteamVR_Input.GetSingleAction("default", "yawcontrol");
-            state2 = action2.GetAxis(SteamVR_Input_Sources.LeftHand);
-            logMsg += "LEFT " + state2.ToString("F3") + ", ";
-            state2 = action2.GetAxis(SteamVR_Input_Sources.RightHand);
-            logMsg += "RIGHT " + state2.ToString("F3") + "\n";
-
-            logMsg += "Thrust: ";
-            action2 = SteamVR_Input.GetSingleAction("default", "thrustcontrol");
-            state2 = action2.GetAxis(SteamVR_Input_Sources.LeftHand);
-            logMsg += "LEFT " + state2.ToString("F3") + ", ";
-            state2 = action2.GetAxis(SteamVR_Input_Sources.RightHand);
-            logMsg += "RIGHT " + state2.ToString("F3") + "\n";
-
-
-            logMsg += "\n";
-            SteamVR_ActionSet[] actionSets = SteamVR_Input.GetActionSets();
-            foreach (var a in actionSets) {
-                logMsg += a.fullPath + " " + (a.IsActive(SteamVR_Input_Sources.Any) ? "active" : "not active") + "\n";
-                foreach (var b in a.allActions) {
-                    logMsg += "* " + b.fullPath + " " + (b.active ? "bound" : "unbound") + "\n";
-                }
-            }
-            Utils.SetDebugText(logMsg);
-
-
 
             // VR has been deactivated
             if (!VrIsRunning && vrIsRunningPrev) {
