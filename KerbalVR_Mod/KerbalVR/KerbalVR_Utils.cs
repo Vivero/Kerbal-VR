@@ -217,43 +217,46 @@ namespace KerbalVR
             return msg;
         }
 
-        public static void PrintAllCameras() {
-            Log("Scene: " + HighLogic.LoadedScene);
-            Log("CameraMode: " + (CameraManager.Instance != null ? CameraManager.Instance.currentCameraMode.ToString() : "null"));
-            for (int i = 0; i < Camera.allCamerasCount; i++) {
-                Camera cam = Camera.allCameras[i];
-                Log("Camera (" + (i + 1) + "/" + Camera.allCamerasCount + "): " + cam.name);
-                Log("* position: " + cam.transform.position);
-                Log("* rotation: " + cam.transform.rotation);
-                Log("* clearFlags: " + cam.clearFlags);
-                Log("* backgroundColor: " + cam.backgroundColor);
+        public static string GetCameraInfo(Camera cam) {
+            string msg = "'" + cam.name + "'\n";
+            msg += "* position: " + cam.transform.position + "\n";
+            msg += "* rotation: " + cam.transform.rotation + "\n";
+            msg += "* clearFlags: " + cam.clearFlags + "\n";
+            msg += "* backgroundColor: " + cam.backgroundColor + "\n";
+            msg += "* cullingMask: [" + String.Join(",", Int32MaskToArray(cam.cullingMask)) + "]\n";
+            msg += "* orthographic? " + cam.orthographic + "\n";
+            msg += "* fieldOfView: " + cam.fieldOfView.ToString("F3") + "\n";
+            msg += "* nearClipPlane: " + cam.nearClipPlane.ToString("F3") + "\n";
+            msg += "* farClipPlane: " + cam.farClipPlane.ToString("F3") + "\n";
+            msg += "* rect: " + cam.rect.ToString("F3") + "\n";
+            msg += "* depth: " + cam.depth.ToString("F1") + "\n";
+            msg += "* renderingPath: " + cam.renderingPath + "\n";
+            msg += "* useOcclusionCulling? " + cam.useOcclusionCulling + "\n";
+            msg += "* allowHDR? " + cam.allowHDR + "\n";
+            msg += "* allowMSAA? " + cam.allowMSAA + "\n";
+            msg += "* depthTextureMode: " + cam.depthTextureMode + "\n";
+            return msg;
+        }
 
-                string maskString = "[";
-                int[] cullingMaskLayers = Int32MaskToArray(Camera.allCameras[i].cullingMask);
-                string[] cullingMaskLayersStr = new string[cullingMaskLayers.Length];
-                for (int j = 0; j < cullingMaskLayers.Length; j++) {
-                    cullingMaskLayersStr[j] = cullingMaskLayers[j].ToString();
-                }
-                maskString += String.Join(",", cullingMaskLayersStr);
-                maskString += "]";
-
-                Log("* cullingMask: " + maskString);
-                Log("* orthographic? " + cam.orthographic);
-                Log("* fieldOfView: " + cam.fieldOfView.ToString("F3"));
-                Log("* nearClipPlane: " + cam.nearClipPlane.ToString("F3"));
-                Log("* farClipPlane: " + cam.farClipPlane.ToString("F3"));
-                Log("* rect: " + cam.rect.ToString("F3"));
-                Log("* depth: " + cam.depth.ToString("F1"));
-                Log("* renderingPath: " + cam.renderingPath);
-                Log("* useOcclusionCulling? " + cam.useOcclusionCulling);
-                Log("* allowHDR? " + cam.allowHDR);
-                Log("* allowMSAA? " + cam.allowMSAA);
-                Log("* depthTextureMode: " + cam.depthTextureMode);
-
-                GameObject camGameObject = cam.gameObject;
-                PrintGameObjectTree(camGameObject);
-                Log(" ");
+        public static string GetGameObjectTree(GameObject go) {
+            string logMsg = GetGameObjectInfo(go);
+            for (int i = 0; i < go.transform.childCount; i++) {
+                logMsg += "+-- (" + (i + 1) + "/" + go.transform.childCount + ") Parent: " + go.name + "\n";
+                logMsg += GetGameObjectTree(go.transform.GetChild(i).gameObject);
             }
+            return logMsg;
+        }
+
+        public static void PrintAllCameras() {
+            string logMsg = "\nScene: " + HighLogic.LoadedScene;
+            logMsg += ", CameraMode: " + (CameraManager.Instance != null ? CameraManager.Instance.currentCameraMode.ToString() : "null") + "\n\n";
+            for (int i = 0; i < Camera.allCamerasCount; i++) {
+                logMsg += "Camera (" + (i + 1) + "/" + Camera.allCamerasCount + ") ";
+                logMsg += GetCameraInfo(Camera.allCameras[i]);
+                logMsg += "-- Object hierarchy --\n";
+                logMsg += GetGameObjectTree(Camera.allCameras[i].gameObject) + "\n\n";
+            }
+            Log(logMsg);
         }
 
         public static void PrintGameObject(GameObject go) {
@@ -261,11 +264,7 @@ namespace KerbalVR
         }
 
         public static void PrintGameObjectTree(GameObject go) {
-            PrintGameObject(go);
-            for (int i = 0; i < go.transform.childCount; i++) {
-                Log(go.name + " child " + i);
-                PrintGameObjectTree(go.transform.GetChild(i).gameObject);
-            }
+            Log(GetGameObjectTree(go));
         }
 
         public static void PrintAllGameObjects() {
@@ -276,12 +275,6 @@ namespace KerbalVR
                     Log(" ");
                 }
             }
-        }
-
-        public static void PrintDebug() {
-            bool isEva = FlightGlobals.ActiveVessel.isEVA;
-
-            Log("EVA Active? " + isEva);
         }
 
         public static void PrintAllLayers() {
@@ -338,7 +331,31 @@ namespace KerbalVR
             } else {
                 Log("No MainMenuEnvLogic component found.");
             }
-            
+        }
+
+        public class DataCollection {
+            public double[] DataSamples { get; private set; }
+            public int NumSamples { get; private set; }
+            public bool IsFull {
+                get {
+                    return index >= (NumSamples - 1);
+                }
+            }
+            public bool AllowCollection = false;
+
+            private int index = 0;
+
+            public DataCollection(int numSamples) {
+                NumSamples = numSamples;
+                DataSamples = new double[NumSamples];
+            }
+
+            public void AddSample(double sample) {
+                if (AllowCollection && index >= 0 && index < NumSamples) {
+                    DataSamples[index] = sample;
+                    index++;
+                }
+            }
         }
     } // class Utils
 } // namespace KerbalVR

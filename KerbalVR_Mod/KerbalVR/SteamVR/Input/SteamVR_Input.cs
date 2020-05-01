@@ -1522,7 +1522,7 @@ namespace Valve.VR
 
             return streamingAssets_SteamVR;
             */
-            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Input");
+            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Assets", "Input");
         }
 
         public static string GetActionsFilePath(bool fullPath = true)

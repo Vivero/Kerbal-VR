@@ -14,10 +14,11 @@ namespace KerbalVR
             public Matrix4x4 hmdProjectionMatrixR;
         }
 
-        public struct VRCameraSet {
+        public class VRCameraSet {
             public VREyeCamera[] vrCameras;
             public string kspCameraName;
             public Camera kspCameraComponent;
+            public bool isInitialized;
         }
 
         public struct VREyeCamera {

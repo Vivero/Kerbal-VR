@@ -193,7 +193,7 @@ namespace KerbalVR
             // create callbacks for the buttons
             vrEnableButton = GameObject.Find("KVR_UI_EnableButton");
             Button vrEnableButtonComponent = vrEnableButton.GetComponent<Button>();
-            vrEnableButtonComponent.interactable = KerbalVR.Core.VrIsAllowed;
+            vrEnableButtonComponent.interactable = KerbalVR.Scene.Instance.IsVrAllowed;
             vrEnableButtonComponent.onClick.AddListener(OnVrEnableButtonClicked);
 
             resetPositionButton = GameObject.Find("KVR_UI_ResetPosButton");
@@ -210,6 +210,7 @@ namespace KerbalVR
             swapYawRollControlsToggle = GameObject.Find("KVR_UI_SwapControlsToggle");
             Toggle swapYawRollControlsToggleComponent = swapYawRollControlsToggle.GetComponent<Toggle>();
             swapYawRollControlsToggleComponent.onValueChanged.AddListener(OnSwapYawRollControlsClicked);
+            swapYawRollControlsToggle.SetActive(false);
 
             // set slider states and create callbacks for sliders
             worldScaleSlider = GameObject.Find("KVR_UI_WorldScaleSlider");
@@ -231,26 +232,34 @@ namespace KerbalVR
 
             GameObject worldScaleLabelObject = GameObject.Find("KVR_UI_WorldScaleLabel");
             worldScaleLabel = worldScaleLabelObject.GetComponent<Text>();
+            worldScaleLabelObject.SetActive(false);
 
             GameObject handSizeScaleLabelObject = GameObject.Find("KVR_UI_HandSizeLabel");
             handSizeScaleLabel = handSizeScaleLabelObject.GetComponent<Text>();
+            handSizeScaleLabelObject.SetActive(false);
 
             // create a callback to listen to the VR status
             KerbalVR.Events.HmdStatusUpdated.Listen(OnHmdStatusUpdated);
+
+            // TODO: re-do these controls
+            GameObject worldScaleContainer = GameObject.Find("KVR_UI_WorldScaleContainer");
+            worldScaleContainer.SetActive(false);
+            GameObject handSizeContainer = GameObject.Find("KVR_UI_HandSizeContainer");
+            handSizeContainer.SetActive(false);
         }
 
         private void Update() {
             // verify what buttons can be pressed
-            vrEnableButton.GetComponent<Button>().interactable = KerbalVR.Core.VrIsAllowed;
+            vrEnableButton.GetComponent<Button>().interactable = KerbalVR.Scene.Instance.IsVrAllowed;
         }
 
         void OnVrEnableButtonClicked() {
             // toggle the VR enable
-            if (KerbalVR.Core.VrIsEnabled) {
-                KerbalVR.Core.VrIsEnabled = false;
+            if (KerbalVR.Core.IsVrEnabled) {
+                KerbalVR.Core.IsVrEnabled = false;
             }
             else {
-                KerbalVR.Core.VrIsEnabled = true;
+                KerbalVR.Core.IsVrEnabled = true;
             }
         }
 
