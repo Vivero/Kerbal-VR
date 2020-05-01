@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="kerbalvr_ui" Name="kerbalvr_ui" CreatedTime="-8586132977442602789">
+  <Author>Vivero</Author>
+  <Info>UI assets for the KerbalVR mod.</Info>
+  <Assets>
+    <Asset Name="KVR_UI_DebugPanel" Path="Assets/UI_Export/KVR_UI_DebugPanel.prefab" Type="GameObject" Url="UI_Export/KVR_UI_DebugPanel" AutoLoad="false" />
+    <Asset Name="KVR_UI_MainPanel" Path="Assets/UI_Export/KVR_UI_MainPanel.prefab" Type="GameObject" Url="UI_Export/KVR_UI_MainPanel" AutoLoad="false" />
+  </Assets>
+  <Dependencies />
+</KSPBundleDefinition>
