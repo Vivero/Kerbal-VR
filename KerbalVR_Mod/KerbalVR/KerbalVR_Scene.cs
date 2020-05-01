@@ -122,7 +122,6 @@ namespace KerbalVR
 
         protected void OnEnable() {
             // setup callback functions for events
-            // GameEvents.onGameSceneSwitchRequested.Add(onGameSceneSwitchRequested);
             GameEvents.OnIVACameraKerbalChange.Add(OnIvaCameraChange);
             GameEvents.OnCameraChange.Add(OnCameraChange);
             KerbalVR.Events.HmdStatusUpdated.Listen(OnHmdStatusUpdated);
@@ -130,7 +129,8 @@ namespace KerbalVR
 
         protected void OnDisable() {
             // remove callback functions
-            // GameEvents.onGameSceneSwitchRequested.Remove(onGameSceneSwitchRequested);
+            GameEvents.OnIVACameraKerbalChange.Remove(OnIvaCameraChange);
+            GameEvents.OnCameraChange.Remove(OnCameraChange);
             KerbalVR.Events.HmdStatusUpdated.Remove(OnHmdStatusUpdated);
         }
 
@@ -151,7 +151,7 @@ namespace KerbalVR
                 }
                 logMsg += (cam.enabled ? "enabled" : "disabled") + "\n";
             }
-            Utils.SetDebugText(logMsg);
+            // Utils.SetDebugText(logMsg);
 
             currentScene = HighLogic.LoadedScene;
             if (currentScene != previousScene) {

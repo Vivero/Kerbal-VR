@@ -105,6 +105,11 @@ namespace KerbalVR
             Scene kvrSceneComponent = Scene.Instance; // init the singleton
             DontDestroyOnLoad(kvrScene);
 
+            GameObject kvrInteractionSys = new GameObject("KVR_InteractionSystem");
+            kvrScene.AddComponent<KerbalVR.InteractionSystem>();
+            InteractionSystem kvrInteractionSysComponent = InteractionSystem.Instance; // init the singleton
+            DontDestroyOnLoad(kvrInteractionSys);
+
             // initialize OpenVR immediately if allowed in config
             if (KerbalVR.Configuration.Instance.InitOpenVrAtStartup) {
                 TryInitializeOpenVr();
@@ -374,6 +379,7 @@ namespace KerbalVR
             SteamVR_ActionSet actionSet = SteamVR_Input.GetActionSet("default", false, true);
             if (actionSet != null) {
                 actionSet.Activate(SteamVR_Input_Sources.Any);
+                Utils.Log("Activating ActionSet " + actionSet.GetShortName());
             }
             else {
                 Utils.LogError("Action Set 'default' does not exist");

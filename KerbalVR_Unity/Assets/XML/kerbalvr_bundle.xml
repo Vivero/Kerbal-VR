@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="kerbalvr" Name="kerbalvr" CreatedTime="-8586132977563088143">
+<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="kerbalvr" Name="kerbalvr" CreatedTime="-8586132841303153710">
   <Author>Vivero</Author>
   <Info>Assets for the KerbalVR mod.</Info>
   <Assets>
+    <Asset Name="vr_glove_left" Path="Assets/SteamVR/Prefabs/vr_glove_left.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_left" AutoLoad="false" />
     <Asset Name="vr_glove_left_model_slim" Path="Assets/SteamVR/Prefabs/vr_glove_left_model_slim.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_left_model_slim" AutoLoad="false" />
+    <Asset Name="vr_glove_right" Path="Assets/SteamVR/Prefabs/vr_glove_right.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_right" AutoLoad="false" />
     <Asset Name="vr_glove_right_model_slim" Path="Assets/SteamVR/Prefabs/vr_glove_right_model_slim.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_right_model_slim" AutoLoad="false" />
   </Assets>
   <Dependencies />

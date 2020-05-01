@@ -130,7 +130,10 @@
       "/actions/default/in/Teleport": "Teleport",
       "/actions/default/out/Haptic": "Haptic",
       "/actions/default/in/SnapTurnLeft": "Snap Turn (Left)",
-      "/actions/default/in/SnapTurnRight": "Snap Turn (Right)"
+      "/actions/default/in/SnapTurnRight": "Snap Turn (Right)",
+      "/actions/default/in/FlightStick": "Flight Stick",
+      "/actions/default/in/YawControl": "Yaw Control",
+      "/actions/default/in/ThrustControl": "Thrust Control"
     }
   ]
 }
