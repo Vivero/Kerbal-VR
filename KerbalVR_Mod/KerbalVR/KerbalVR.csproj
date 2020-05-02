@@ -148,6 +148,8 @@
     <Compile Include="SteamVR\Scripts\SteamVR_RingBuffer.cs" />
     <Compile Include="SteamVR\Scripts\SteamVR_Utils.cs" />
     <Compile Include="SteamVR_Input\ActionSetClasses\SteamVR_Input_ActionSet_default.cs" />
+    <Compile Include="SteamVR_Input\ActionSetClasses\SteamVR_Input_ActionSet_editor.cs" />
+    <Compile Include="SteamVR_Input\ActionSetClasses\SteamVR_Input_ActionSet_flight.cs" />
     <Compile Include="SteamVR_Input\SteamVR_Input_Actions.cs" />
     <Compile Include="SteamVR_Input\SteamVR_Input_ActionSets.cs" />
     <Compile Include="SteamVR_Input\SteamVR_Input_Initialization.cs" />

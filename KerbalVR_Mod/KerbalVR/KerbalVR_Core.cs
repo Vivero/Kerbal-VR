@@ -376,13 +376,19 @@ namespace KerbalVR
             SteamVR_Actions.PreInitialize();
             SteamVR_Input.IdentifyActionsFile();
             SteamVR_Input.Initialize();
-            SteamVR_ActionSet actionSet = SteamVR_Input.GetActionSet("default", false, true);
+            ActivateActionSet("default");
+            ActivateActionSet("editor");
+            ActivateActionSet("flight");
+        }
+
+        protected static void ActivateActionSet(string actionSetName) {
+            SteamVR_ActionSet actionSet = SteamVR_Input.GetActionSet(actionSetName, false, true);
             if (actionSet != null) {
                 actionSet.Activate(SteamVR_Input_Sources.Any);
                 Utils.Log("Activating ActionSet " + actionSet.GetShortName());
             }
             else {
-                Utils.LogError("Action Set 'default' does not exist");
+                Utils.LogError("Action Set '" + actionSetName + "' does not exist");
             }
         }
 

@@ -11,12 +11,14 @@ namespace KerbalVR.Modules {
 
         #region Private Members
         protected SteamVR_Action_Vector2 controlFlightStick;
+        protected SteamVR_Action_Vector2 controlYawStick;
         protected bool isInitialized = false;
         #endregion
 
         protected void Initialize() {
             if (isInitialized) return;
-            controlFlightStick = SteamVR_Input.GetVector2Action("default", "FlightStick");
+            controlFlightStick = SteamVR_Input.GetVector2Action("flight", "FlightStick");
+            controlYawStick = SteamVR_Input.GetVector2Action("flight", "YawStick");
 
             isInitialized = true;
             Utils.Log("KVR_AvionicsComputer initialized");
@@ -25,16 +27,6 @@ namespace KerbalVR.Modules {
         protected void Start() {
             Utils.Log("KVR_AvionicsComputer Start");
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
-        }
-
-        protected void OnEnable() {
-            Utils.Log("KVR_AvionicsComputer OnEnable");
-            // FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
-        }
-
-        protected void OnDisable() {
-            Utils.Log("KVR_AvionicsComputer OnDisable");
-            // FlightGlobals.ActiveVessel.OnFlyByWire -= VesselControl;
         }
 
         protected void OnDestroy() {
@@ -49,8 +41,6 @@ namespace KerbalVR.Modules {
             if (!isInitialized) {
                 return;
             }
-
-            // Utils.Log("Avionics Update: " + controlFlightStick.changed);
         }
 
         protected void VesselControl(FlightCtrlState state) {
@@ -77,6 +67,16 @@ namespace KerbalVR.Modules {
             }
 
             // get yaw stick inputs
+            if (controlYawStick.axis != Vector2.zero) {
+                Vector2 stickPos = controlYawStick.GetAxis(SteamVR_Input_Sources.Any);
+                if (KerbalVR.Configuration.Instance.SwapYawRollControls) {
+                    commandRoll = stickPos.x;
+                }
+                else {
+                    commandYaw = stickPos.x;
+                }
+                isControllingVessel = true;
+            }
 
             // only actuate the vessel control if player is commanding inputs on the controller
             if (isControllingVessel) {
