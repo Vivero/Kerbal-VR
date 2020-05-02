@@ -153,6 +153,6 @@
       }
    },
    "controller_type" : "vive_controller",
-   "description" : "",
-   "name" : "vive_controller"
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+   "name" : "KerbalVR (Vive Controller) Defaults"
 }

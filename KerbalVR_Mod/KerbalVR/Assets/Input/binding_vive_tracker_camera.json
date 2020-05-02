@@ -3,7 +3,7 @@
   "bindings": {
   },
    "controller_type" : "vive_tracker_camera",
-   "description" : "",
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
    "name" : "tracker_forcamera",
    "options" : {},
    "simulated_actions" : []

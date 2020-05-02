@@ -20,8 +20,8 @@
       }
    },
    "controller_type" : "vive_pro",
-   "description" : "",
-   "name" : "vive_pro defaults",
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+   "name" : "KerbalVR (Vive Pro) Defaults",
    "options" : {},
    "simulated_actions" : []
 }

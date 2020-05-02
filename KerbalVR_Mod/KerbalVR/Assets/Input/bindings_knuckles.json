@@ -174,11 +174,20 @@
               "force_release_threshold": "0.01"
             },
             "path": "/user/hand/right/input/grip"
+          },
+          {
+             "inputs" : {
+                "position" : {
+                   "output" : "/actions/default/in/flightstick"
+                }
+             },
+             "mode" : "joystick",
+             "path" : "/user/hand/right/input/thumbstick"
           }
         ]
       }
    },
    "controller_type" : "knuckles",
-   "description" : "",
-   "name" : "knuckles_default"
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+   "name" : "KerbalVR (Knuckles)"
 }

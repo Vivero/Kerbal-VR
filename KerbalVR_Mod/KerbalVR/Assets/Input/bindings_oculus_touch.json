@@ -161,6 +161,6 @@
       }
    },
    "controller_type" : "oculus_touch",
-   "description" : "",
-   "name" : "oculus_touch"
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+   "name" : "KerbalVR (Oculus Touch) Defaults"
 }
