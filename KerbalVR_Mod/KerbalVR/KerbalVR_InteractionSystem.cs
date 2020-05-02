@@ -8,6 +8,8 @@ namespace KerbalVR
     /// InteractionSystem is a singleton class that encapsulates
     /// the code that manages interaction systems via SteamVR_Input,
     /// i.e. the interaction game objects (gloves), and input actions.
+    /// Use the position of this GameObject as the origin for the
+    /// interaction system devices (the VR controllers).
     /// </summary>
     public class InteractionSystem : MonoBehaviour
     {
@@ -84,23 +86,19 @@ namespace KerbalVR
         protected GameObject glovePrefabL, gloveL;
         protected GameObject glovePrefabR, gloveR;
         protected SteamVR_Behaviour_Skeleton gloveSkeletonL, gloveSkeletonR;
-        SteamVR_Skeleton_Poser glovePoserL, glovePoserR;
+        protected SteamVR_Skeleton_Poser glovePoserL, glovePoserR;
         protected SkinnedMeshRenderer gloveRendererL, gloveRendererR;
+        protected SteamVR_Action_Pose gloveActionPose;
         protected bool isGloveInputInitialized = false;
+
+        protected bool isGlovesRendered = false;
+        protected bool isGlovesRenderedPrevious = false;
+        protected int currentGlovesRenderLayer = 0;
+        protected int previousGlovesRenderLayer = 0;
         #endregion
 
 
-        protected void Update() {
-            string logMsg = "";
-            SteamVR_ActionSet[] actionSets = SteamVR_Input.GetActionSets();
-            foreach (var a in actionSets) {
-                logMsg += a.fullPath + " " + (a.IsActive(SteamVR_Input_Sources.Any) ? "active" : "not active") + "\n";
-                foreach (var b in a.allActions) {
-                    logMsg += "* " + b.GetShortName() + " " + (b.active ? "active" : "inactive") + " " + (b.activeBinding ? "activeBinding" : "inactiveBinding") + "\n";
-                }
-            }
-            Utils.SetDebugText(logMsg);
-
+        protected void LateUpdate() {
             // initialize glove scripts (need OpenVR and SteamVR_Input already initialized)
             if (!isGloveInputInitialized && KerbalVR.Core.IsOpenVrReady) {
                 InitializeGloveScripts();
@@ -110,23 +108,40 @@ namespace KerbalVR
             }
 
             // should we render the gloves in the current scene?
+            isGlovesRendered = false;
+            currentGlovesRenderLayer = 0;
             if (KerbalVR.Core.IsVrRunning) {
-                SetGlovesVisible(true);
-            }
-            else {
                 switch (HighLogic.LoadedScene) {
-                    case GameScenes.FLIGHT:
-                        if (FlightGlobals.ActiveVessel.isEVA) {
-                            SetGlovesVisible(true);
-                            SetGlovesLayer(20);
-                        }
+                    case GameScenes.MAINMENU:
+                    case GameScenes.EDITOR:
+                        isGlovesRendered = true;
+                        currentGlovesRenderLayer = 0;
                         break;
 
-                    default:
-                        SetGlovesVisible(false);
+                    case GameScenes.FLIGHT:
+                        if (KerbalVR.Scene.IsInEVA() || KerbalVR.Scene.IsInIVA()) {
+                            isGlovesRendered = true;
+                            currentGlovesRenderLayer = KerbalVR.Scene.IsInIVA() ? 20 : 0;
+                        }
                         break;
                 }
             }
+
+            // makes changes as necessary
+            if (isGlovesRendered != isGlovesRenderedPrevious) {
+                SetGlovesVisible(isGlovesRendered);
+            }
+            if (currentGlovesRenderLayer != previousGlovesRenderLayer) {
+                SetGlovesLayer(currentGlovesRenderLayer);
+            }
+
+            // set the origin for the controller space
+            this.transform.position = Scene.Instance.CurrentPosition;
+            this.transform.rotation = Scene.Instance.CurrentRotation;
+
+            // keep track of changes to render state
+            previousGlovesRenderLayer = currentGlovesRenderLayer;
+            isGlovesRenderedPrevious = isGlovesRendered;
         }
 
         protected void InitializeGloveScripts() {
@@ -135,6 +150,7 @@ namespace KerbalVR
             gloveSkeletonL.skeletonRoot = gloveL.transform.Find("slim_l/Root");
             gloveSkeletonL.inputSource = SteamVR_Input_Sources.LeftHand;
             gloveSkeletonL.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.RightToLeft;
+            gloveSkeletonL.origin = this.transform;
             gloveSkeletonL.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonLeftHand", false);
             gloveSkeletonL.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
 
@@ -142,6 +158,7 @@ namespace KerbalVR
             gloveSkeletonR.skeletonRoot = gloveR.transform.Find("slim_r/Root");
             gloveSkeletonR.inputSource = SteamVR_Input_Sources.RightHand;
             gloveSkeletonR.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.None;
+            gloveSkeletonR.origin = this.transform;
             gloveSkeletonR.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonRightHand", false);
             gloveSkeletonR.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
 
@@ -161,6 +178,9 @@ namespace KerbalVR
             // can init the skeleton behavior now
             gloveSkeletonL.Initialize();
             gloveSkeletonR.Initialize();
+
+            // store actions for these devices
+            gloveActionPose = SteamVR_Input.GetPoseAction("default", "Pose");
 
             isGloveInputInitialized = true;
         }
