@@ -409,95 +409,6 @@ namespace KerbalVR
             }
         }
 
-        protected void OnNewPosesReady(TrackedDevicePose_t[] poses) {
-            // get transforms to eye positions
-            HmdMatrix34_t vrLeftEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Left);
-            HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
-
-            // convert SteamVR poses to Unity coordinates
-            var hmdTransform = new SteamVR_Utils.RigidTransform(poses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
-            SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
-            hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
-            hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
-
-            /**
-             * hmdEyeTransform is in a coordinate system that follows the headset, where
-             * the origin is the headset device position. Therefore the eyes are at a fixed
-             * offset from the device.
-             *      hmdEyeTransform.x+  towards the right of the headset
-             *      hmdEyeTransform.y+  towards the top the headset
-             *      hmdEyeTransform.z+  towards the front of the headset
-             *
-             * hmdTransform is in a coordinate system set in physical space, where the
-             * origin is the initial seated position. Or for room-scale, the physical origin of the room.
-             *      hmdTransform.x+     towards the right
-             *      hmdTransform.y+     upwards
-             *      hmdTransform.z+     towards the front
-             *
-             *  Scene.InitialPosition and Scene.InitialRotation are the Unity world coordinates where
-             *  we initialize the VR scene, i.e. the origin of a coordinate system that maps
-             *  1-to-1 with physical space.
-             *
-             *  1. Calculate the position of the eye in the physical coordinate system.
-             *  2. Transform the calculated position into Unity world coordinates, offset from
-             *     InitialPosition and InitialRotation.
-             */
-
-            // set camera positions to match device positions
-            for (int camIdx = 0; camIdx < VRCameraSets.Count; ++camIdx) {
-                Vector3[] eyeDisplacements = {
-                     hmdTransform.rot * hmdEyeTransform[0].pos,
-                     hmdTransform.rot * hmdEyeTransform[1].pos
-                };
-                Vector3[] updatedPositions = {
-                    hmdTransform.pos + eyeDisplacements[0],
-                    hmdTransform.pos + eyeDisplacements[1],
-                };
-                Quaternion updatedRotation = hmdTransform.rot;
-                for (int eyeIdx = 0; eyeIdx < 2; ++eyeIdx) {
-                    Types.VREyeCamera camStruct = VRCameraSets[camIdx].vrCameras[eyeIdx];
-                    if (VRCameraSets[camIdx].kspCameraName == "GalaxyCamera" ||
-                        VRCameraSets[camIdx].kspCameraName == "Camera ScaledSpace") {
-                        // "GalaxyCamera" gets special treatment. we place both eyes at
-                        // zero (origin) so that the skybox appears infinitely distant.
-                        // in reality this skybox is like a 1m x 1m x 1m box that encloses
-                        // the player. for funsies, try setting position to `eyeDisplacement[eyeIdx]`
-                        // and watch what happens ;)  #easteregg
-                        //
-                        // "Camera ScaledSpace" also needs to stay at origin.
-                        //
-                        // Special special case: in IVA, need to convert Internal coordinates
-
-                        if (IsInIVA()) {
-                            camStruct.cameraGameObject.transform.rotation = InternalSpace.InternalToWorld(DevicePoseToWorld(updatedRotation));
-                        }
-                        else {
-                            camStruct.cameraGameObject.transform.rotation = DevicePoseToWorld(updatedRotation);
-                        }
-                        camStruct.cameraGameObject.transform.position = Vector3.zero;
-                    }
-                    else {
-                        if (IsInIVA()) {
-                            // special case when we are in IVA. transform the "outside" cameras into
-                            // internal space coordinates
-                            if (VRCameraSets[camIdx].kspCameraName != "InternalCamera") {
-                                camStruct.cameraGameObject.transform.position = InternalSpace.InternalToWorld(DevicePoseToWorld(updatedPositions[eyeIdx]));
-                                camStruct.cameraGameObject.transform.rotation = InternalSpace.InternalToWorld(DevicePoseToWorld(updatedRotation));
-                            } else {
-                                camStruct.cameraGameObject.transform.position = DevicePoseToWorld(updatedPositions[eyeIdx]);
-                                camStruct.cameraGameObject.transform.rotation = DevicePoseToWorld(updatedRotation);
-                            }
-                        }
-                        else {
-                            // everything else moves according to tracked device positions
-                            camStruct.cameraGameObject.transform.position = DevicePoseToWorld(updatedPositions[eyeIdx]);
-                            camStruct.cameraGameObject.transform.rotation = DevicePoseToWorld(updatedRotation);
-                        }
-                    }
-                }
-            }
-        }
-
         protected void SetVrCameraPositions() {
             GameScenes scene = HighLogic.LoadedScene;
             Utils.Log("SetVrCameraPositions " + scene.ToString());
@@ -542,7 +453,7 @@ namespace KerbalVR
                                 break;
 
                             case CameraManager.CameraMode.Flight:
-                                if (FlightGlobals.ActiveVessel.isEVA) {
+                                if (IsInEVA()) {
                                     Utils.Log("SetVrCameraPositions EVA");
                                     Utils.PrintGameObjectTree(FlightGlobals.ActiveVessel.evaController.gameObject);
                                     Vector3 neckPos = FlightGlobals.ActiveVessel.evaController.helmetTransform.position;
@@ -748,8 +659,12 @@ namespace KerbalVR
             return CurrentRotation * deviceRotation;
         }
 
-        protected bool IsInIVA() {
+        public static bool IsInIVA() {
             return (CameraManager.Instance != null) && (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA);
+        }
+
+        public static bool IsInEVA() {
+            return (FlightGlobals.ActiveVessel != null) && FlightGlobals.ActiveVessel.isEVA;
         }
     } // class Scene
 } // namespace KerbalVR
