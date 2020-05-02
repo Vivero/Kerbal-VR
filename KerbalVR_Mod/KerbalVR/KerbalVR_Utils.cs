@@ -187,32 +187,42 @@ namespace KerbalVR
             return gizmo;
         }
 
-        public static string GetGameObjectInfo(GameObject go) {
-            string msg = "GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " + go.name + " (layer: " + go.layer + ")";
+        public static string GetGameObjectInfo(GameObject go, int level = 0) {
+            string indentation = "";
+            for (int i = 0; i < level; ++i) {
+                indentation += "    ";
+            }
+
+            string msg = indentation + "GameObject (" + (go.activeInHierarchy ? "on" : "off") + "): " + go.name + " (layer: " + go.layer + ")";
             if (go.transform.parent != null) {
                 msg += " (Parent: " + go.transform.parent.name + ")";
             }
             msg += "\n";
+
+            msg += indentation + "localPosition : " + go.transform.localPosition.ToString() + "\n";
+            msg += indentation + "localRotation : " + go.transform.localRotation.ToString() + "\n";
+            msg += indentation + "localScale    : " + go.transform.localScale.ToString() + "\n";
+
             Component[] components = go.GetComponents<Component>();
             for (int i = 0; i < components.Length; i++) {
-                msg += "Component: " + components[i].ToString() + "\n";
+                msg += indentation + "Component: " + components[i].GetType().ToString();
 
                 if (components[i] is MeshFilter) {
                     MeshFilter meshFilter = components[i] as MeshFilter;
                     if (meshFilter.sharedMesh != null) {
-                        msg += "MeshFilter: '" + meshFilter.sharedMesh.name + "' (" + meshFilter.sharedMesh.vertexCount + " vertices)\n";
+                        msg += "\n" + indentation + " '" + meshFilter.sharedMesh.name + "' (" + meshFilter.sharedMesh.vertexCount + " vertices)";
                     }
                 }
 
                 if (components[i] is MeshRenderer) {
                     MeshRenderer meshRenderer = components[i] as MeshRenderer;
-                    msg += "MeshRenderer (" + (meshRenderer.enabled ? "on" : "off") + ")";
+                    msg += " (" + (meshRenderer.enabled ? "on" : "off") + ")";
                     if (meshRenderer.sharedMaterial != null) {
-                        msg += " (sharedMaterial=" + meshRenderer.sharedMaterial.name + ")";
+                        msg += "\n" + indentation + " sharedMaterial.name: " + meshRenderer.sharedMaterial.name;
                         // msg += " (color=" + meshRenderer.sharedMaterial.color + ")";
                     }
-                    msg += "\n";
                 }
+                msg += "\n";
             }
             return msg;
         }
@@ -238,11 +248,11 @@ namespace KerbalVR
             return msg;
         }
 
-        public static string GetGameObjectTree(GameObject go) {
-            string logMsg = GetGameObjectInfo(go);
+        public static string GetGameObjectTree(GameObject go, int level = 0) {
+            string logMsg = GetGameObjectInfo(go, level);
             for (int i = 0; i < go.transform.childCount; i++) {
-                logMsg += "+-- (" + (i + 1) + "/" + go.transform.childCount + ") Parent: " + go.name + "\n";
-                logMsg += GetGameObjectTree(go.transform.GetChild(i).gameObject);
+                // logMsg += "+-- (" + (i + 1) + "/" + go.transform.childCount + ") Parent: " + go.name + "\n";
+                logMsg += GetGameObjectTree(go.transform.GetChild(i).gameObject, level + 1);
             }
             return logMsg;
         }

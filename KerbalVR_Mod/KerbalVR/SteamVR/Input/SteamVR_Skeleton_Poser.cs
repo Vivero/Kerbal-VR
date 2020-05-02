@@ -54,6 +54,8 @@ namespace Valve.VR
         public float scale;
 
 
+        /* KerbalVR: Cannot start Awake routine until other variables are assigned.
+         *   Moving this into an Initialize function.
         protected void Awake()
         {
             if (previewLeftInstance != null)
@@ -64,6 +66,24 @@ namespace Valve.VR
             blendPoses = new SkeletonBlendablePose[skeletonAdditionalPoses.Count + 1];
             for (int i = 0; i < blendPoseCount; i++)
             {
+                blendPoses[i] = new SkeletonBlendablePose(GetPoseByIndex(i));
+                blendPoses[i].PoseToSnapshots();
+            }
+
+            boneCount = skeletonMainPose.leftHand.bonePositions.Length;
+            // NOTE: Is there a better way to get the bone count? idk
+            blendedSnapshotL = new SteamVR_Skeleton_PoseSnapshot(boneCount, SteamVR_Input_Sources.LeftHand);
+            blendedSnapshotR = new SteamVR_Skeleton_PoseSnapshot(boneCount, SteamVR_Input_Sources.RightHand);
+        }
+        */
+        public void Initialize() {
+            if (previewLeftInstance != null)
+                DestroyImmediate(previewLeftInstance);
+            if (previewRightInstance != null)
+                DestroyImmediate(previewRightInstance);
+
+            blendPoses = new SkeletonBlendablePose[skeletonAdditionalPoses.Count + 1];
+            for (int i = 0; i < blendPoseCount; i++) {
                 blendPoses[i] = new SkeletonBlendablePose(GetPoseByIndex(i));
                 blendPoses[i].PoseToSnapshots();
             }

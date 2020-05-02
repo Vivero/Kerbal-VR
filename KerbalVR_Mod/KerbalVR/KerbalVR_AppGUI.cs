@@ -27,6 +27,7 @@ namespace KerbalVR
         protected static readonly ApplicationLauncher.AppScenes APP_VISIBILITY =
             ApplicationLauncher.AppScenes.MAINMENU |
             ApplicationLauncher.AppScenes.SPACECENTER |
+            ApplicationLauncher.AppScenes.TRACKSTATION |
             ApplicationLauncher.AppScenes.FLIGHT |
             ApplicationLauncher.AppScenes.MAPVIEW |
             ApplicationLauncher.AppScenes.VAB |
@@ -73,7 +74,11 @@ namespace KerbalVR
                     OnDebugToggleTrue,
                     OnDebugToggleFalse,
                     null, null, null, null,
-                    APP_VISIBILITY,
+#if DEBUG
+                    ApplicationLauncher.AppScenes.ALWAYS,
+#else
+                    ApplicationLauncher.AppScenes.NEVER,
+#endif
                     GameDatabase.Instance.GetTexture(APP_BUTTON_LOGO_ALT, false));
             }
 
@@ -153,10 +158,10 @@ namespace KerbalVR
 
     public class AppGUI : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
-        #region Private Members
+#region Private Members
         protected Vector2 panelDragStart;
         protected Vector2 panelAltStart;
-        #endregion
+#endregion
 
         // this event fires when a drag event begins
         public void OnBeginDrag(PointerEventData data) {
@@ -175,7 +180,7 @@ namespace KerbalVR
 
     public class AppMainGUI : AppGUI
     {
-        #region Private Members
+#region Private Members
         private GameObject vrEnableButton;
         private GameObject resetPositionButton;
         private GameObject initOpenVrAtStartupToggle;
@@ -187,7 +192,7 @@ namespace KerbalVR
         private Text vrStatusText;
         private Text worldScaleLabel;
         private Text handSizeScaleLabel;
-        #endregion
+#endregion
 
         private void Awake() {
             // create callbacks for the buttons
@@ -300,9 +305,9 @@ namespace KerbalVR
 
     public class AppDebugGUI : AppGUI
     {
-        #region Private Members
+#region Private Members
         private Text debugText;
-        #endregion
+#endregion
 
         private void Awake() {
             // get text label objects
