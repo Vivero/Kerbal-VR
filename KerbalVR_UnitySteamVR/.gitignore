@@ -69,8 +69,8 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Generated AssetBundles
+# Generated assets
 /AssetBundles
-
-# Generates StreamingAssets
 /StreamingAssets
+/SteamVR_KerbalVR
+/Assets/SteamVR_Input
