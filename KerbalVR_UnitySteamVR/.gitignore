@@ -71,6 +71,6 @@ crashlytics-build.properties
 
 # Generated assets
 /AssetBundles
-/StreamingAssets
+/Assets/SteamVR_Input*
 /SteamVR_KerbalVR
-/Assets/SteamVR_Input
+/SteamVR_SteamVR_kerbalvr_unitysteamvr
