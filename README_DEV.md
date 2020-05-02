@@ -66,20 +66,27 @@ As of KerbalVR version 4.x.x, the structure of the codebase is organized into
 
   Open in **Visual Studio 2019**. It will automatically copy the output file
   *KerbalVR_Renderer.dll* into the appropriate directory in the *KerbalVR_Mod*
-  directory.
+  project.
 
 - **KerbalVR_Unity**
 
   Open in **Unity 2019.2.2f1**. Use *PartTools* to export the asset bundles
   for KSP. Run *&lt;KerbalVR_root&gt;\KerbalVR_Unity\export_asset_bundles.cmd*
   to copy the asset bundles from this project into the appropriate directory
-  in the *KerbalVR_Mod* directory.
+  in the *KerbalVR_Mod* project.
 
 - **KerbalVR_UnitySteamVR**
 
-  WIP
+  Open in **Unity 2019.2.2f1**. Go to **Window > SteamVR Input**. Make any
+  modifications to actions as needed. Click **Save and Generate**. To make
+  changes to controller bindings, click **Open binding UI**. Edit the
+  *Local Changes* configuration for a selected controller. When finished,
+  click the **Replace Default Binding** button on the bottom-right.
 
-  something-something open the Input editor and export bindings.
+  To export all the changes, run
+  *&lt;KerbalVR_root&gt;\KerbalVR_UnitySteamVR\export_input_bindings.cmd*,
+  which will place all the input bindings into the appropriate directory
+  in the *KerbalVR_Mod* project.
 
 ## Other Thoughts
 
