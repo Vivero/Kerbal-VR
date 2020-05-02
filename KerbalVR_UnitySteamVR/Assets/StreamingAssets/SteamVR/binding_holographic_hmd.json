@@ -20,8 +20,8 @@
       }
    },
    "controller_type" : "holographic_hmd",
-   "description" : "",
-   "name" : "holographic_hmd defaults",
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+   "name" : "KerbalVR (Holographic HMD) Defaults",
    "options" : {},
    "simulated_actions" : []
 }

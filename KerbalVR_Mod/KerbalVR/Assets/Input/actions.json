@@ -46,26 +46,38 @@
       "type": "boolean"
     },
     {
-      "name": "/actions/default/in/FlightStick",
+      "name": "/actions/default/out/Haptic",
+      "type": "vibration"
+    },
+    {
+      "name": "/actions/editor/in/Move",
       "type": "vector2"
     },
     {
-      "name": "/actions/default/in/YawControl",
-      "type": "vector1"
+      "name": "/actions/flight/in/FlightStick",
+      "type": "vector2"
     },
     {
-      "name": "/actions/default/in/ThrustControl",
-      "type": "vector1"
+      "name": "/actions/flight/in/YawStick",
+      "type": "vector2"
     },
     {
-      "name": "/actions/default/out/Haptic",
-      "type": "vibration"
+      "name": "/actions/flight/in/ThrottleStick",
+      "type": "vector2"
     }
   ],
   "action_sets": [
     {
       "name": "/actions/default",
       "usage": "single"
+    },
+    {
+      "name": "/actions/editor",
+      "usage": "single"
+    },
+    {
+      "name": "/actions/flight",
+      "usage": "leftright"
     }
   ],
   "default_bindings": [
@@ -131,9 +143,9 @@
       "/actions/default/out/Haptic": "Haptic",
       "/actions/default/in/SnapTurnLeft": "Snap Turn (Left)",
       "/actions/default/in/SnapTurnRight": "Snap Turn (Right)",
-      "/actions/default/in/FlightStick": "Flight Stick",
-      "/actions/default/in/YawControl": "Yaw Control",
-      "/actions/default/in/ThrustControl": "Thrust Control"
+      "/actions/flight/in/FlightStick": "Flight Stick",
+      "/actions/flight/in/YawStick": "Yaw Control",
+      "/actions/flight/in/ThrottleStick": "Throttle Control"
     }
   ]
 }

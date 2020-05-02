@@ -1,14 +1,10 @@
 {
+   "alias_info" : {},
   "bindings": {
-    "/actions/mixedreality": {
-      "chords": [],
-      "poses": [],
-      "haptics": [],
-      "sources": [],
-      "skeleton": []
-    }
   },
-  "controller_type": "vive_tracker_camera",
-  "description": "",
-  "name": "tracker_forcamera"
+   "controller_type" : "vive_tracker_camera",
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+   "name" : "tracker_forcamera",
+   "options" : {},
+   "simulated_actions" : []
 }

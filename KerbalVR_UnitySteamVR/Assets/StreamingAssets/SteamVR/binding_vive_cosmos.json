@@ -20,8 +20,8 @@
     }
   },
   "controller_type": "vive_cosmos",
-  "description": "",
-  "name": "vive cosmos hmd defaults",
+  "description": "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+  "name": "KerbalVR (Vive Cosmos HMD) Defaults",
   "options": {},
   "simulated_actions": []
 }

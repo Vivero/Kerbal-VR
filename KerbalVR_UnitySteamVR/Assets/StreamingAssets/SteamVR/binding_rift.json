@@ -20,8 +20,8 @@
       }
    },
    "controller_type" : "rift",
-   "description" : "",
-   "name" : "rift defaults",
+   "description" : "VR controls for use with the KerbalVR mod in Kerbal Space Program",
+   "name" : "KerbalVR (Rift) Defaults",
    "options" : {},
    "simulated_actions" : []
 }
