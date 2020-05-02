@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
@@ -91,6 +90,8 @@ namespace KerbalVR
         protected SteamVR_Action_Pose gloveActionPose;
         protected bool isGloveInputInitialized = false;
 
+        protected SteamVR_Action_Boolean headsetOnAction;
+
         protected bool isGlovesRendered = false;
         protected bool isGlovesRenderedPrevious = false;
         protected int currentGlovesRenderLayer = 0;
@@ -181,12 +182,18 @@ namespace KerbalVR
 
             // store actions for these devices
             gloveActionPose = SteamVR_Input.GetPoseAction("default", "Pose");
+            headsetOnAction = SteamVR_Input.GetBooleanAction("default", "HeadsetOnHead");
+            headsetOnAction.onChange += HeadsetOnAction_onChange;
 
             isGloveInputInitialized = true;
         }
 
+        protected void HeadsetOnAction_onChange(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState) {
+            Utils.Log("HeadsetOnAction_onChange " + newState);
+            KerbalVR.Core.IsVrEnabled = newState;
+        }
+
         protected SteamVR_Skeleton_Pose GenerateHandSkeletonMainPose() {
-            // SteamVR_Skeleton_Pose pose = new SteamVR_Skeleton_Pose();
             SteamVR_Skeleton_Pose pose = ScriptableObject.CreateInstance<SteamVR_Skeleton_Pose>();
             pose.leftHand.bonePositions = new Vector3[] {
                 new Vector3(0f, 0f, 0f),
@@ -329,8 +336,6 @@ namespace KerbalVR
         }
 
         public void SetGlovesLayer(int layer) {
-            // Utils.SetLayer(gloveL, layer);
-            // Utils.SetLayer(gloveR, layer);
             gloveRendererL.gameObject.layer = layer;
             gloveRendererR.gameObject.layer = layer;
         }

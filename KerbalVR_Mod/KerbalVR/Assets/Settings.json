@@ -1,4 +1,5 @@
 {
     "initOpenVrAtStartup": true,
+    "swapYawRollControls": false,
     "debugEnabled": false
 }

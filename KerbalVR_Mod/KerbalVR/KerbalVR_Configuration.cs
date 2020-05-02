@@ -39,6 +39,20 @@ namespace KerbalVR
                 SaveSettings();
             }
         }
+        /// <summary>
+        /// If true, the flight stick operates pitch and yaw,
+        /// instead of pitch and roll.
+        /// </summary>
+        protected bool _swapYawRollControls;
+        public bool SwapYawRollControls {
+            get {
+                return _swapYawRollControls;
+            }
+            set {
+                _swapYawRollControls = value;
+                SaveSettings();
+            }
+        }
 
         /// <summary>
         /// Enable debugging tools
@@ -88,7 +102,12 @@ namespace KerbalVR
 
                 // store the settings from file
                 this._initOpenVrAtStartup = kvrSettings.initOpenVrAtStartup;
+                this._swapYawRollControls = kvrSettings.swapYawRollControls;
+#if DEBUG
+                this._debugEnabled = true;
+#else
                 this._debugEnabled = kvrSettings.debugEnabled;
+#endif
 
             } else {
                 // if no settings file exists, create a default one
@@ -106,6 +125,7 @@ namespace KerbalVR
         protected void SaveSettings() {
             Settings kvrSettings = new Settings();
             kvrSettings.initOpenVrAtStartup = this.InitOpenVrAtStartup;
+            kvrSettings.swapYawRollControls = this.SwapYawRollControls;
             kvrSettings.debugEnabled = this.DebugEnabled;
 
             // write to file
@@ -120,6 +140,11 @@ namespace KerbalVR
     [Serializable]
     public class Settings {
         public bool initOpenVrAtStartup = true;
+        public bool swapYawRollControls = false;
+#if DEBUG
         public bool debugEnabled = true;
+#else
+        public bool debugEnabled = false;
+#endif
     }
 }

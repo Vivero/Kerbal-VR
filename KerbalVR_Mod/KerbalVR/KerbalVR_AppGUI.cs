@@ -214,8 +214,8 @@ namespace KerbalVR
 
             swapYawRollControlsToggle = GameObject.Find("KVR_UI_SwapControlsToggle");
             Toggle swapYawRollControlsToggleComponent = swapYawRollControlsToggle.GetComponent<Toggle>();
+            swapYawRollControlsToggleComponent.SetIsOnWithoutNotify(KerbalVR.Configuration.Instance.SwapYawRollControls);
             swapYawRollControlsToggleComponent.onValueChanged.AddListener(OnSwapYawRollControlsClicked);
-            swapYawRollControlsToggle.SetActive(false);
 
             // set slider states and create callbacks for sliders
             worldScaleSlider = GameObject.Find("KVR_UI_WorldScaleSlider");
@@ -247,10 +247,12 @@ namespace KerbalVR
             KerbalVR.Events.HmdStatusUpdated.Listen(OnHmdStatusUpdated);
 
             // TODO: re-do these controls
+#if !DEBUG
             GameObject worldScaleContainer = GameObject.Find("KVR_UI_WorldScaleContainer");
             worldScaleContainer.SetActive(false);
             GameObject handSizeContainer = GameObject.Find("KVR_UI_HandSizeContainer");
             handSizeContainer.SetActive(false);
+#endif
         }
 
         private void Update() {
@@ -278,13 +280,16 @@ namespace KerbalVR
         }
 
         void OnSwapYawRollControlsClicked(bool isOn) {
+            KerbalVR.Configuration.Instance.SwapYawRollControls = isOn;
         }
 
         void OnWorldScaleSliderChanged(float value) {
+            // TODO: re-do these controls
             worldScaleLabel.text = "World Scale: " + value.ToString("F1");
         }
 
         void OnHandSizeScaleSliderChanged(float value) {
+            // TODO: re-do these controls
             handSizeScaleLabel.text = "Hand Size Scale: " + value.ToString("F1");
         }
 

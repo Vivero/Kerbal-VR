@@ -182,6 +182,10 @@
                 }
              },
              "mode" : "joystick",
+             "parameters" : {
+                "deadzone_pct" : "10",
+                "invert" : "y"
+             },
              "path" : "/user/hand/right/input/thumbstick"
           }
         ]
