@@ -2,7 +2,6 @@
 
 An add-on for Kerbal Space Program (KSP) to enable the use of a virtual reality headset
 (HTC Vive, Valve Index, Windows MR, Oculus Rift, etc), as supported by OpenVR.
-Supports in-flight IVA, and room-scale VAB / SPH.
 
 ### FOLLOW the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide), as there is a little bit more setup compared to other KSP mods.
 
@@ -29,8 +28,6 @@ Performance will vary wildly between setups. There is an infinite combination of
 video cards, VR rendering resolutions, headset refresh rates, etc. It is difficult to achieve
 a smooth experience, but you may try the **Performance Tips** below.
 
-**You may experience random crashes while using the mod. You have been warned.**
-
 ## Requirements
 
 - [Module Manager](https://forum.kerbalspaceprogram.com/index.php?/topic/50533-140-16x-module-manager-402-february-3rd-2019-right-to-ludicrous-speed/)
@@ -41,20 +38,6 @@ a smooth experience, but you may try the **Performance Tips** below.
 For installation instructions, see the [Install Guide](https://github.com/Vivero/Kerbal-VR/wiki/Install-Guide).
 
 For instructions on how to use the mod, see the [User Guide](https://github.com/Vivero/Kerbal-VR/wiki/User-Guide).
-
-For guidance on compiling this project and other project documentation, see the [Build Guide](https://github.com/Vivero/Kerbal-VR/wiki/Build-Guide)
-
-
-## Known Issues
-
-- *There's lots of stuttering while in VR!*
-
-  Yea I dunno what to do about that. No guarantees, but try the **Performance Tips** below. This game
-  wasn't designed with VR in mind, and there isn't a whole lot I can do from a modding perspective.
-
-- *When I enable VR in the VAB/SPH, everything looks blue!*
-
-  Yep. Dunno why. Have fun!
 
 
 ## RasterProp Monitor
@@ -71,14 +54,8 @@ A set of VR-ready cockpits is provided by the [KVR Pods](https://github.com/Vive
 
 You may need to tone down the graphics for best performance. Try these in the Settings menu, under the Graphics tab:
 
-- **Screen Resolution:** 1024 x 768
 - **Full Screen:** unchecked
 - **V-Sync:** Don't Sync
 - **Frame Limit:** 180 FPS
-
-Something that seemed to help a lot was turning on **Legacy Reprojection Mode** in the SteamVR
-per-application settings for Kerbal Space Program.
-
-![SteamVR Settings](https://imgur.com/LqTbD2u.png)
 
 Make sure you update your graphics drivers and SteamVR.

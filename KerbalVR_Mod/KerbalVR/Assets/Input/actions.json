@@ -5,10 +5,6 @@
       "type": "boolean"
     },
     {
-      "name": "/actions/default/in/Teleport",
-      "type": "boolean"
-    },
-    {
       "name": "/actions/default/in/GrabGrip",
       "type": "boolean"
     },
@@ -64,6 +60,10 @@
     {
       "name": "/actions/flight/in/ThrottleStick",
       "type": "vector2"
+    },
+    {
+      "name": "/actions/EVA/in/Teleport",
+      "type": "boolean"
     }
   ],
   "action_sets": [
@@ -78,6 +78,10 @@
     {
       "name": "/actions/flight",
       "usage": "leftright"
+    },
+    {
+      "name": "/actions/EVA",
+      "usage": "single"
     }
   ],
   "default_bindings": [
@@ -139,13 +143,13 @@
       "/actions/default/in/Pose": "Pose",
       "/actions/default/in/SkeletonLeftHand": "Skeleton (Left)",
       "/actions/default/in/SkeletonRightHand": "Skeleton (Right)",
-      "/actions/default/in/Teleport": "Teleport",
       "/actions/default/out/Haptic": "Haptic",
       "/actions/default/in/SnapTurnLeft": "Snap Turn (Left)",
       "/actions/default/in/SnapTurnRight": "Snap Turn (Right)",
       "/actions/flight/in/FlightStick": "Flight Stick",
       "/actions/flight/in/YawStick": "Yaw Control",
-      "/actions/flight/in/ThrottleStick": "Throttle Control"
+      "/actions/flight/in/ThrottleStick": "Throttle Control",
+      "/actions/EVA/in/Teleport": "Teleport"
     }
   ]
 }

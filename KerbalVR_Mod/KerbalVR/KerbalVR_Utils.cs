@@ -228,7 +228,7 @@ namespace KerbalVR
         }
 
         public static string GetCameraInfo(Camera cam) {
-            string msg = "'" + cam.name + "'\n";
+            string msg = "'" + cam.name + "', tag: '" + cam.gameObject.tag + "'\n";
             msg += "* position: " + cam.transform.position + "\n";
             msg += "* rotation: " + cam.transform.rotation + "\n";
             msg += "* clearFlags: " + cam.clearFlags + "\n";
@@ -281,8 +281,8 @@ namespace KerbalVR
             GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
             foreach (GameObject go in allObjects) {
                 if (go.activeInHierarchy) {
-                    PrintGameObject(go);
-                    Log(" ");
+                    string logMsg = GetGameObjectInfo(go) + "\n";
+                    Log(logMsg);
                 }
             }
         }

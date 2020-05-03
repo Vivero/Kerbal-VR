@@ -12,13 +12,17 @@ namespace KerbalVR.Modules {
         #region Private Members
         protected SteamVR_Action_Vector2 controlFlightStick;
         protected SteamVR_Action_Vector2 controlYawStick;
+        protected SteamVR_Action_Vector2 controlThrottleStick;
         protected bool isInitialized = false;
+
+        protected float commandThrottle = 0f;
         #endregion
 
         protected void Initialize() {
             if (isInitialized) return;
             controlFlightStick = SteamVR_Input.GetVector2Action("flight", "FlightStick");
             controlYawStick = SteamVR_Input.GetVector2Action("flight", "YawStick");
+            controlThrottleStick = SteamVR_Input.GetVector2Action("flight", "ThrottleStick");
 
             isInitialized = true;
             Utils.Log("KVR_AvionicsComputer initialized");
@@ -27,6 +31,9 @@ namespace KerbalVR.Modules {
         protected void Start() {
             Utils.Log("KVR_AvionicsComputer Start");
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
+
+            // initialize the current throttle setting
+            commandThrottle = FlightGlobals.ActiveVessel.ctrlState.mainThrottle;
         }
 
         protected void OnDestroy() {
@@ -49,14 +56,16 @@ namespace KerbalVR.Modules {
                 return;
             }
 
+            // `state` contains the player's current control inputs
+
             bool isControllingVessel = false;
             float commandYaw = 0f;
             float commandPitch = 0f;
             float commandRoll = 0f;
 
             // get flight stick inputs
+            Vector2 stickPos = controlFlightStick.axis;
             if (controlFlightStick.axis != Vector2.zero) {
-                Vector2 stickPos = controlFlightStick.GetAxis(SteamVR_Input_Sources.Any);
                 commandPitch = stickPos.y;
                 if (KerbalVR.Configuration.Instance.SwapYawRollControls) {
                     commandYaw = stickPos.x;
@@ -67,8 +76,8 @@ namespace KerbalVR.Modules {
             }
 
             // get yaw stick inputs
+            stickPos = controlYawStick.axis;
             if (controlYawStick.axis != Vector2.zero) {
-                Vector2 stickPos = controlYawStick.GetAxis(SteamVR_Input_Sources.Any);
                 if (KerbalVR.Configuration.Instance.SwapYawRollControls) {
                     commandRoll = stickPos.x;
                 }
@@ -78,12 +87,29 @@ namespace KerbalVR.Modules {
                 isControllingVessel = true;
             }
 
+            // get throttle control inputs
+            //
+            // currently, the throttle control cannot consolidate the
+            // user's throttle input together with the VR controller input.
+            // we'll just have to make it so that the VR controller throttle
+            // input overrides whatever the player might be trying to
+            // control via keyboard/gamepad/etc.
+            //
+            stickPos = controlThrottleStick.axis;
+            if (controlThrottleStick.changed) {
+                commandThrottle += stickPos.y;
+            }
+            commandThrottle = Mathf.Clamp(commandThrottle, 0f, 1f);
+
             // only actuate the vessel control if player is commanding inputs on the controller
             if (isControllingVessel) {
                 state.yaw = commandYaw;
                 state.pitch = commandPitch;
                 state.roll = commandRoll;
             }
+
+            // always override throttle
+            state.mainThrottle = Mathf.Clamp(commandThrottle, 0f, 1f);
         }
 
     } // class KVR_AvionicsComputer

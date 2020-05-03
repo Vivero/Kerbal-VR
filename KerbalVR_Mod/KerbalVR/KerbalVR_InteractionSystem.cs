@@ -82,21 +82,30 @@ namespace KerbalVR
 
 
         #region Private Members
+        // glove game objects
         protected GameObject glovePrefabL, gloveL;
         protected GameObject glovePrefabR, gloveR;
         protected SteamVR_Behaviour_Skeleton gloveSkeletonL, gloveSkeletonR;
         protected SteamVR_Skeleton_Poser glovePoserL, glovePoserR;
         protected SkinnedMeshRenderer gloveRendererL, gloveRendererR;
-        protected SteamVR_Action_Pose gloveActionPose;
-        protected bool isGloveInputInitialized = false;
 
+        // device behaviors and actions
+        protected bool isGloveInputInitialized = false;
+        protected SteamVR_Action_Pose gloveActionPose;
+        protected SteamVR_Action_Boolean teleportAction;
         protected SteamVR_Action_Boolean headsetOnAction;
 
+        // glove render state
         protected bool isGlovesRendered = false;
         protected bool isGlovesRenderedPrevious = false;
         protected int currentGlovesRenderLayer = 0;
         protected int previousGlovesRenderLayer = 0;
         #endregion
+
+
+        protected void Update() {
+            // interaction updates here
+        }
 
 
         protected void LateUpdate() {
@@ -183,13 +192,19 @@ namespace KerbalVR
             // store actions for these devices
             gloveActionPose = SteamVR_Input.GetPoseAction("default", "Pose");
             headsetOnAction = SteamVR_Input.GetBooleanAction("default", "HeadsetOnHead");
-            headsetOnAction.onChange += HeadsetOnAction_onChange;
+            headsetOnAction.onChange += OnChangeHeadsetOnAction;
+            teleportAction = SteamVR_Input.GetBooleanAction("EVA", "Teleport");
 
             isGloveInputInitialized = true;
         }
 
-        protected void HeadsetOnAction_onChange(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState) {
-            Utils.Log("HeadsetOnAction_onChange " + newState);
+        /// <summary>
+        /// Activate or deactivate VR when the headset is worn or not, respectively.
+        /// </summary
+        /// <param name="fromAction">The HeadsetOnHead action</param>
+        /// <param name="fromSource">The source for the event</param>
+        /// <param name="newState">True if the headset is being worn by the user, false otherwise</param>
+        protected void OnChangeHeadsetOnAction(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState) {
             KerbalVR.Core.IsVrEnabled = newState;
         }
 

@@ -209,6 +209,28 @@
             }
          ]
       },
+      "/actions/eva" : {
+         "sources" : [
+            {
+               "inputs" : {
+                  "touch" : {
+                     "output" : "/actions/eva/in/teleport"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/trackpad"
+            },
+            {
+               "inputs" : {
+                  "touch" : {
+                     "output" : "/actions/eva/in/teleport"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/trackpad"
+            }
+         ]
+      },
       "/actions/flight" : {
          "sources" : [
             {
@@ -243,6 +265,11 @@
                   }
                },
                "mode" : "trackpad",
+               "parameters" : {
+                  "scroll_mode" : "smooth",
+                  "smooth_scroll_multiplier" : "5",
+                  "smooth_scroll_trackpad_aspect_ratio" : "0.6"
+               },
                "path" : "/user/hand/left/input/trackpad"
             }
          ]

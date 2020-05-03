@@ -19,8 +19,6 @@ namespace Valve.VR
         
         private static SteamVR_Action_Boolean p_default_InteractUI;
         
-        private static SteamVR_Action_Boolean p_default_Teleport;
-        
         private static SteamVR_Action_Boolean p_default_GrabGrip;
         
         private static SteamVR_Action_Pose p_default_Pose;
@@ -47,19 +45,13 @@ namespace Valve.VR
         
         private static SteamVR_Action_Vector2 p_flight_ThrottleStick;
         
+        private static SteamVR_Action_Boolean p_eVA_Teleport;
+        
         public static SteamVR_Action_Boolean default_InteractUI
         {
             get
             {
                 return SteamVR_Actions.p_default_InteractUI.GetCopy<SteamVR_Action_Boolean>();
-            }
-        }
-        
-        public static SteamVR_Action_Boolean default_Teleport
-        {
-            get
-            {
-                return SteamVR_Actions.p_default_Teleport.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
@@ -167,11 +159,18 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Boolean eVA_Teleport
+        {
+            get
+            {
+                return SteamVR_Actions.p_eVA_Teleport.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
                     SteamVR_Actions.default_InteractUI,
-                    SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabGrip,
                     SteamVR_Actions.default_Pose,
                     SteamVR_Actions.default_SkeletonLeftHand,
@@ -184,10 +183,10 @@ namespace Valve.VR
                     SteamVR_Actions.editor_Move,
                     SteamVR_Actions.flight_FlightStick,
                     SteamVR_Actions.flight_YawStick,
-                    SteamVR_Actions.flight_ThrottleStick};
+                    SteamVR_Actions.flight_ThrottleStick,
+                    SteamVR_Actions.eVA_Teleport};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
-                    SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabGrip,
                     SteamVR_Actions.default_Pose,
                     SteamVR_Actions.default_SkeletonLeftHand,
@@ -199,7 +198,8 @@ namespace Valve.VR
                     SteamVR_Actions.editor_Move,
                     SteamVR_Actions.flight_FlightStick,
                     SteamVR_Actions.flight_YawStick,
-                    SteamVR_Actions.flight_ThrottleStick};
+                    SteamVR_Actions.flight_ThrottleStick,
+                    SteamVR_Actions.eVA_Teleport};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.default_Haptic};
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[] {
@@ -208,11 +208,11 @@ namespace Valve.VR
                     SteamVR_Actions.default_Pose};
             Valve.VR.SteamVR_Input.actionsBoolean = new Valve.VR.SteamVR_Action_Boolean[] {
                     SteamVR_Actions.default_InteractUI,
-                    SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabGrip,
                     SteamVR_Actions.default_HeadsetOnHead,
                     SteamVR_Actions.default_SnapTurnLeft,
-                    SteamVR_Actions.default_SnapTurnRight};
+                    SteamVR_Actions.default_SnapTurnRight,
+                    SteamVR_Actions.eVA_Teleport};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.default_Squeeze};
             Valve.VR.SteamVR_Input.actionsVector2 = new Valve.VR.SteamVR_Action_Vector2[] {
@@ -226,7 +226,6 @@ namespace Valve.VR
                     SteamVR_Actions.default_SkeletonRightHand};
             Valve.VR.SteamVR_Input.actionsNonPoseNonSkeletonIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
-                    SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabGrip,
                     SteamVR_Actions.default_Squeeze,
                     SteamVR_Actions.default_HeadsetOnHead,
@@ -235,13 +234,13 @@ namespace Valve.VR
                     SteamVR_Actions.editor_Move,
                     SteamVR_Actions.flight_FlightStick,
                     SteamVR_Actions.flight_YawStick,
-                    SteamVR_Actions.flight_ThrottleStick};
+                    SteamVR_Actions.flight_ThrottleStick,
+                    SteamVR_Actions.eVA_Teleport};
         }
         
         private static void PreInitActions()
         {
             SteamVR_Actions.p_default_InteractUI = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/InteractUI")));
-            SteamVR_Actions.p_default_Teleport = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/Teleport")));
             SteamVR_Actions.p_default_GrabGrip = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/GrabGrip")));
             SteamVR_Actions.p_default_Pose = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/default/in/Pose")));
             SteamVR_Actions.p_default_SkeletonLeftHand = ((SteamVR_Action_Skeleton)(SteamVR_Action.Create<SteamVR_Action_Skeleton>("/actions/default/in/SkeletonLeftHand")));
@@ -255,6 +254,7 @@ namespace Valve.VR
             SteamVR_Actions.p_flight_FlightStick = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/flight/in/FlightStick")));
             SteamVR_Actions.p_flight_YawStick = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/flight/in/YawStick")));
             SteamVR_Actions.p_flight_ThrottleStick = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/flight/in/ThrottleStick")));
+            SteamVR_Actions.p_eVA_Teleport = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/EVA/in/Teleport")));
         }
     }
 }

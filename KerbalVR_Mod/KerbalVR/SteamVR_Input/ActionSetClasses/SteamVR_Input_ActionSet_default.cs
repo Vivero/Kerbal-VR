@@ -25,14 +25,6 @@ namespace Valve.VR
             }
         }
         
-        public virtual SteamVR_Action_Boolean Teleport
-        {
-            get
-            {
-                return SteamVR_Actions.default_Teleport;
-            }
-        }
-        
         public virtual SteamVR_Action_Boolean GrabGrip
         {
             get
