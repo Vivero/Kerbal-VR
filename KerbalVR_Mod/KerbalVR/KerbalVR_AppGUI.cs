@@ -37,10 +37,12 @@ namespace KerbalVR
 
         #region Private Members
         protected ApplicationLauncherButton appMainButton = null;
+#if DEBUG
         protected ApplicationLauncherButton appDebugButton = null;
+#endif
         protected static GameObject uiMainCanvas = null;
         protected static GameObject uiDebugCanvas = null;
-        #endregion
+#endregion
 
         protected void Awake() {
             // when ready for a GUI, load it
@@ -68,19 +70,17 @@ namespace KerbalVR
                     GameDatabase.Instance.GetTexture(APP_BUTTON_LOGO, false));
             }
 
+#if DEBUG
             // create a debugging tools app button instance if it doesn't already exist
             if (appDebugButton == null) {
                 appDebugButton = ApplicationLauncher.Instance.AddModApplication(
                     OnDebugToggleTrue,
                     OnDebugToggleFalse,
                     null, null, null, null,
-#if DEBUG
                     ApplicationLauncher.AppScenes.ALWAYS,
-#else
-                    ApplicationLauncher.AppScenes.NEVER,
-#endif
-                    GameDatabase.Instance.GetTexture(APP_BUTTON_LOGO_ALT, false));
+            GameDatabase.Instance.GetTexture(APP_BUTTON_LOGO_ALT, false));
             }
+#endif
 
             // load the UI prefab
             if (uiMainCanvas == null) {
@@ -111,10 +111,12 @@ namespace KerbalVR
                 appMainButton.SetFalse(true);
                 ApplicationLauncher.Instance.RemoveApplication(appMainButton);
             }
+#if DEBUG
             if (appDebugButton != null) {
                 appDebugButton.SetFalse(true);
                 ApplicationLauncher.Instance.RemoveApplication(appDebugButton);
             }
+#endif
         }
 
         /// <summary>
@@ -125,17 +127,18 @@ namespace KerbalVR
         }
 
         /// <summary>
-        /// Callback when the debug application button is toggled on.
-        /// </summary>
-        public void OnDebugToggleTrue() {
-            uiDebugCanvas.SetActive(true);
-        }
-
-        /// <summary>
         /// Callback when the main application button is toggled off.
         /// </summary>
         public void OnMainToggleFalse() {
             uiMainCanvas.SetActive(false);
+        }
+
+#if DEBUG
+        /// <summary>
+        /// Callback when the debug application button is toggled on.
+        /// </summary>
+        public void OnDebugToggleTrue() {
+            uiDebugCanvas.SetActive(true);
         }
 
         /// <summary>
@@ -144,6 +147,7 @@ namespace KerbalVR
         public void OnDebugToggleFalse() {
             uiDebugCanvas.SetActive(false);
         }
+#endif
 
         /// <summary>
         /// Callback when the game changes scenes.
@@ -151,7 +155,9 @@ namespace KerbalVR
         protected void OnSceneChange(GameEvents.FromToAction<GameScenes, GameScenes> fromToScenes) {
             // on scene change, command the button to toggle off, so the GUI closes
             appMainButton.SetFalse(true);
+#if DEBUG
             appDebugButton.SetFalse(true);
+#endif
         }
     }
 
@@ -310,9 +316,9 @@ namespace KerbalVR
 
     public class AppDebugGUI : AppGUI
     {
-#region Private Members
+        #region Private Members
         private Text debugText;
-#endregion
+        #endregion
 
         private void Awake() {
             // get text label objects
