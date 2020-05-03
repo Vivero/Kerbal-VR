@@ -1,5 +1,4 @@
-using Smooth.Pools;
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
@@ -145,6 +144,7 @@ namespace KerbalVR
             get {
                 return HighLogic.LoadedScene == GameScenes.MAINMENU ||
                     HighLogic.LoadedScene == GameScenes.SPACECENTER ||
+                    HighLogic.LoadedScene == GameScenes.TRACKSTATION ||
                     HighLogic.LoadedScene == GameScenes.EDITOR ||
                     HighLogic.LoadedScene == GameScenes.FLIGHT;
             }
@@ -184,9 +184,10 @@ namespace KerbalVR
         protected void Update() {
             currentScene = HighLogic.LoadedScene;
             if (currentScene != previousScene) {
-                // a change in scene has triggered, reset the cameras
-                SetVrCamerasEnabled(KerbalVR.Core.IsVrRunning);
-                SetVrCameraPositions();
+#if DEBUG
+                Utils.Log("Scene change " + previousScene + " -> " + currentScene);
+#endif
+                StartCoroutine("OnSceneChange");
             }
             previousScene = currentScene;
         }
@@ -200,6 +201,18 @@ namespace KerbalVR
                 // update cameras with pose data
                 UpdateCameraPositions();
             }
+        }
+
+        protected IEnumerator OnSceneChange() {
+            // okay I know this is super hacky, but, hear me out.
+            // some things in the game aren't immediately ready as soon as the scene changes.
+            // so, wait a few frames before executing the changes we need for VR.
+            // yield return new WaitForSeconds(0.08f);
+            yield return null;
+
+            // a change in scene has triggered, reset the cameras
+            SetVrCamerasEnabled(KerbalVR.Core.IsVrRunning);
+            SetVrCameraPositions();
         }
 
         protected void BuildVrCameraRig() {
@@ -400,16 +413,25 @@ namespace KerbalVR
         }
 
         protected void OnIvaCameraChange(Kerbal kerbal) {
+#if DEBUG
+            Utils.Log("OnIvaCameraChange " + kerbal.crewMemberName);
+#endif
             SetVrCamerasEnabled(KerbalVR.Core.IsVrRunning);
             SetVrCameraPositions();
         }
 
         protected void OnCameraChange(CameraManager.CameraMode mode) {
+#if DEBUG
+            Utils.Log("OnCameraChange " + mode);
+#endif
             SetVrCamerasEnabled(KerbalVR.Core.IsVrRunning);
             SetVrCameraPositions();
         }
 
         protected void OnHmdStatusUpdated(bool isRunning) {
+#if DEBUG
+            Utils.Log("OnHmdStatusUpdated " + isRunning);
+#endif
             // if enabling VR, ensure camera rig is built
             if (isRunning) {
                 BuildVrCameraRig();
@@ -427,6 +449,9 @@ namespace KerbalVR
 
         protected void SetVrCameraPositions() {
             GameScenes scene = HighLogic.LoadedScene;
+#if DEBUG
+            Utils.Log("SetVrCameraPositions " + scene);
+#endif
 
             // most scenese are seated tracking
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
@@ -438,13 +463,32 @@ namespace KerbalVR
                     break;
 
                 case GameScenes.SPACECENTER:
-                    InitialPosition = new Vector3(51.7f, -601.8f, 878.4f);
-                    InitialRotation = Quaternion.identity;
+                    // initial position is in the sky above the SpaceCenter
+                    // InitialPosition = new Vector3(51.7f, -601.8f, 878.4f); // world coordinates
+                    InitialPosition = SpaceCenter.Instance.cb.GetWorldSurfacePosition(-0.15426, -74.67217, 500); // approx lat/lon equivalent
+
+                    // for rotation, look toward the SpaceCenter, but aligned with the surface normal
+                    double lat, lon, alt;
+                    SpaceCenter.Instance.cb.GetLatLonAlt(SpaceCenter.Instance.transform.position, out lat, out lon, out alt);
+                    Vector3d spaceCenterPos = SpaceCenter.Instance.cb.GetWorldSurfacePosition(lat, lon, 500);
+                    Vector3 lookTargetSc = spaceCenterPos - InitialPosition;
+                    Vector3d surfaceNormal = SpaceCenter.Instance.cb.GetSurfaceNVector(-0.15426, -74.67217);
+                    InitialRotation = Quaternion.LookRotation(lookTargetSc, surfaceNormal);
                     break;
 
                 case GameScenes.TRACKSTATION:
+                    // we are looking at things through the Scaled Space camera.
+                    // initial position should always be zero (the Scaled Space camera does not move).
                     InitialPosition = Vector3.zero;
-                    InitialRotation = Quaternion.identity;
+
+                    // look towards current body (NOT WORKING)
+                    // Vector3 lookTargetCb = ScaledSpace.LocalToScaledSpace(Planetarium.fetch.CurrentMainBody.position);
+                    Vector3 lookTargetCb = Planetarium.fetch.CurrentMainBody.scaledBody.transform.position;
+                    InitialRotation = Quaternion.LookRotation(lookTargetCb, Vector3.up);
+
+                    // Utils.Log("CB Position = " + Planetarium.fetch.CurrentMainBody.transform.position.ToString("F4"));
+                    // Utils.Log("ScaledBody Position = " + Planetarium.fetch.CurrentMainBody.scaledBody.transform.position.ToString("F4"));
+                    // Utils.Log("SS SceneTransform = " + ScaledSpace.SceneTransform.position.ToString("F3"));
                     break;
 
                 case GameScenes.EDITOR:

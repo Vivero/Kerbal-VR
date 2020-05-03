@@ -243,11 +243,9 @@ namespace KerbalVR
 
             GameObject worldScaleLabelObject = GameObject.Find("KVR_UI_WorldScaleLabel");
             worldScaleLabel = worldScaleLabelObject.GetComponent<Text>();
-            worldScaleLabelObject.SetActive(false);
 
             GameObject handSizeScaleLabelObject = GameObject.Find("KVR_UI_HandSizeLabel");
             handSizeScaleLabel = handSizeScaleLabelObject.GetComponent<Text>();
-            handSizeScaleLabelObject.SetActive(false);
 
             // create a callback to listen to the VR status
             KerbalVR.Events.HmdStatusUpdated.Listen(OnHmdStatusUpdated);
