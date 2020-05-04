@@ -53,7 +53,7 @@ namespace KerbalVR
             }
 
             public bool IsChanged() {
-                if (Values.Count <= 1) return false;
+                if (Values.Count <= 1) return true;
                 return !(Values[1].Equals(Values[0]));
             }
 
