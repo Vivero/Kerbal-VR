@@ -192,7 +192,8 @@ namespace KerbalVR
         protected void LateUpdate() {
             // debug hooks
             if (Input.GetKeyDown(KeyCode.Y)) {
-                Utils.PrintAllCameras();
+                // Utils.PrintAllCameras();
+                // Utils.PrintAllGameObjects();
             }
 
             // process the state of OpenVR

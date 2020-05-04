@@ -281,7 +281,8 @@ namespace KerbalVR
             GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
             foreach (GameObject go in allObjects) {
                 if (go.activeInHierarchy) {
-                    string logMsg = GetGameObjectInfo(go) + "\n";
+                    // string logMsg = GetGameObjectInfo(go) + "\n";
+                    string logMsg = GetGameObjectTree(go);
                     Log(logMsg);
                 }
             }

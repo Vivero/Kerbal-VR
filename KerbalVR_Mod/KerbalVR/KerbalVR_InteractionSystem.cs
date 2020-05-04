@@ -90,68 +90,82 @@ namespace KerbalVR
         protected SkinnedMeshRenderer gloveRendererL, gloveRendererR;
 
         // device behaviors and actions
-        protected bool isGloveInputInitialized = false;
+        protected bool isInputInitialized = false;
         protected SteamVR_Action_Pose gloveActionPose;
         protected SteamVR_Action_Boolean teleportAction;
         protected SteamVR_Action_Boolean headsetOnAction;
 
         // glove render state
-        protected bool isGlovesRendered = false;
-        protected bool isGlovesRenderedPrevious = false;
-        protected int currentGlovesRenderLayer = 0;
-        protected int previousGlovesRenderLayer = 0;
+        protected Types.ShiftRegister<bool> isRenderingGloves = new Types.ShiftRegister<bool>(2);
+        protected Types.ShiftRegister<int> renderLayerGloves = new Types.ShiftRegister<int>(2);
+
+        // teleport system
+        protected GameObject teleportSystemGameObject;
+        protected TeleportSystem teleportSystem;
         #endregion
 
 
         protected void Update() {
-            // interaction updates here
-        }
-
-
-        protected void LateUpdate() {
             // initialize glove scripts (need OpenVR and SteamVR_Input already initialized)
-            if (!isGloveInputInitialized && KerbalVR.Core.IsOpenVrReady) {
+            if (!isInputInitialized && KerbalVR.Core.IsOpenVrReady) {
                 InitializeGloveScripts();
+                InitializeInputScripts();
+                isInputInitialized = true;
             }
-            if (!isGloveInputInitialized) {
+            if (!isInputInitialized) {
                 return;
             }
 
             // should we render the gloves in the current scene?
-            isGlovesRendered = false;
-            currentGlovesRenderLayer = 0;
             if (KerbalVR.Core.IsVrRunning) {
                 switch (HighLogic.LoadedScene) {
                     case GameScenes.MAINMENU:
                     case GameScenes.EDITOR:
-                        isGlovesRendered = true;
-                        currentGlovesRenderLayer = 0;
+                        isRenderingGloves.Push(true);
+                        renderLayerGloves.Push(0);
                         break;
 
                     case GameScenes.FLIGHT:
                         if (KerbalVR.Scene.IsInEVA() || KerbalVR.Scene.IsInIVA()) {
-                            isGlovesRendered = true;
-                            currentGlovesRenderLayer = KerbalVR.Scene.IsInIVA() ? 20 : 0;
+                            isRenderingGloves.Push(true);
+
+                            if (KerbalVR.Scene.IsInIVA()) {
+                                // IVA-specific settings
+                                renderLayerGloves.Push(20);
+                            }
+                            if (KerbalVR.Scene.IsInEVA()) {
+                                // EVA-specific settings
+                                renderLayerGloves.Push(0);
+                            }
                         }
                         break;
                 }
             }
 
             // makes changes as necessary
-            if (isGlovesRendered != isGlovesRenderedPrevious) {
-                SetGlovesVisible(isGlovesRendered);
+            if (isRenderingGloves.IsChanged()) {
+                Utils.Log("isRenderingGloves=" + isRenderingGloves.Value);
+                SetGlovesVisible(isRenderingGloves.Value);
             }
-            if (currentGlovesRenderLayer != previousGlovesRenderLayer) {
-                SetGlovesLayer(currentGlovesRenderLayer);
+            if (renderLayerGloves.IsChanged()) {
+                Utils.Log("renderLayerGloves=" + renderLayerGloves.Value);
+                SetGlovesLayer(renderLayerGloves.Value);
+            }
+
+            // position the teleport system
+            teleportSystemGameObject.transform.position = gloveSkeletonR.origin.transform.TransformPoint(gloveActionPose[SteamVR_Input_Sources.RightHand].localPosition);
+            teleportSystemGameObject.transform.rotation = gloveSkeletonR.origin.rotation * gloveActionPose[SteamVR_Input_Sources.RightHand].localRotation;
+
+            if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
+                // assign the teleport system's down vector to point towards gravity
+                CelestialBody mainBody = FlightGlobals.ActiveVessel.mainBody;
+                Vector2d latLon = mainBody.GetLatitudeAndLongitude(teleportSystemGameObject.transform.position);
+                teleportSystem.downwardsVector = -mainBody.GetSurfaceNVector(latLon.x, latLon.y);
             }
 
             // set the origin for the controller space
             this.transform.position = Scene.Instance.CurrentPosition;
             this.transform.rotation = Scene.Instance.CurrentRotation;
-
-            // keep track of changes to render state
-            previousGlovesRenderLayer = currentGlovesRenderLayer;
-            isGlovesRenderedPrevious = isGlovesRendered;
         }
 
         protected void InitializeGloveScripts() {
@@ -188,14 +202,19 @@ namespace KerbalVR
             // can init the skeleton behavior now
             gloveSkeletonL.Initialize();
             gloveSkeletonR.Initialize();
+        }
 
+        protected void InitializeInputScripts() {
             // store actions for these devices
             gloveActionPose = SteamVR_Input.GetPoseAction("default", "Pose");
             headsetOnAction = SteamVR_Input.GetBooleanAction("default", "HeadsetOnHead");
             headsetOnAction.onChange += OnChangeHeadsetOnAction;
             teleportAction = SteamVR_Input.GetBooleanAction("EVA", "Teleport");
 
-            isGloveInputInitialized = true;
+            // init the teleport system
+            teleportSystemGameObject = new GameObject("KVR_TeleportSystem");
+            teleportSystem = teleportSystemGameObject.AddComponent<TeleportSystem>();
+            DontDestroyOnLoad(teleportSystemGameObject);
         }
 
         /// <summary>

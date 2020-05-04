@@ -30,6 +30,12 @@ namespace KerbalVR
         /// <typeparam name="T">Any type that implements IEquatable</typeparam>
         public class ShiftRegister<T> where T : IEquatable<T> {
             public List<T> Values { get; private set; }
+            public T Value {
+                get {
+                    if (Values.Count <= 0) return default(T);
+                    return Values[0];
+                }
+            }
             private int maxSize;
 
             public ShiftRegister(uint registerSize) {
@@ -49,6 +55,12 @@ namespace KerbalVR
             public bool IsChanged() {
                 if (Values.Count <= 1) return false;
                 return !(Values[1].Equals(Values[0]));
+            }
+
+            public override string ToString() {
+                string str = "ShiftRegister<" + typeof(T) + ">(MaxSize=" + maxSize + ", Changed=" + IsChanged() + ", [";
+                str += String.Join(",", Values) + "])";
+                return str;
             }
         }
     }
