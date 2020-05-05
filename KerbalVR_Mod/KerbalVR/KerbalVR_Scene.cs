@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,42 +10,42 @@ namespace KerbalVR
     /// Scene is a singleton class that encapsulates the code that positions
     /// the game cameras correctly for rendering them to the VR headset,
     /// according to the current KSP scene (flight, editor, etc).
-    ///
-    /// The camera system is designed as follows:
-    ///
-    ///   At startup, create a "VR Camera Rig". It is a list of Camera pairs,
-    ///   one Camera per eye, and one pair per KSP Camera. KSP Cameras are
-    ///   those named in the KSP_CAMERA_NAMES_ALL array below. These are the
-    ///   cameras that we are interested in rendering in VR.
-    ///
-    ///   Some of these KSP Cameras come in and out of existence during gameplay,
-    ///   e.g. the InternalCamera is not created until we enter IVA in the game.
-    ///   So, every frame, attempt to find the KSP Camera so we can copy its
-    ///   parameters into the corresponding VR Camera pair.
-    ///
-    ///   Via this design, we do not have to manipulate the actual KSP
-    ///   Cameras (FlightCamera, etc.), as we have done in previous designs
-    ///   (KerbalVR version 3.x.x and prior). I found that manipulating the
-    ///   KSP Cameras can introduce weird side effects, as many of these
-    ///   cameras have other controllers attached which are also trying to
-    ///   manipulate the KSP Cameras.
-    ///
-    ///   Create a Dictionary of CameraStates, keyed by KSP Camera name.
-    ///   The CameraState simply indicates whether the KSP Camera should
-    ///   be rendering right now or not. Maintiain this Dictionary of states
-    ///   on every change of scenery (change in GameScenes, or changing
-    ///   CameraMode during Flight).
-    ///
-    ///   On every frame (PreRender), do a check on every KSP Camera to see
-    ///   whether it should be rendering or not, according to the CameraState.
-    ///   Enable/disable the KSP Camera accordingly. We do this check every
-    ///   frame, instead of when a scenery change happens, because some
-    ///   internal KSP code may decide to asynchronously turn cameras on or
-    ///   off. So, strive to maintain the state of KSP Cameras according to
-    ///   our Dictionary of CameraStates.
     /// </summary>
     public class Scene : MonoBehaviour
     {
+        /// The camera system is designed as follows:
+        ///
+        ///   As soon as OpenVR is initialized, create a "VR Camera Rig". It is a
+        ///   list of Camera pairs, one Camera per eye, and one pair per KSP Camera.
+        ///   KSP Cameras are those named in the KSP_CAMERA_NAMES_ALL array below.
+        ///   These are the cameras that we are interested in rendering in VR.
+        ///
+        ///   Some of these KSP Cameras come in and out of existence during gameplay,
+        ///   e.g. the InternalCamera is not created until we enter IVA in the game.
+        ///   So, every frame, attempt to find the KSP Camera so we can copy its
+        ///   parameters into the corresponding VR Camera pair.
+        ///
+        ///   Via this design, we do not have to manipulate the actual KSP
+        ///   Cameras (FlightCamera, etc.), as we have done in previous designs
+        ///   (KerbalVR version 3.x.x and prior). I found that manipulating the
+        ///   KSP Cameras can introduce weird side effects, as many of these
+        ///   cameras have other controllers attached which are also trying to
+        ///   manipulate the KSP Cameras.
+        ///
+        ///   Maintain a list of KSP camera names relevant to the current scene.
+        ///   Update this list on every transition of GameScene, or CameraMode
+        ///   during Flight. When a transition happens, turn back on the KSP
+        ///   cameras if they were off, and turn off all VR cameras. Wait for a
+        ///   short amount of time. Then update the list of cameras for the
+        ///   current scene, turn off these KSP cameras, and turn on the VR
+        ///   cameras, per the list.
+        ///
+        ///   We don't make the camera switch immediately, instead we wait some
+        ///   finite amount of time, because sometimes there is
+        ///   internal KSP code that may decide to asynchronously turn cameras on or
+        ///   off around the time that GameScenes switch.
+        ///
+
         #region Constants
         public static readonly string[] KSP_CAMERA_NAMES_MAINMENU = {
             "GalaxyCamera",
@@ -114,11 +115,7 @@ namespace KerbalVR
         /// <summary>
         /// One-time initialization for this singleton class.
         /// </summary>
-        private void Initialize() {
-            foreach (string name in KSP_CAMERA_NAMES_ALL) {
-                kspCamerasTargetState.Add(name, new Types.CameraState());
-            }
-        }
+        private void Initialize() { }
         #endregion
 
 
@@ -154,22 +151,22 @@ namespace KerbalVR
 
         #region Private Members
         protected bool isVrCameraRigCreated = false;
-        protected string[] currentCameraNames = null;
-        protected GameScenes currentScene = GameScenes.LOADING;
-        protected GameScenes previousScene = GameScenes.LOADING;
-
-        protected Dictionary<string, Types.CameraState> kspCamerasTargetState = new Dictionary<string, Types.CameraState>();
+        protected string[] currentKspSceneCameraNames = null;
         #endregion
 
 
-        protected void Awake() { }
+        protected void Start() {
+            // kick off a coroutine that constantly checks whether
+            // we can copy KSP camera parameters onto our own VRCameraSet
+            StartCoroutine("CopyKspCameraParameters");
+        }
 
         protected void OnEnable() {
             // setup callback functions for events
+            GameEvents.onGameSceneSwitchRequested.Add(OnGameSceneSwitchRequested);
             GameEvents.OnIVACameraKerbalChange.Add(OnIvaCameraChange);
             GameEvents.OnCameraChange.Add(OnCameraChange);
             KerbalVR.Events.HmdStatusUpdated.Listen(OnHmdStatusUpdated);
-            Camera.onPreRender += OnCameraPreRender;
         }
 
         protected void OnDisable() {
@@ -177,46 +174,26 @@ namespace KerbalVR
             GameEvents.OnIVACameraKerbalChange.Remove(OnIvaCameraChange);
             GameEvents.OnCameraChange.Remove(OnCameraChange);
             KerbalVR.Events.HmdStatusUpdated.Remove(OnHmdStatusUpdated);
-            Camera.onPreRender -= OnCameraPreRender;
         }
 
 
         protected void Update() {
-            currentScene = HighLogic.LoadedScene;
-            if (currentScene != previousScene) {
-#if DEBUG
-                Utils.Log("Scene change " + previousScene + " -> " + currentScene);
-#endif
-                StartCoroutine("OnSceneChange");
+            if (KerbalVR.Core.IsOpenVrReady && !isVrCameraRigCreated) {
+                // very the VR cameras have been constructed
+                BuildVrCameraRig();
             }
-            previousScene = currentScene;
         }
 
 
         protected void LateUpdate() {
             if (KerbalVR.Core.IsOpenVrReady) {
-                // check if we need to build VR cameras
-                BuildVrCameraRig();
-
                 // update cameras with pose data
                 UpdateCameraPositions();
             }
         }
 
-        protected IEnumerator OnSceneChange() {
-            // okay I know this is super hacky, but, hear me out.
-            // some things in the game aren't immediately ready as soon as the scene changes.
-            // so, wait a few frames before executing the changes we need for VR.
-            // yield return new WaitForSeconds(0.08f);
-            yield return null;
-
-            // a change in scene has triggered, reset the cameras
-            SetVrCamerasEnabled(KerbalVR.Core.IsVrRunning);
-            SetVrCameraPositions();
-        }
-
         protected void BuildVrCameraRig() {
-            // initially, create the set of all VR cameras
+            // create the set of all VR cameras
             if (!isVrCameraRigCreated) {
                 for (int camIdx = 0; camIdx < KSP_CAMERA_NAMES_ALL.Length; ++camIdx) {
                     Types.VRCameraSet cameraSet = new Types.VRCameraSet();
@@ -246,69 +223,82 @@ namespace KerbalVR
                 }
                 isVrCameraRigCreated = true;
             }
-
-            // then, need to check if the KSP camera has come into existance, so we
-            // can copy its parameters
-            for (int camIdx = 0; camIdx < VRCameraSets.Count; ++camIdx) {
-                if (VRCameraSets[camIdx].isInitialized) continue;
-                string kspCameraName = VRCameraSets[camIdx].kspCameraName;
-
-                // TODO: optimize here; we should not be calling Find every frame
-                GameObject kspCameraGameObject = GameObject.Find(kspCameraName);
-                if (kspCameraGameObject == null) {
-                    continue;
-                }
-                Camera kspCameraComponent = kspCameraGameObject.GetComponent<Camera>();
-
-                // copy camera params for each eye
-                for (int eyeIdx = 0; eyeIdx < 2; ++eyeIdx) {
-                    EVREye eye = (EVREye)eyeIdx;
-
-                    Camera kvrCameraComponent = VRCameraSets[camIdx].vrCameras[eyeIdx].cameraComponent;
-                    kvrCameraComponent.depth = kspCameraComponent.depth + (eyeIdx * 0.5f);
-                    kvrCameraComponent.clearFlags = kspCameraComponent.clearFlags;
-                    kvrCameraComponent.backgroundColor = kspCameraComponent.backgroundColor;
-                    kvrCameraComponent.cullingMask = kspCameraComponent.cullingMask;
-                    kvrCameraComponent.orthographic = kspCameraComponent.orthographic;
-                    kvrCameraComponent.nearClipPlane = kspCameraComponent.nearClipPlane;
-                    kvrCameraComponent.farClipPlane = kspCameraComponent.farClipPlane;
-                    kvrCameraComponent.depthTextureMode = kspCameraComponent.depthTextureMode;
-
-                    // camera settings overrides
-                    if (kspCameraName == "Landscape Camera" ||
-                        kspCameraName == "InternalCamera" ||
-                        kspCameraName == "Main Camera" ||
-                        kspCameraName == "Camera 00") {
-                        kvrCameraComponent.nearClipPlane = 0.01f;
-                    }
-
-                    // set VR specific settings
-                    HmdMatrix44_t projectionMatrix = OpenVR.System.GetProjectionMatrix(
-                        eye, kvrCameraComponent.nearClipPlane, kvrCameraComponent.farClipPlane);
-                    kvrCameraComponent.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projectionMatrix);
-                }
-
-                VRCameraSets[camIdx].kspCameraComponent = kspCameraComponent;
-                VRCameraSets[camIdx].isInitialized = true;
-            }
         }
 
-        protected void UpdateKspCamerasTargetState() {
-            // get the names of cameras that are applicable to the current scene
-            string[] currentCameraNames = GetCameraNamesForCurrentScene();
-            if (currentCameraNames == null) {
-                Utils.LogWarning("Unsupported VR scene");
-                return;
-            }
+        protected IEnumerator CopyKspCameraParameters() {
+            while (true) {
+                // need to check if the KSP camera has come into existance, so we
+                // can copy its parameters
 
-            // set all KSP camera states to off
-            foreach (string name in KSP_CAMERA_NAMES_ALL) {
-                kspCamerasTargetState[name].enabled = false;
-            }
+                // but if we don't have a set of cameras to check, wait till next frame
+                if (currentKspSceneCameraNames == null) {
+                    yield return null;
+                    continue;
+                }
 
-            // set all the cameras in the list to the opposite of the VR-enabled setting
-            foreach (string name in currentCameraNames) {
-                kspCamerasTargetState[name].enabled = !KerbalVR.Core.IsVrRunning;
+                for (int camIdx = 0; camIdx < VRCameraSets.Count; ++camIdx) {
+                    if (VRCameraSets[camIdx].isInitialized) continue;
+                    string kspCameraName = VRCameraSets[camIdx].kspCameraName;
+
+                    // do we care about this camera? check if it's in the current set of cameras
+                    if (currentKspSceneCameraNames == null ||
+                        (currentKspSceneCameraNames != null && Array.IndexOf(currentKspSceneCameraNames, kspCameraName) < 0)) {
+                        yield return null;
+                        continue;
+                    }
+
+                    // try to find the GameObject with this camera name
+                    GameObject kspCameraGameObject = GameObject.Find(kspCameraName);
+                    if (kspCameraGameObject == null) {
+                        // stop here and wait for the next frame. we want to minimize calls to Find.
+                        yield return null;
+                        continue;
+                    }
+                    Camera kspCameraComponent = kspCameraGameObject.GetComponent<Camera>();
+                    if (kspCameraGameObject == null) {
+                        // we should never hit this condition
+                        Utils.LogWarning("CopyKspCameraParameters: Unexpected state, could not fetch Camera component for: " + kspCameraName);
+                        yield return null;
+                        continue;
+                    }
+
+                    // copy camera params for each eye
+                    for (int eyeIdx = 0; eyeIdx < 2; ++eyeIdx) {
+                        EVREye eye = (EVREye)eyeIdx;
+
+                        Camera kvrCameraComponent = VRCameraSets[camIdx].vrCameras[eyeIdx].cameraComponent;
+                        kvrCameraComponent.depth = kspCameraComponent.depth + (eyeIdx * 0.5f);
+                        kvrCameraComponent.clearFlags = kspCameraComponent.clearFlags;
+                        kvrCameraComponent.backgroundColor = kspCameraComponent.backgroundColor;
+                        kvrCameraComponent.cullingMask = kspCameraComponent.cullingMask;
+                        kvrCameraComponent.orthographic = kspCameraComponent.orthographic;
+                        kvrCameraComponent.nearClipPlane = kspCameraComponent.nearClipPlane;
+                        kvrCameraComponent.farClipPlane = kspCameraComponent.farClipPlane;
+                        kvrCameraComponent.depthTextureMode = kspCameraComponent.depthTextureMode;
+
+                        // camera settings overrides
+                        if (kspCameraName == "Landscape Camera" ||
+                            kspCameraName == "InternalCamera" ||
+                            kspCameraName == "Main Camera" ||
+                            kspCameraName == "Camera 00") {
+                            kvrCameraComponent.nearClipPlane = 0.01f;
+                        }
+
+                        // set VR specific settings
+                        HmdMatrix44_t projectionMatrix = OpenVR.System.GetProjectionMatrix(
+                            eye, kvrCameraComponent.nearClipPlane, kvrCameraComponent.farClipPlane);
+                        kvrCameraComponent.projectionMatrix = MathUtils.Matrix4x4_OpenVr2UnityFormat(ref projectionMatrix);
+                    }
+
+                    VRCameraSets[camIdx].kspCameraComponent = kspCameraComponent;
+                    VRCameraSets[camIdx].isInitialized = true;
+#if DEBUG
+                    Utils.Log("Copied camera parameters for: " + kspCameraComponent);
+#endif
+                }
+
+                // end here and re-run on the next frame
+                yield return null;
             }
         }
 
@@ -412,46 +402,122 @@ namespace KerbalVR
             }
         }
 
+        protected void OnGameSceneSwitchRequested(GameEvents.FromToAction<GameScenes, GameScenes> fromToAction) {
+            StartCoroutine("TransitionScene");
+        }
+
         protected void OnIvaCameraChange(Kerbal kerbal) {
-#if DEBUG
-            Utils.Log("OnIvaCameraChange " + kerbal.crewMemberName);
-#endif
-            SetVrCamerasEnabled(KerbalVR.Core.IsVrRunning);
-            SetVrCameraPositions();
+            StartCoroutine("TransitionScene");
         }
 
         protected void OnCameraChange(CameraManager.CameraMode mode) {
-#if DEBUG
-            Utils.Log("OnCameraChange " + mode);
-#endif
-            SetVrCamerasEnabled(KerbalVR.Core.IsVrRunning);
-            SetVrCameraPositions();
+            StartCoroutine("TransitionScene");
         }
 
         protected void OnHmdStatusUpdated(bool isRunning) {
-#if DEBUG
-            Utils.Log("OnHmdStatusUpdated " + isRunning);
-#endif
             // if enabling VR, ensure camera rig is built
             if (isRunning) {
                 BuildVrCameraRig();
             }
-            SetVrCamerasEnabled(isRunning);
-            SetVrCameraPositions();
+            StartCoroutine("TransitionScene");
         }
 
-        protected void OnCameraPreRender(Camera camera) {
-            Types.CameraState targetCameraState;
-            if (kspCamerasTargetState.TryGetValue(camera.name, out targetCameraState)) {
-                camera.enabled = targetCameraState.enabled;
+        protected IEnumerator TransitionScene() {
+            // if we don't have the current camera names, get them
+            if (currentKspSceneCameraNames == null) {
+                currentKspSceneCameraNames = GetCameraNamesForCurrentScene();
             }
+            if (currentKspSceneCameraNames != null) {
+                // TODO: I think we can optimize here.
+
+                // turn on the KSP cameras for the current set
+                foreach (string kspCameraName in currentKspSceneCameraNames) {
+                    Camera kspCamera = GetKspCameraComponent(kspCameraName);
+                    if (kspCamera == null) continue;
+                    if (!kspCamera.enabled) kspCamera.enabled = true;
+                }
+
+                // turn off the VR cameras for the current set
+                foreach (string kspCameraName in currentKspSceneCameraNames) {
+                    foreach (var cameraSet in VRCameraSets) {
+                        if (cameraSet.kspCameraName == kspCameraName) {
+                            cameraSet.vrCameras[0].cameraComponent.enabled = false;
+                            cameraSet.vrCameras[1].cameraComponent.enabled = false;
+                        }
+                    }
+                }
+            }
+
+            // wait some time
+            yield return new WaitForSeconds(0.5f);
+
+            // get the new set of cameras
+            currentKspSceneCameraNames = GetCameraNamesForCurrentScene();
+            if (currentKspSceneCameraNames == null) {
+                // nothing else to be done here
+                yield break;
+            }
+
+            // check if we were in VR
+            if (KerbalVR.Core.IsVrRunning) {
+                // turn off the KSP cameras
+                foreach (string kspCameraName in currentKspSceneCameraNames) {
+                    Camera kspCamera = GetKspCameraComponent(kspCameraName);
+                    if (kspCamera == null) continue;
+                    if (!kspCamera.enabled) kspCamera.enabled = false;
+                }
+
+                // turn on the VR cameras for the new camera names set
+                foreach (string kspCameraName in currentKspSceneCameraNames) {
+                    foreach (var cameraSet in VRCameraSets) {
+                        if (cameraSet.kspCameraName == kspCameraName) {
+                            cameraSet.vrCameras[0].cameraComponent.enabled = true;
+                            cameraSet.vrCameras[1].cameraComponent.enabled = true;
+                        }
+                    }
+                }
+
+                // set up the VR cameras
+                SetVrCameraPositions();
+            }
+        }
+
+        /// <summary>
+        /// Retrieve the Camera component for the named KSP camera.
+        /// We use the VRCameraSets structure to store quickly accessible
+        /// references to the KSP cameras.
+        /// </summary>
+        /// <param name="kspCameraName">Name of the KSP camera</param>
+        protected Camera GetKspCameraComponent(string kspCameraName) {
+            foreach (var cameraSet in VRCameraSets) {
+                if (cameraSet.kspCameraName == kspCameraName) {
+                    if (cameraSet.kspCameraComponent != null) {
+                        return cameraSet.kspCameraComponent;
+                    }
+                    else {
+                        // if this component is suddenly a null reference,
+                        // try to find the camera again
+                        GameObject kspCameraGameObject = GameObject.Find(kspCameraName);
+                        if (kspCameraGameObject == null) {
+                            Utils.LogWarning("GetKspCameraComponent: Unexpected state, cannot find camera GameObject " + kspCameraName);
+                            break;
+                        }
+                        cameraSet.kspCameraComponent = kspCameraGameObject.GetComponent<Camera>();
+                        if (kspCameraGameObject == null) {
+                            Utils.LogWarning("GetKspCameraComponent: Unexpected state, cannot find camera Component " + kspCameraName);
+                            break;
+                        }
+                        return cameraSet.kspCameraComponent;
+                    }
+                }
+            }
+            // did not find the camera
+            Utils.LogWarning("GetKspCameraComponent: Unexpected state, cannot find camera " + kspCameraName);
+            return null;
         }
 
         protected void SetVrCameraPositions() {
             GameScenes scene = HighLogic.LoadedScene;
-#if DEBUG
-            Utils.Log("SetVrCameraPositions " + scene);
-#endif
 
             // most scenese are seated tracking
             TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseSeated;
@@ -545,92 +611,6 @@ namespace KerbalVR
             KerbalVR.Core.SetHmdTrackingSpace(TrackingSpace);
         }
 
-        /// <summary>
-        /// Set the VR cameras on or off, while taking care that the KSP
-        /// cameras are turned back on if necessary.
-        /// </summary>
-        /// <param name="isVrEnabled">True to turn on VR cameras, false otherwise</param>
-        protected void SetVrCamerasEnabled(bool isVrEnabled) {
-            if (isVrEnabled) {
-                EnableVrCameras();
-            } else {
-                DisableVrCameras();
-            }
-        }
-
-        protected void EnableVrCameras() {
-            // get all the cameras that should be turned on for this scene
-            string[] currentCameraNames = GetCameraNamesForCurrentScene();
-            if (currentCameraNames == null) {
-                Utils.LogWarning("No VR cameras to enable in current scene");
-                UpdateKspCamerasTargetState();
-                return;
-            }
-
-            // turn off all VR cameras
-            foreach (var camSet in VRCameraSets) {
-                camSet.vrCameras[0].cameraComponent.enabled = false;
-                camSet.vrCameras[1].cameraComponent.enabled = false;
-            }
-
-            // turn on VR cameras from list
-            foreach (string name in currentCameraNames) {
-                foreach (var camSet in VRCameraSets) {
-                    if (camSet.kspCameraName == name) {
-                        camSet.vrCameras[0].cameraComponent.enabled = true;
-                        camSet.vrCameras[1].cameraComponent.enabled = true;
-                    }
-                }
-            }
-
-            // update KSP target states
-            UpdateKspCamerasTargetState();
-        }
-
-        protected void DisableVrCameras() {
-            // turn off all VR cameras
-            foreach (var camSet in VRCameraSets) {
-                camSet.vrCameras[0].cameraComponent.enabled = false;
-                camSet.vrCameras[1].cameraComponent.enabled = false;
-            }
-
-            // turn on KSP cameras you would have already turned off previously
-            string[] currentCameraNames = GetCameraNamesForCurrentScene();
-            if (currentCameraNames == null) {
-                Utils.LogWarning("DisableVrCameras unexpected state: currentCameraNames is null");
-                UpdateKspCamerasTargetState();
-                return;
-            }
-
-            foreach (string kspCameraName in currentCameraNames) {
-                foreach (var cameraSet in VRCameraSets) {
-                    if (cameraSet.kspCameraName == kspCameraName) {
-                        if (cameraSet.kspCameraComponent != null) {
-                            cameraSet.kspCameraComponent.enabled = true;
-                        }
-                        else {
-                            // if this component is suddenly a null reference,
-                            // try to find the camera again
-                            GameObject kspCameraGameObject = GameObject.Find(kspCameraName);
-                            if (kspCameraGameObject == null) {
-                                Utils.LogWarning("DisableVrCameras: Unexpected state, cannot find camera GameObject " + kspCameraName);
-                                continue;
-                            }
-                            cameraSet.kspCameraComponent = kspCameraGameObject.GetComponent<Camera>();
-                            if (kspCameraGameObject == null) {
-                                Utils.LogWarning("DisableVrCameras: Unexpected state, cannot find camera Component " + kspCameraName);
-                                continue;
-                            }
-                            cameraSet.kspCameraComponent.enabled = true;
-                        }
-                    }
-                }
-            }
-
-            // update KSP target states
-            UpdateKspCamerasTargetState();
-        }
-
         protected string[] GetCameraNamesForCurrentScene() {
             string[] cameraNames = null;
             GameScenes scene = HighLogic.LoadedScene;
@@ -675,18 +655,7 @@ namespace KerbalVR
             }
 
 #if DEBUG
-            if (cameraNames == null) {
-                Utils.Log("GetCameraNamesForCurrentScene null");
-            }
-            else {
-                string logMsg = "GetCameraNamesForCurrentScene " + scene + " " +
-                    ((scene == GameScenes.FLIGHT && CameraManager.Instance != null) ?
-                    CameraManager.Instance.currentCameraMode.ToString() : "") + "\n";
-                foreach (string name in cameraNames) {
-                    logMsg += name + "\n";
-                }
-                Utils.Log(logMsg);
-            }
+            Utils.Log("GetCameraNamesForCurrentScene result: " + (cameraNames == null ? "null" : String.Join(",", cameraNames)));
 #endif
             return cameraNames;
         }
