@@ -93,5 +93,20 @@ namespace KerbalVR
             mat44_unity.m33 = mat44_openvr.m15;
             return mat44_unity;
         }
+
+        public static Vector3[] GenerateBezierCurveVertices(Vector3 startPoint, Vector3 endPoint, Vector3 controlPoint, int numVertices) {
+            if (numVertices < 1) {
+                throw new System.ArgumentOutOfRangeException("numVertices", numVertices, "Number of vertices must be 1 or greater");
+            }
+            Vector3[] vertices = new Vector3[numVertices];
+            float dt = 1f / (numVertices + 1);
+            for (int i = 0; i < numVertices; ++i) {
+                float t = dt * (i + 1);
+                Vector3 pointA = Vector3.Lerp(startPoint, controlPoint, t);
+                Vector3 pointB = Vector3.Lerp(controlPoint, endPoint, t);
+                vertices[i] = Vector3.Lerp(pointA, pointB, t);
+            }
+            return vertices;
+        }
     }
 }
