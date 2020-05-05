@@ -154,7 +154,10 @@ namespace KerbalVR
             teleportSystemGameObject.transform.position = gloveSkeletonR.origin.transform.TransformPoint(gloveActionPose[SteamVR_Input_Sources.RightHand].localPosition);
             teleportSystemGameObject.transform.rotation = gloveSkeletonR.origin.rotation * gloveActionPose[SteamVR_Input_Sources.RightHand].localRotation;
 
-            if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
+                teleportSystem.downwardsVector = Vector3.down;
+            }
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
                 // assign the teleport system's down vector to point towards gravity
                 CelestialBody mainBody = FlightGlobals.ActiveVessel.mainBody;
                 Vector2d latLon = mainBody.GetLatitudeAndLongitude(teleportSystemGameObject.transform.position);
