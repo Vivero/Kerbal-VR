@@ -144,11 +144,9 @@ namespace KerbalVR
 
             // makes changes as necessary
             if (isRenderingGloves.IsChanged()) {
-                Utils.Log("isRenderingGloves=" + isRenderingGloves.Value);
                 SetGlovesVisible(isRenderingGloves.Value);
             }
             if (renderLayerGloves.IsChanged()) {
-                Utils.Log("renderLayerGloves=" + renderLayerGloves.Value);
                 SetGlovesLayer(renderLayerGloves.Value);
             }
 
