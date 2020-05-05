@@ -1,5 +1,6 @@
 {
     "initOpenVrAtStartup": true,
     "swapYawRollControls": false,
+    "enableThrottleControl": true,
     "debugEnabled": false
 }

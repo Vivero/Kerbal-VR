@@ -13,7 +13,6 @@ namespace KerbalVR {
             startGizmo.transform.parent = this.transform;
             startGizmo.transform.localPosition = Vector3.zero;
             startGizmo.transform.localRotation = Quaternion.identity;
-            DontDestroyOnLoad(startGizmo);
 
             targetGizmo = Utils.CreateGizmo();
             targetGizmo.transform.position = Vector3.zero;

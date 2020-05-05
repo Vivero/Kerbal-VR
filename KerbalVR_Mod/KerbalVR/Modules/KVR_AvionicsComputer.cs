@@ -108,8 +108,10 @@ namespace KerbalVR.Modules {
                 state.roll = commandRoll;
             }
 
-            // always override throttle
-            state.mainThrottle = Mathf.Clamp(commandThrottle, 0f, 1f);
+            // override throttle (if config allows)
+            if (KerbalVR.Configuration.Instance.EnableThrottleControl) {
+                state.mainThrottle = Mathf.Clamp(commandThrottle, 0f, 1f);
+            }
         }
 
     } // class KVR_AvionicsComputer

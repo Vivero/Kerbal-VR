@@ -39,6 +39,7 @@ namespace KerbalVR
                 SaveSettings();
             }
         }
+
         /// <summary>
         /// If true, the flight stick operates pitch and yaw,
         /// instead of pitch and roll.
@@ -50,6 +51,20 @@ namespace KerbalVR
             }
             set {
                 _swapYawRollControls = value;
+                SaveSettings();
+            }
+        }
+
+        /// <summary>
+        /// If true, the VR controller can operate the throttle.
+        /// </summary>
+        protected bool _enableThrottleControl;
+        public bool EnableThrottleControl {
+            get {
+                return _enableThrottleControl;
+            }
+            set {
+                _enableThrottleControl = value;
                 SaveSettings();
             }
         }
@@ -103,6 +118,7 @@ namespace KerbalVR
                 // store the settings from file
                 this._initOpenVrAtStartup = kvrSettings.initOpenVrAtStartup;
                 this._swapYawRollControls = kvrSettings.swapYawRollControls;
+                this._enableThrottleControl = kvrSettings.enableThrottleControl;
 #if DEBUG
                 this._debugEnabled = true;
 #else
@@ -126,6 +142,7 @@ namespace KerbalVR
             Settings kvrSettings = new Settings();
             kvrSettings.initOpenVrAtStartup = this.InitOpenVrAtStartup;
             kvrSettings.swapYawRollControls = this.SwapYawRollControls;
+            kvrSettings.enableThrottleControl = this.EnableThrottleControl;
             kvrSettings.debugEnabled = this.DebugEnabled;
 
             // write to file
@@ -141,6 +158,7 @@ namespace KerbalVR
     public class Settings {
         public bool initOpenVrAtStartup = true;
         public bool swapYawRollControls = false;
+        public bool enableThrottleControl = true;
 #if DEBUG
         public bool debugEnabled = true;
 #else

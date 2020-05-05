@@ -191,6 +191,7 @@ namespace KerbalVR
         private GameObject resetPositionButton;
         private GameObject initOpenVrAtStartupToggle;
         private GameObject swapYawRollControlsToggle;
+        private GameObject enableThrottleControlToggle;
         private GameObject worldScaleSlider;
         private GameObject handSizeScaleSlider;
 
@@ -222,6 +223,11 @@ namespace KerbalVR
             Toggle swapYawRollControlsToggleComponent = swapYawRollControlsToggle.GetComponent<Toggle>();
             swapYawRollControlsToggleComponent.SetIsOnWithoutNotify(KerbalVR.Configuration.Instance.SwapYawRollControls);
             swapYawRollControlsToggleComponent.onValueChanged.AddListener(OnSwapYawRollControlsClicked);
+
+            enableThrottleControlToggle = GameObject.Find("KVR_UI_VRThrottleToggle");
+            Toggle enableThrottleControlToggleComponent = enableThrottleControlToggle.GetComponent<Toggle>();
+            enableThrottleControlToggleComponent.SetIsOnWithoutNotify(KerbalVR.Configuration.Instance.EnableThrottleControl);
+            enableThrottleControlToggleComponent.onValueChanged.AddListener(OnEnableThrottleControl);
 
             // set slider states and create callbacks for sliders
             worldScaleSlider = GameObject.Find("KVR_UI_WorldScaleSlider");
@@ -285,6 +291,10 @@ namespace KerbalVR
 
         void OnSwapYawRollControlsClicked(bool isOn) {
             KerbalVR.Configuration.Instance.SwapYawRollControls = isOn;
+        }
+
+        void OnEnableThrottleControl(bool isOn) {
+            KerbalVR.Configuration.Instance.EnableThrottleControl = isOn;
         }
 
         void OnWorldScaleSliderChanged(float value) {
