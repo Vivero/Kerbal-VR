@@ -94,14 +94,26 @@ namespace KerbalVR
             return mat44_unity;
         }
 
-        public static Vector3[] GenerateBezierCurveVertices(Vector3 startPoint, Vector3 endPoint, Vector3 controlPoint, int numVertices) {
+        public static float Map(float value, float fromMin, float fromMax, float toMin, float toMax) {
+            if (value <= fromMin) {
+                return toMin;
+            } else if (value >= fromMax) {
+                return toMax;
+            }
+            return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
+        }
+
+        public static Vector3[] GenerateBezierCurveVertices(Vector3 startPoint, Vector3 endPoint, Vector3 controlPoint, int numVertices, float time = 0f) {
             if (numVertices < 1) {
                 throw new System.ArgumentOutOfRangeException("numVertices", numVertices, "Number of vertices must be 1 or greater");
+            }
+            if (time < -1f || time > 1f) {
+                throw new System.ArgumentOutOfRangeException("time", "Time offset must be between -1 and 1 inclusive");
             }
             Vector3[] vertices = new Vector3[numVertices];
             float dt = 1f / (numVertices + 1);
             for (int i = 0; i < numVertices; ++i) {
-                float t = dt * (i + 1);
+                float t = dt * (i + 1) + dt * time;
                 Vector3 pointA = Vector3.Lerp(startPoint, controlPoint, t);
                 Vector3 pointB = Vector3.Lerp(controlPoint, endPoint, t);
                 vertices[i] = Vector3.Lerp(pointA, pointB, t);
