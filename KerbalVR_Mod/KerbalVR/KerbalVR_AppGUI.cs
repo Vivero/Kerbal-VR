@@ -326,6 +326,8 @@ namespace KerbalVR
     {
         #region Private Members
         private Text debugText;
+        private GameObject control1Slider;
+        private GameObject control2Slider;
         #endregion
 
         private void Awake() {
@@ -335,10 +337,29 @@ namespace KerbalVR
             debugText.fontSize = 12;
 
             SetText("Debug Content");
+
+            // set slider states and create callbacks for sliders
+            control1Slider = GameObject.Find("KVR_UI_Control1Slider");
+            Slider control1SliderComponent = control1Slider.GetComponent<Slider>();
+            control1SliderComponent.onValueChanged.AddListener(OnControl1SliderChanged);
+            control1SliderComponent.SetValueWithoutNotify(Configuration.Instance.Control1);
+
+            control2Slider = GameObject.Find("KVR_UI_Control2Slider");
+            Slider control2SliderComponent = control2Slider.GetComponent<Slider>();
+            control2SliderComponent.onValueChanged.AddListener(OnControl2SliderChanged);
+            control2SliderComponent.SetValueWithoutNotify(Configuration.Instance.Control2);
         }
 
         public void SetText(object obj) {
             debugText.text = obj.ToString();
+        }
+
+        void OnControl1SliderChanged(float value) {
+            KerbalVR.Configuration.Instance.Control1 = value;
+        }
+
+        void OnControl2SliderChanged(float value) {
+            KerbalVR.Configuration.Instance.Control2 = value;
         }
     }
 }

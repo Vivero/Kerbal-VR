@@ -318,7 +318,7 @@ namespace KerbalVR
             HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
 
             // convert SteamVR poses to Unity coordinates
-            var hmdTransform = new SteamVR_Utils.RigidTransform(KerbalVR.Core.GamePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+            SteamVR_Utils.RigidTransform hmdTransform = new SteamVR_Utils.RigidTransform(KerbalVR.Core.GamePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
             SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
             hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
             hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
@@ -524,8 +524,9 @@ namespace KerbalVR
 
             switch (scene) {
                 case GameScenes.MAINMENU:
-                    InitialPosition = Vector3.zero;
+                    InitialPosition = new Vector3(0f, -0.87f, 0f);
                     InitialRotation = Quaternion.identity;
+                    TrackingSpace = ETrackingUniverseOrigin.TrackingUniverseStanding;
                     break;
 
                 case GameScenes.SPACECENTER:

@@ -84,7 +84,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InteractionSystem\KVR_TeleportSystem.cs" />
+    <Compile Include="InteractionSystem\KerbalVR_TeleportSystem.cs" />
     <Compile Include="KerbalVR_Configuration.cs" />
     <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_Events.cs" />

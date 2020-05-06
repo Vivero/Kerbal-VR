@@ -77,10 +77,6 @@ namespace KerbalVR
         #endregion
 
 
-        #region Properties
-        #endregion
-
-
         #region Private Members
         // glove game objects
         protected GameObject glovePrefabL, gloveL;
@@ -150,20 +146,6 @@ namespace KerbalVR
                 SetGlovesLayer(renderLayerGloves.Value);
             }
 
-            // position the teleport system
-            teleportSystemGameObject.transform.position = gloveSkeletonR.origin.transform.TransformPoint(gloveActionPose[SteamVR_Input_Sources.RightHand].localPosition);
-            teleportSystemGameObject.transform.rotation = gloveSkeletonR.origin.rotation * gloveActionPose[SteamVR_Input_Sources.RightHand].localRotation;
-
-            if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
-                teleportSystem.downwardsVector = Vector3.down;
-            }
-            else if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
-                // assign the teleport system's down vector to point towards gravity
-                CelestialBody mainBody = FlightGlobals.ActiveVessel.mainBody;
-                Vector2d latLon = mainBody.GetLatitudeAndLongitude(teleportSystemGameObject.transform.position);
-                teleportSystem.downwardsVector = -mainBody.GetSurfaceNVector(latLon.x, latLon.y);
-            }
-
             // set the origin for the controller space
             this.transform.position = Scene.Instance.CurrentPosition;
             this.transform.rotation = Scene.Instance.CurrentRotation;
@@ -175,7 +157,7 @@ namespace KerbalVR
             gloveSkeletonL.skeletonRoot = gloveL.transform.Find("slim_l/Root");
             gloveSkeletonL.inputSource = SteamVR_Input_Sources.LeftHand;
             gloveSkeletonL.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.RightToLeft;
-            gloveSkeletonL.origin = this.transform;
+            gloveSkeletonL.updatePose = false;
             gloveSkeletonL.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonLeftHand", false);
             gloveSkeletonL.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
 
@@ -183,7 +165,7 @@ namespace KerbalVR
             gloveSkeletonR.skeletonRoot = gloveR.transform.Find("slim_r/Root");
             gloveSkeletonR.inputSource = SteamVR_Input_Sources.RightHand;
             gloveSkeletonR.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.None;
-            gloveSkeletonR.origin = this.transform;
+            gloveSkeletonR.updatePose = false;
             gloveSkeletonR.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonRightHand", false);
             gloveSkeletonR.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
 
@@ -213,9 +195,9 @@ namespace KerbalVR
             teleportAction = SteamVR_Input.GetBooleanAction("EVA", "Teleport");
 
             // init the teleport system
-            teleportSystemGameObject = new GameObject("KVR_TeleportSystem");
-            teleportSystem = teleportSystemGameObject.AddComponent<TeleportSystem>();
-            DontDestroyOnLoad(teleportSystemGameObject);
+            // teleportSystemGameObject = new GameObject("KVR_TeleportSystem");
+            // teleportSystem = teleportSystemGameObject.AddComponent<TeleportSystem>();
+            // DontDestroyOnLoad(teleportSystemGameObject);
         }
 
         /// <summary>

@@ -82,6 +82,9 @@ namespace KerbalVR
                 SaveSettings();
             }
         }
+
+        public float Control1 = 1f;
+        public float Control2 = 1f;
         #endregion
 
 

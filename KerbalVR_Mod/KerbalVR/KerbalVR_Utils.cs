@@ -127,7 +127,7 @@ namespace KerbalVR
             UnityEngine.Object.Destroy(gizmoY.GetComponent<BoxCollider>());
             gizmoY.transform.SetParent(gizmo.transform);
             gizmoY.transform.localScale = new Vector3(.01f, .1f, .01f);
-            gizmoY.transform.localPosition = new Vector3(.0f, .05f, 0f);
+            gizmoY.transform.localPosition = new Vector3(0f, .05f, 0f);
             gizmoY.GetComponent<MeshRenderer>().material.color = Color.green;
             gizmoY.layer = 0;
 
@@ -135,7 +135,7 @@ namespace KerbalVR
             UnityEngine.Object.Destroy(gizmoZ.GetComponent<BoxCollider>());
             gizmoZ.transform.SetParent(gizmo.transform);
             gizmoZ.transform.localScale = new Vector3(.01f, .01f, .1f);
-            gizmoZ.transform.localPosition = new Vector3(.0f, 0f, .05f);
+            gizmoZ.transform.localPosition = new Vector3(0f, 0f, .05f);
             gizmoZ.GetComponent<MeshRenderer>().material.color = Color.blue;
             gizmoZ.layer = 0;
 
@@ -162,6 +162,29 @@ namespace KerbalVR
             GameObject gizmo = CreateGizmo();
             gizmo.transform.position = position;
             gizmo.transform.rotation = rotation;
+            return gizmo;
+        }
+
+        public static GameObject CreateArrow() {
+            GameObject gizmo = new GameObject("gizmo_arrow");
+            gizmo.transform.localScale = Vector3.one;
+
+            GameObject gizmoZ = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            UnityEngine.Object.Destroy(gizmoZ.GetComponent<BoxCollider>());
+            gizmoZ.transform.SetParent(gizmo.transform);
+            gizmoZ.transform.localScale = new Vector3(.02f, .02f, .1f);
+            gizmoZ.transform.localPosition = new Vector3(0f, 0f, .05f);
+            gizmoZ.GetComponent<MeshRenderer>().material.color = Color.blue;
+            gizmoZ.layer = 0;
+
+            GameObject gizmoPivot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            UnityEngine.Object.Destroy(gizmoPivot.GetComponent<SphereCollider>());
+            gizmoPivot.transform.SetParent(gizmo.transform);
+            gizmoPivot.transform.localScale = new Vector3(.03f, .03f, .03f);
+            gizmoPivot.transform.localPosition = Vector3.zero;
+            gizmoPivot.GetComponent<MeshRenderer>().material.color = Color.gray;
+            gizmoPivot.layer = 0;
+
             return gizmo;
         }
 

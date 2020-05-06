@@ -21,27 +21,21 @@ using UnityEngine;
 using UnityEngine.Events;
 using Valve.VR;
 
-namespace Valve.VR
-{
-    public static class SteamVR_Events
-    {
-        public abstract class Action
-        {
+namespace Valve.VR {
+    public static class SteamVR_Events {
+        public abstract class Action {
             public abstract void Enable(bool enabled);
             public bool enabled { set { Enable(value); } }
         }
 
         [System.Serializable]
-        public class ActionNoArgs : Action
-        {
-            public ActionNoArgs(Event _event, UnityAction action)
-            {
+        public class ActionNoArgs : Action {
+            public ActionNoArgs(Event _event, UnityAction action) {
                 this._event = _event;
                 this.action = action;
             }
 
-            public override void Enable(bool enabled)
-            {
+            public override void Enable(bool enabled) {
                 if (enabled)
                     _event.Listen(action);
                 else
@@ -53,16 +47,13 @@ namespace Valve.VR
         }
 
         [System.Serializable]
-        public class Action<T> : Action
-        {
-            public Action(Event<T> _event, UnityAction<T> action)
-            {
+        public class Action<T> : Action {
+            public Action(Event<T> _event, UnityAction<T> action) {
                 this._event = _event;
                 this.action = action;
             }
 
-            public override void Enable(bool enabled)
-            {
+            public override void Enable(bool enabled) {
                 if (enabled)
                     _event.Listen(action);
                 else
@@ -74,16 +65,13 @@ namespace Valve.VR
         }
 
         [System.Serializable]
-        public class Action<T0, T1> : Action
-        {
-            public Action(Event<T0, T1> _event, UnityAction<T0, T1> action)
-            {
+        public class Action<T0, T1> : Action {
+            public Action(Event<T0, T1> _event, UnityAction<T0, T1> action) {
                 this._event = _event;
                 this.action = action;
             }
 
-            public override void Enable(bool enabled)
-            {
+            public override void Enable(bool enabled) {
                 if (enabled)
                     _event.Listen(action);
                 else
@@ -95,16 +83,13 @@ namespace Valve.VR
         }
 
         [System.Serializable]
-        public class Action<T0, T1, T2> : Action
-        {
-            public Action(Event<T0, T1, T2> _event, UnityAction<T0, T1, T2> action)
-            {
+        public class Action<T0, T1, T2> : Action {
+            public Action(Event<T0, T1, T2> _event, UnityAction<T0, T1, T2> action) {
                 this._event = _event;
                 this.action = action;
             }
 
-            public override void Enable(bool enabled)
-            {
+            public override void Enable(bool enabled) {
                 if (enabled)
                     _event.Listen(action);
                 else
@@ -115,29 +100,25 @@ namespace Valve.VR
             UnityAction<T0, T1, T2> action;
         }
 
-        public class Event : UnityEvent
-        {
+        public class Event : UnityEvent {
             public void Listen(UnityAction action) { this.AddListener(action); }
             public void Remove(UnityAction action) { this.RemoveListener(action); }
             public void Send() { this.Invoke(); }
         }
 
-        public class Event<T> : UnityEvent<T>
-        {
+        public class Event<T> : UnityEvent<T> {
             public void Listen(UnityAction<T> action) { this.AddListener(action); }
             public void Remove(UnityAction<T> action) { this.RemoveListener(action); }
             public void Send(T arg0) { this.Invoke(arg0); }
         }
 
-        public class Event<T0, T1> : UnityEvent<T0, T1>
-        {
+        public class Event<T0, T1> : UnityEvent<T0, T1> {
             public void Listen(UnityAction<T0, T1> action) { this.AddListener(action); }
             public void Remove(UnityAction<T0, T1> action) { this.RemoveListener(action); }
             public void Send(T0 arg0, T1 arg1) { this.Invoke(arg0, arg1); }
         }
 
-        public class Event<T0, T1, T2> : UnityEvent<T0, T1, T2>
-        {
+        public class Event<T0, T1, T2> : UnityEvent<T0, T1, T2> {
             public void Listen(UnityAction<T0, T1, T2> action) { this.AddListener(action); }
             public void Remove(UnityAction<T0, T1, T2> action) { this.RemoveListener(action); }
             public void Send(T0 arg0, T1 arg1, T2 arg2) { this.Invoke(arg0, arg1, arg2); }
@@ -186,19 +167,16 @@ namespace Valve.VR
         public static Action OutOfRangeAction(UnityAction<bool> action) { return new Action<bool>(OutOfRange, action); }
 
         static System.Collections.Generic.Dictionary<EVREventType, Event<VREvent_t>> systemEvents = new System.Collections.Generic.Dictionary<EVREventType, Event<VREvent_t>>();
-        public static Event<VREvent_t> System(EVREventType eventType)
-        {
+        public static Event<VREvent_t> System(EVREventType eventType) {
             Event<VREvent_t> e;
-            if (!systemEvents.TryGetValue(eventType, out e))
-            {
+            if (!systemEvents.TryGetValue(eventType, out e)) {
                 e = new Event<VREvent_t>();
                 systemEvents.Add(eventType, e);
             }
             return e;
         }
 
-        public static Action SystemAction(EVREventType eventType, UnityAction<VREvent_t> action)
-        {
+        public static Action SystemAction(EVREventType eventType, UnityAction<VREvent_t> action) {
             return new Action<VREvent_t>(System(eventType), action);
         }
     }
