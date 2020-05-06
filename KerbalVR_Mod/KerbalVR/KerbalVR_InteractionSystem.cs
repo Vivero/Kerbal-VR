@@ -146,9 +146,25 @@ namespace KerbalVR
                 SetHandsLayer(renderLayerHands.Value);
             }
 
-            // set the origin for the controller space
-            this.transform.position = Scene.Instance.CurrentPosition;
-            this.transform.rotation = Scene.Instance.CurrentRotation;
+            // if rendering, update the hand positions
+            if (isRenderingHands.Value) {
+                // get device indices for each hand, then set the transform
+                bool isConnected = handActionPose.GetDeviceIsConnected(SteamVR_Input_Sources.LeftHand);
+                uint deviceIndex = handActionPose.GetDeviceIndex(SteamVR_Input_Sources.LeftHand);
+                if (isConnected && deviceIndex < OpenVR.k_unMaxTrackedDeviceCount) {
+                    SteamVR_Utils.RigidTransform handTransform = new SteamVR_Utils.RigidTransform(KerbalVR.Core.GamePoses[deviceIndex].mDeviceToAbsoluteTracking);
+                    handL.transform.position = KerbalVR.Scene.Instance.DevicePoseToWorld(handTransform.pos);
+                    handL.transform.rotation = KerbalVR.Scene.Instance.DevicePoseToWorld(handTransform.rot);
+                }
+
+                isConnected = handActionPose.GetDeviceIsConnected(SteamVR_Input_Sources.RightHand);
+                deviceIndex = handActionPose.GetDeviceIndex(SteamVR_Input_Sources.RightHand);
+                if (isConnected && deviceIndex < OpenVR.k_unMaxTrackedDeviceCount) {
+                    SteamVR_Utils.RigidTransform handTransform = new SteamVR_Utils.RigidTransform(KerbalVR.Core.GamePoses[deviceIndex].mDeviceToAbsoluteTracking);
+                    handR.transform.position = KerbalVR.Scene.Instance.DevicePoseToWorld(handTransform.pos);
+                    handR.transform.rotation = KerbalVR.Scene.Instance.DevicePoseToWorld(handTransform.rot);
+                }
+            }
         }
 
         protected void InitializeHandScripts() {
