@@ -48,27 +48,27 @@ namespace KerbalVR
             }
 
             // make instance objects out of them
-            gloveL = Instantiate(glovePrefabL);
-            if (gloveL == null) {
+            handL = Instantiate(glovePrefabL);
+            if (handL == null) {
                 Utils.LogWarning("Could not Instantiate prefab: vr_glove_left_model_slim");
                 return;
             }
-            gloveL.name = "KVR_GloveL";
-            DontDestroyOnLoad(gloveL);
+            handL.name = "KVR_HandL";
+            DontDestroyOnLoad(handL);
 
-            gloveR = Instantiate(glovePrefabR);
-            if (gloveR == null) {
+            handR = Instantiate(glovePrefabR);
+            if (handR == null) {
                 Utils.LogWarning("Could not Instantiate prefab: vr_glove_right_model_slim");
                 return;
             }
-            gloveR.name = "KVR_GloveR";
-            DontDestroyOnLoad(gloveR);
+            handR.name = "KVR_HandR";
+            DontDestroyOnLoad(handR);
 
             // cache the glove renderers
-            Transform gloveSkinL = gloveL.transform.Find("slim_l/vr_glove_right_slim");
-            gloveRendererL = gloveSkinL.gameObject.GetComponent<SkinnedMeshRenderer>();
-            Transform gloveSkinR = gloveR.transform.Find("slim_r/vr_glove_right_slim");
-            gloveRendererR = gloveSkinR.GetComponent<SkinnedMeshRenderer>();
+            Transform gloveSkinL = handL.transform.Find("slim_l/vr_glove_right_slim");
+            handRendererL = gloveSkinL.gameObject.GetComponent<SkinnedMeshRenderer>();
+            Transform gloveSkinR = handR.transform.Find("slim_r/vr_glove_right_slim");
+            handRendererR = gloveSkinR.GetComponent<SkinnedMeshRenderer>();
 
             // initialize visibility/layer
             SetGlovesVisible(false);
@@ -79,21 +79,21 @@ namespace KerbalVR
 
         #region Private Members
         // glove game objects
-        protected GameObject glovePrefabL, gloveL;
-        protected GameObject glovePrefabR, gloveR;
-        protected SteamVR_Behaviour_Skeleton gloveSkeletonL, gloveSkeletonR;
-        protected SteamVR_Skeleton_Poser glovePoserL, glovePoserR;
-        protected SkinnedMeshRenderer gloveRendererL, gloveRendererR;
+        protected GameObject glovePrefabL, handL;
+        protected GameObject glovePrefabR, handR;
+        protected SteamVR_Behaviour_Skeleton handSkeletonL, handSkeletonR;
+        protected SteamVR_Skeleton_Poser handPoserL, handPoserR;
+        protected SkinnedMeshRenderer handRendererL, handRendererR;
 
         // device behaviors and actions
         protected bool isInputInitialized = false;
-        protected SteamVR_Action_Pose gloveActionPose;
+        protected SteamVR_Action_Pose handActionPose;
         protected SteamVR_Action_Boolean teleportAction;
         protected SteamVR_Action_Boolean headsetOnAction;
 
         // glove render state
-        protected Types.ShiftRegister<bool> isRenderingGloves = new Types.ShiftRegister<bool>(2);
-        protected Types.ShiftRegister<int> renderLayerGloves = new Types.ShiftRegister<int>(2);
+        protected Types.ShiftRegister<bool> isRenderingHands = new Types.ShiftRegister<bool>(2);
+        protected Types.ShiftRegister<int> renderLayerHands = new Types.ShiftRegister<int>(2);
 
         // teleport system
         protected GameObject teleportSystemGameObject;
@@ -117,21 +117,21 @@ namespace KerbalVR
                 switch (HighLogic.LoadedScene) {
                     case GameScenes.MAINMENU:
                     case GameScenes.EDITOR:
-                        isRenderingGloves.Push(true);
-                        renderLayerGloves.Push(0);
+                        isRenderingHands.Push(true);
+                        renderLayerHands.Push(0);
                         break;
 
                     case GameScenes.FLIGHT:
                         if (KerbalVR.Scene.IsInEVA() || KerbalVR.Scene.IsInIVA()) {
-                            isRenderingGloves.Push(true);
+                            isRenderingHands.Push(true);
 
                             if (KerbalVR.Scene.IsInIVA()) {
                                 // IVA-specific settings
-                                renderLayerGloves.Push(20);
+                                renderLayerHands.Push(20);
                             }
                             if (KerbalVR.Scene.IsInEVA()) {
                                 // EVA-specific settings
-                                renderLayerGloves.Push(0);
+                                renderLayerHands.Push(0);
                             }
                         }
                         break;
@@ -139,11 +139,11 @@ namespace KerbalVR
             }
 
             // makes changes as necessary
-            if (isRenderingGloves.IsChanged()) {
-                SetGlovesVisible(isRenderingGloves.Value);
+            if (isRenderingHands.IsChanged()) {
+                SetGlovesVisible(isRenderingHands.Value);
             }
-            if (renderLayerGloves.IsChanged()) {
-                SetGlovesLayer(renderLayerGloves.Value);
+            if (renderLayerHands.IsChanged()) {
+                SetGlovesLayer(renderLayerHands.Value);
             }
 
             // set the origin for the controller space
@@ -153,43 +153,43 @@ namespace KerbalVR
 
         protected void InitializeGloveScripts() {
             // add behavior scripts to the gloves
-            gloveSkeletonL = gloveL.AddComponent<SteamVR_Behaviour_Skeleton>();
-            gloveSkeletonL.skeletonRoot = gloveL.transform.Find("slim_l/Root");
-            gloveSkeletonL.inputSource = SteamVR_Input_Sources.LeftHand;
-            gloveSkeletonL.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.RightToLeft;
-            gloveSkeletonL.updatePose = false;
-            gloveSkeletonL.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonLeftHand", false);
-            gloveSkeletonL.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
+            handSkeletonL = handL.AddComponent<SteamVR_Behaviour_Skeleton>();
+            handSkeletonL.skeletonRoot = handL.transform.Find("slim_l/Root");
+            handSkeletonL.inputSource = SteamVR_Input_Sources.LeftHand;
+            handSkeletonL.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.RightToLeft;
+            handSkeletonL.updatePose = false;
+            handSkeletonL.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonLeftHand", false);
+            handSkeletonL.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
 
-            gloveSkeletonR = gloveR.AddComponent<SteamVR_Behaviour_Skeleton>();
-            gloveSkeletonR.skeletonRoot = gloveR.transform.Find("slim_r/Root");
-            gloveSkeletonR.inputSource = SteamVR_Input_Sources.RightHand;
-            gloveSkeletonR.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.None;
-            gloveSkeletonR.updatePose = false;
-            gloveSkeletonR.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonRightHand", false);
-            gloveSkeletonR.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
+            handSkeletonR = handR.AddComponent<SteamVR_Behaviour_Skeleton>();
+            handSkeletonR.skeletonRoot = handR.transform.Find("slim_r/Root");
+            handSkeletonR.inputSource = SteamVR_Input_Sources.RightHand;
+            handSkeletonR.mirroring = SteamVR_Behaviour_Skeleton.MirrorType.None;
+            handSkeletonR.updatePose = false;
+            handSkeletonR.skeletonAction = SteamVR_Input.GetSkeletonAction("default", "SkeletonRightHand", false);
+            handSkeletonR.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
 
             // add fallback pose scripts
-            Transform gloveFallbackL = gloveL.transform.Find("fallback");
-            glovePoserL = gloveFallbackL.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
-            glovePoserL.skeletonMainPose = GenerateHandSkeletonMainPose();
-            glovePoserL.Initialize();
-            gloveSkeletonL.fallbackPoser = glovePoserL;
+            Transform gloveFallbackL = handL.transform.Find("fallback");
+            handPoserL = gloveFallbackL.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
+            handPoserL.skeletonMainPose = GenerateHandSkeletonMainPose();
+            handPoserL.Initialize();
+            handSkeletonL.fallbackPoser = handPoserL;
 
-            Transform gloveFallbackR = gloveR.transform.Find("fallback");
-            glovePoserR = gloveFallbackR.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
-            glovePoserR.skeletonMainPose = GenerateHandSkeletonMainPose();
-            glovePoserR.Initialize();
-            gloveSkeletonR.fallbackPoser = glovePoserR;
+            Transform gloveFallbackR = handR.transform.Find("fallback");
+            handPoserR = gloveFallbackR.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
+            handPoserR.skeletonMainPose = GenerateHandSkeletonMainPose();
+            handPoserR.Initialize();
+            handSkeletonR.fallbackPoser = handPoserR;
 
             // can init the skeleton behavior now
-            gloveSkeletonL.Initialize();
-            gloveSkeletonR.Initialize();
+            handSkeletonL.Initialize();
+            handSkeletonR.Initialize();
         }
 
         protected void InitializeInputScripts() {
             // store actions for these devices
-            gloveActionPose = SteamVR_Input.GetPoseAction("default", "Pose");
+            handActionPose = SteamVR_Input.GetPoseAction("default", "Pose");
             headsetOnAction = SteamVR_Input.GetBooleanAction("default", "HeadsetOnHead");
             headsetOnAction.onChange += OnChangeHeadsetOnAction;
             teleportAction = SteamVR_Input.GetBooleanAction("EVA", "Teleport");
@@ -348,13 +348,13 @@ namespace KerbalVR
         }
 
         public void SetGlovesVisible(bool isVisible) {
-            gloveRendererL.enabled = isVisible;
-            gloveRendererR.enabled = isVisible;
+            handRendererL.enabled = isVisible;
+            handRendererR.enabled = isVisible;
         }
 
         public void SetGlovesLayer(int layer) {
-            gloveRendererL.gameObject.layer = layer;
-            gloveRendererR.gameObject.layer = layer;
+            handRendererL.gameObject.layer = layer;
+            handRendererR.gameObject.layer = layer;
         }
 
     } // class InteractionSystem
