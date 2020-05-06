@@ -6,7 +6,7 @@ namespace KerbalVR
     /// <summary>
     /// InteractionSystem is a singleton class that encapsulates
     /// the code that manages interaction systems via SteamVR_Input,
-    /// i.e. the interaction game objects (gloves), and input actions.
+    /// i.e. the interaction game objects (hands), and input actions.
     /// Use the position of this GameObject as the origin for the
     /// interaction system devices (the VR controllers).
     /// </summary>
@@ -64,21 +64,21 @@ namespace KerbalVR
             handR.name = "KVR_HandR";
             DontDestroyOnLoad(handR);
 
-            // cache the glove renderers
-            Transform gloveSkinL = handL.transform.Find("slim_l/vr_glove_right_slim");
-            handRendererL = gloveSkinL.gameObject.GetComponent<SkinnedMeshRenderer>();
-            Transform gloveSkinR = handR.transform.Find("slim_r/vr_glove_right_slim");
-            handRendererR = gloveSkinR.GetComponent<SkinnedMeshRenderer>();
+            // cache the hand renderers
+            Transform handSkinL = handL.transform.Find("slim_l/vr_glove_right_slim");
+            handRendererL = handSkinL.gameObject.GetComponent<SkinnedMeshRenderer>();
+            Transform handSkinR = handR.transform.Find("slim_r/vr_glove_right_slim");
+            handRendererR = handSkinR.GetComponent<SkinnedMeshRenderer>();
 
             // initialize visibility/layer
-            SetGlovesVisible(false);
-            SetGlovesLayer(0);
+            SetHandsVisible(false);
+            SetHandsLayer(0);
         }
         #endregion
 
 
         #region Private Members
-        // glove game objects
+        // hand game objects
         protected GameObject glovePrefabL, handL;
         protected GameObject glovePrefabR, handR;
         protected SteamVR_Behaviour_Skeleton handSkeletonL, handSkeletonR;
@@ -91,7 +91,7 @@ namespace KerbalVR
         protected SteamVR_Action_Boolean teleportAction;
         protected SteamVR_Action_Boolean headsetOnAction;
 
-        // glove render state
+        // hand render state
         protected Types.ShiftRegister<bool> isRenderingHands = new Types.ShiftRegister<bool>(2);
         protected Types.ShiftRegister<int> renderLayerHands = new Types.ShiftRegister<int>(2);
 
@@ -102,9 +102,9 @@ namespace KerbalVR
 
 
         protected void Update() {
-            // initialize glove scripts (need OpenVR and SteamVR_Input already initialized)
+            // initialize hand scripts (need OpenVR and SteamVR_Input already initialized)
             if (!isInputInitialized && KerbalVR.Core.IsOpenVrReady) {
-                InitializeGloveScripts();
+                InitializeHandScripts();
                 InitializeInputScripts();
                 isInputInitialized = true;
             }
@@ -112,7 +112,7 @@ namespace KerbalVR
                 return;
             }
 
-            // should we render the gloves in the current scene?
+            // should we render the hands in the current scene?
             if (KerbalVR.Core.IsVrRunning) {
                 switch (HighLogic.LoadedScene) {
                     case GameScenes.MAINMENU:
@@ -140,10 +140,10 @@ namespace KerbalVR
 
             // makes changes as necessary
             if (isRenderingHands.IsChanged()) {
-                SetGlovesVisible(isRenderingHands.Value);
+                SetHandsVisible(isRenderingHands.Value);
             }
             if (renderLayerHands.IsChanged()) {
-                SetGlovesLayer(renderLayerHands.Value);
+                SetHandsLayer(renderLayerHands.Value);
             }
 
             // set the origin for the controller space
@@ -151,8 +151,8 @@ namespace KerbalVR
             this.transform.rotation = Scene.Instance.CurrentRotation;
         }
 
-        protected void InitializeGloveScripts() {
-            // add behavior scripts to the gloves
+        protected void InitializeHandScripts() {
+            // add behavior scripts to the hands
             handSkeletonL = handL.AddComponent<SteamVR_Behaviour_Skeleton>();
             handSkeletonL.skeletonRoot = handL.transform.Find("slim_l/Root");
             handSkeletonL.inputSource = SteamVR_Input_Sources.LeftHand;
@@ -170,14 +170,14 @@ namespace KerbalVR
             handSkeletonR.fallbackCurlAction = SteamVR_Input.GetSingleAction("default", "Squeeze", false);
 
             // add fallback pose scripts
-            Transform gloveFallbackL = handL.transform.Find("fallback");
-            handPoserL = gloveFallbackL.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
+            Transform handFallbackL = handL.transform.Find("fallback");
+            handPoserL = handFallbackL.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
             handPoserL.skeletonMainPose = GenerateHandSkeletonMainPose();
             handPoserL.Initialize();
             handSkeletonL.fallbackPoser = handPoserL;
 
-            Transform gloveFallbackR = handR.transform.Find("fallback");
-            handPoserR = gloveFallbackR.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
+            Transform handFallbackR = handR.transform.Find("fallback");
+            handPoserR = handFallbackR.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
             handPoserR.skeletonMainPose = GenerateHandSkeletonMainPose();
             handPoserR.Initialize();
             handSkeletonR.fallbackPoser = handPoserR;
@@ -347,12 +347,12 @@ namespace KerbalVR
             return pose;
         }
 
-        public void SetGlovesVisible(bool isVisible) {
+        public void SetHandsVisible(bool isVisible) {
             handRendererL.enabled = isVisible;
             handRendererR.enabled = isVisible;
         }
 
-        public void SetGlovesLayer(int layer) {
+        public void SetHandsLayer(int layer) {
             handRendererL.gameObject.layer = layer;
             handRendererR.gameObject.layer = layer;
         }
