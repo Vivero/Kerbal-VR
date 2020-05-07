@@ -135,6 +135,8 @@ namespace KerbalVR
         // defines the tracking method to use
         public ETrackingUniverseOrigin TrackingSpace { get; private set; } = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
+        public SteamVR_Utils.RigidTransform HmdTransform { get; private set; } = new SteamVR_Utils.RigidTransform();
+
         public List<Types.VRCameraSet> VRCameraSets { get; private set; } = new List<Types.VRCameraSet>();
         public bool IsVrCamerasEnabled { get; private set; } = false;
         public bool IsVrAllowed {
@@ -318,7 +320,7 @@ namespace KerbalVR
             HmdMatrix34_t vrRightEyeTransform = OpenVR.System.GetEyeToHeadTransform(EVREye.Eye_Right);
 
             // convert SteamVR poses to Unity coordinates
-            SteamVR_Utils.RigidTransform hmdTransform = new SteamVR_Utils.RigidTransform(KerbalVR.Core.GamePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+            HmdTransform = new SteamVR_Utils.RigidTransform(KerbalVR.Core.GamePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
             SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
             hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
             hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
@@ -349,14 +351,14 @@ namespace KerbalVR
             // set camera positions to match device positions
             for (int camIdx = 0; camIdx < VRCameraSets.Count; ++camIdx) {
                 Vector3[] eyeDisplacements = {
-                     hmdTransform.rot * hmdEyeTransform[0].pos,
-                     hmdTransform.rot * hmdEyeTransform[1].pos
+                     HmdTransform.rot * hmdEyeTransform[0].pos,
+                     HmdTransform.rot * hmdEyeTransform[1].pos
                 };
                 Vector3[] updatedPositions = {
-                    hmdTransform.pos + eyeDisplacements[0],
-                    hmdTransform.pos + eyeDisplacements[1],
+                    HmdTransform.pos + eyeDisplacements[0],
+                    HmdTransform.pos + eyeDisplacements[1],
                 };
-                Quaternion updatedRotation = hmdTransform.rot;
+                Quaternion updatedRotation = HmdTransform.rot;
                 for (int eyeIdx = 0; eyeIdx < 2; ++eyeIdx) {
                     Types.VREyeCamera camStruct = VRCameraSets[camIdx].vrCameras[eyeIdx];
                     if (VRCameraSets[camIdx].kspCameraName == "GalaxyCamera" ||

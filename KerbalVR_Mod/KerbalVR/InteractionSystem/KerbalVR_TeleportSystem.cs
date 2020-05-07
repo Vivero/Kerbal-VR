@@ -105,13 +105,14 @@ namespace KerbalVR {
                 }
                 else {
                     // button has been lifted, move to that location
-                    // TODO: fix the player offset when in Room-Scale tracking mode
                     if (isTeleportAllowed && teleportTargetPosition != null) {
                         if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
                             FlightGlobals.ActiveVessel.SetPosition(teleportTargetPosition);
                         }
                         else if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
-                            KerbalVR.Scene.Instance.CurrentPosition = teleportTargetPosition;
+                            Vector3 hmdPosition = KerbalVR.Scene.Instance.HmdTransform.pos;
+                            KerbalVR.Scene.Instance.CurrentPosition = teleportTargetPosition -
+                                new Vector3(hmdPosition.x, 0f, hmdPosition.z);
                         }
                     }
                     teleportSource = SteamVR_Input_Sources.Any;
