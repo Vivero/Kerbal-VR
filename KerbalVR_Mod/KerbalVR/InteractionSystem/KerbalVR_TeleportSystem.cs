@@ -19,6 +19,8 @@ namespace KerbalVR {
         protected bool isTeleportShowing = false;
         protected bool isTeleportAllowed = true;
         protected Vector3 teleportTargetPosition;
+        protected Quaternion teleportTargetRotation;
+        protected GameObject teleportLocationModel;
 
         protected const int MAX_TELEPORT_ARC_VERTICES = 10;
         protected const float TELEPORT_ARC_FRACTION = 1f / MAX_TELEPORT_ARC_VERTICES;
@@ -36,6 +38,12 @@ namespace KerbalVR {
                 teleportArcVertexRenderers[i].enabled = false;
                 DontDestroyOnLoad(arcVertex);
             }
+
+            GameObject teleportLocationPrefab = KerbalVR.AssetLoader.Instance.GetGameObject("KVR_TeleportPoint");
+            teleportLocationModel = Instantiate(teleportLocationPrefab);
+            teleportLocationModel.name = "KVR_TeleportPoint";
+            teleportLocationModel.SetActive(false);
+            DontDestroyOnLoad(teleportLocationModel);
         }
 
         protected void OnEnable() {
@@ -68,6 +76,7 @@ namespace KerbalVR {
                 for (int i = 0; i < MAX_TELEPORT_ARC_VERTICES; i++) {
                     teleportArcVertexRenderers[i].enabled = false;
                 }
+                teleportLocationModel.SetActive(false);
             }
         }
 
@@ -127,6 +136,8 @@ namespace KerbalVR {
             Vector3 forwardVector = origin.TransformDirection(Vector3.forward);
             if (Physics.Raycast(origin.position, forwardVector, out forwardHit, maxForwardCastDistance, layerMask)) {
                 teleportTargetPosition = forwardHit.point;
+                teleportTargetRotation = Quaternion.LookRotation(
+                    Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, forwardHit.normal), forwardHit.normal);
                 isTeleportAllowed = true;
 
             }
@@ -142,6 +153,8 @@ namespace KerbalVR {
                 RaycastHit downwardHit;
                 if (Physics.Raycast(maxForwardCastPosition, downwardsVector, out downwardHit, maxDownwardCastDistance, layerMask)) {
                     teleportTargetPosition = downwardHit.point;
+                    teleportTargetRotation = Quaternion.LookRotation(
+                        Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, downwardHit.normal), downwardHit.normal);
                     isTeleportAllowed = true;
                 }
                 else {
@@ -190,6 +203,11 @@ namespace KerbalVR {
                 teleportArcVertexRenderers[i].SetPosition(1, lrEndPoint);
                 teleportArcVertexRenderers[i].enabled = true;
             }
+
+            // position the teleport point
+            teleportLocationModel.SetActive(true);
+            teleportLocationModel.transform.position = teleportTargetPosition;
+            teleportLocationModel.transform.rotation = teleportTargetRotation;
         }
     }
 }
