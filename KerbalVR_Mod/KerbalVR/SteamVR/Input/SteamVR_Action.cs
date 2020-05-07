@@ -1,4 +1,4 @@
-﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
+//======= Copyright (c) Valve Corporation, All rights reserved. ===============
 // Action implementation overview:
 // Actions are split into three parts:
 //     * Action: The user-accessible class that is the interface for accessing action data.
