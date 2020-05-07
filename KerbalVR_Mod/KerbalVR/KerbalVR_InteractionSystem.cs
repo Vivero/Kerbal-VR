@@ -133,9 +133,13 @@ namespace KerbalVR
                                 // EVA-specific settings
                                 renderLayerHands.Push(0);
                             }
+                        } else {
+                            isRenderingHands.Push(false);
                         }
                         break;
                 }
+            } else {
+                isRenderingHands.Push(false);
             }
 
             // makes changes as necessary

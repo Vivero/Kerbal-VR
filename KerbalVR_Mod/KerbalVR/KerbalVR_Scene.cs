@@ -466,7 +466,7 @@ namespace KerbalVR
                 foreach (string kspCameraName in currentKspSceneCameraNames) {
                     Camera kspCamera = GetKspCameraComponent(kspCameraName);
                     if (kspCamera == null) continue;
-                    if (!kspCamera.enabled) kspCamera.enabled = false;
+                    if (kspCamera.enabled) kspCamera.enabled = false;
                 }
 
                 // turn on the VR cameras for the new camera names set
