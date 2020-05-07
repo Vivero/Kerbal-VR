@@ -211,9 +211,11 @@ namespace KerbalVR
             teleportAction = SteamVR_Input.GetBooleanAction("EVA", "Teleport");
 
             // init the teleport system
-            // teleportSystemGameObject = new GameObject("KVR_TeleportSystem");
-            // teleportSystem = teleportSystemGameObject.AddComponent<TeleportSystem>();
-            // DontDestroyOnLoad(teleportSystemGameObject);
+            teleportSystemGameObject = new GameObject("KVR_TeleportSystem");
+            teleportSystem = teleportSystemGameObject.AddComponent<TeleportSystem>();
+            teleportSystem.handOriginLeft = handL.transform;
+            teleportSystem.handOriginRight = handR.transform;
+            DontDestroyOnLoad(teleportSystemGameObject);
         }
 
         /// <summary>
