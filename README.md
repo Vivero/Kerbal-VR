@@ -20,6 +20,8 @@ IVA in VR puts you inside the cockpit of your craft. You can control the craft u
 VR controllers, which can be configured through SteamVR controller bindings. More immersive features for the
 cockpit may come sometime in the future.
 
+EVA in VR allows you to explore planets, using teleportation as a means for locomotion.
+
 Room-scale VR in the VAB and SPH allows you to walk around inside the building and see your craft at a 1:1 scale.
 
 Performance will vary wildly between setups. There is an infinite combination of PC specs,
@@ -29,7 +31,7 @@ a smooth experience, but you may try the **Performance Tips** below.
 
 ## Requirements
 
-- [Module Manager](https://forum.kerbalspaceprogram.com/index.php?/topic/50533-140-16x-module-manager-402-february-3rd-2019-right-to-ludicrous-speed/)
+- [SteamVR](https://store.steampowered.com/app/250820/SteamVR/)
 
 
 ## Installation & Usage
