@@ -19,10 +19,6 @@ namespace KerbalVR
             public Camera cameraComponent;
         }
 
-        public class CameraState {
-            public bool enabled;
-        }
-
         /// <summary>
         /// A very simple, basic, generic shift register structure.
         /// Stores values, and detects when values have changed.
