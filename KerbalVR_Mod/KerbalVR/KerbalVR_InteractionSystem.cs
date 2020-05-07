@@ -165,6 +165,17 @@ namespace KerbalVR
                     handR.transform.rotation = KerbalVR.Scene.Instance.DevicePoseToWorld(handTransform.rot);
                 }
             }
+
+            // position the teleport system
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
+                teleportSystem.downwardsVector = Vector3.down;
+            }
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
+                // assign the teleport system's down vector to point towards gravity
+                CelestialBody mainBody = FlightGlobals.ActiveVessel.mainBody;
+                Vector2d latLon = mainBody.GetLatitudeAndLongitude(teleportSystemGameObject.transform.position);
+                teleportSystem.downwardsVector = -mainBody.GetSurfaceNVector(latLon.x, latLon.y);
+            }
         }
 
         protected void InitializeHandScripts() {

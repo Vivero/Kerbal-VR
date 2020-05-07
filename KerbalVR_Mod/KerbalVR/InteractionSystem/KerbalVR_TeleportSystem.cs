@@ -106,13 +106,13 @@ namespace KerbalVR {
                 else {
                     // button has been lifted, move to that location
                     if (isTeleportAllowed && teleportTargetPosition != null) {
+                        Vector3 hmdPosition = KerbalVR.Scene.Instance.HmdTransform.pos;
+                        Vector3 newPlayerPosition = teleportTargetPosition - new Vector3(hmdPosition.x, 0f, hmdPosition.z);
                         if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
-                            FlightGlobals.ActiveVessel.SetPosition(teleportTargetPosition);
+                            FlightGlobals.ActiveVessel.SetPosition(newPlayerPosition);
                         }
                         else if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
-                            Vector3 hmdPosition = KerbalVR.Scene.Instance.HmdTransform.pos;
-                            KerbalVR.Scene.Instance.CurrentPosition = teleportTargetPosition -
-                                new Vector3(hmdPosition.x, 0f, hmdPosition.z);
+                            KerbalVR.Scene.Instance.CurrentPosition = newPlayerPosition;
                         }
                     }
                     teleportSource = SteamVR_Input_Sources.Any;
