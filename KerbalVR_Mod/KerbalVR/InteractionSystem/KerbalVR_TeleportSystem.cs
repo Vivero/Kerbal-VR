@@ -68,16 +68,9 @@ namespace KerbalVR {
 
             // calculate the teleportation target
             UpdateTeleportTarget();
-            isTeleportAllowed = isTeleportAllowed && isTeleportShowing;
 
             // render the teleport arc
             RenderTeleportArc();
-            if (!isTeleportAllowed) {
-                for (int i = 0; i < MAX_TELEPORT_ARC_VERTICES; i++) {
-                    teleportArcVertexRenderers[i].enabled = false;
-                }
-                teleportLocationModel.SetActive(false);
-            }
         }
 
         protected void OnTeleportActionChangeL(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState) {
@@ -122,93 +115,96 @@ namespace KerbalVR {
         }
 
         protected void UpdateTeleportTarget() {
-            if (!isTeleportShowing || origin == null) {
-                // do nothing if we're not showing the teleport arc
-                return;
-            }
+            if (isTeleportShowing && origin != null) {
+                // raycasts should not strike layer "Scaled Scenery"
+                // TODO: identify other layers to not strike
+                int layerMask = 1 << 10;
+                layerMask = ~layerMask;
 
-            // raycasts should not strike layer "Scaled Scenery"
-            // TODO: identify other layers to not strike
-            int layerMask = 1 << 10;
-            layerMask = ~layerMask;
-
-            // cast a ray forward
-            RaycastHit forwardHit;
-            Vector3 forwardVector = origin.TransformDirection(Vector3.forward);
-            if (Physics.Raycast(origin.position, forwardVector, out forwardHit, maxForwardCastDistance, layerMask)) {
-                teleportTargetPosition = forwardHit.point;
-                teleportTargetRotation = Quaternion.LookRotation(
-                    Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, forwardHit.normal), forwardHit.normal);
-                isTeleportAllowed = true;
-
-            }
-            else {
-                // shorten the max forward cast distance when the controller starts to pitch high up,
-                // so the teleport location starts to come closer faster
-                float pitchAngle = Vector3.Angle(forwardVector, downwardsVector);
-                float pitchAngleNorm = MathUtils.Map(pitchAngle, 90f, 180f, 1f, 0.01f);
-                float forwardCastDistance = maxForwardCastDistance * pitchAngleNorm;
-                Vector3 maxForwardCastPosition = forwardVector * forwardCastDistance + origin.position;
-
-                // cast a ray downward
-                RaycastHit downwardHit;
-                if (Physics.Raycast(maxForwardCastPosition, downwardsVector, out downwardHit, maxDownwardCastDistance, layerMask)) {
-                    teleportTargetPosition = downwardHit.point;
+                // cast a ray forward
+                RaycastHit forwardHit;
+                Vector3 forwardVector = origin.TransformDirection(Vector3.forward);
+                if (Physics.Raycast(origin.position, forwardVector, out forwardHit, maxForwardCastDistance, layerMask)) {
+                    teleportTargetPosition = forwardHit.point;
                     teleportTargetRotation = Quaternion.LookRotation(
-                        Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, downwardHit.normal), downwardHit.normal);
+                        Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, forwardHit.normal), forwardHit.normal);
                     isTeleportAllowed = true;
+
                 }
                 else {
-                    isTeleportAllowed = false;
+                    // shorten the max forward cast distance when the controller starts to pitch high up,
+                    // so the teleport location starts to come closer faster
+                    float pitchAngle = Vector3.Angle(forwardVector, downwardsVector);
+                    float pitchAngleNorm = MathUtils.Map(pitchAngle, 90f, 180f, 1f, 0.01f);
+                    float forwardCastDistance = maxForwardCastDistance * pitchAngleNorm;
+                    Vector3 maxForwardCastPosition = forwardVector * forwardCastDistance + origin.position;
+
+                    // cast a ray downward
+                    RaycastHit downwardHit;
+                    if (Physics.Raycast(maxForwardCastPosition, downwardsVector, out downwardHit, maxDownwardCastDistance, layerMask)) {
+                        teleportTargetPosition = downwardHit.point;
+                        teleportTargetRotation = Quaternion.LookRotation(
+                            Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, downwardHit.normal), downwardHit.normal);
+                        isTeleportAllowed = true;
+                    }
+                    else {
+                        isTeleportAllowed = false;
+                    }
                 }
             }
+            isTeleportAllowed = isTeleportAllowed && isTeleportShowing;
         }
 
         protected void RenderTeleportArc() {
-            if (!isTeleportShowing || origin == null) {
-                // do nothing if we're not showing the teleport arc
-                return;
+            if (isTeleportShowing && origin != null) {
+                // determine the bezier control point
+                // TODO: maybe increase the lift angle at very high controller pitches
+                Vector3 targetFromOrigin = teleportTargetPosition - origin.position;
+                Vector3 bezierControlFromOrigin = (teleportTargetPosition - origin.position) * bezierControlPointFraction;
+                Vector3 rotationAxis = Vector3.Cross(targetFromOrigin, downwardsVector);
+                bezierControlFromOrigin = Quaternion.AngleAxis(-bezierControlPointAngleDeg, rotationAxis) * bezierControlFromOrigin;
+
+                // generate bezier vertices along curve
+                Vector3 startPoint = origin.position;
+                Vector3 controlPoint = bezierControlFromOrigin + origin.position;
+                Vector3 endPoint = teleportTargetPosition;
+
+                for (int i = 0; i < MAX_TELEPORT_ARC_VERTICES; i++) {
+                    // bezier vertex point
+                    float t = (TELEPORT_ARC_FRACTION * i) + (Time.time % teleportArcPeriod) / teleportArcPeriod * TELEPORT_ARC_FRACTION;
+                    Vector3 pointA = Vector3.Lerp(startPoint, controlPoint, t);
+                    Vector3 pointB = Vector3.Lerp(controlPoint, endPoint, t);
+                    teleportArcVertexRenderers[i].transform.position = Vector3.Lerp(pointA, pointB, t);
+
+                    // calculate where to start/stop the line renderers
+                    Vector3 lrEndPoint = teleportArcVertexRenderers[i].transform.position; // end the line at the current bezier vertex
+                    Vector3 lrStartPoint;
+                    if (i == 0) {
+                        // the first LR will have to start at the origin of the arc
+                        lrStartPoint = origin.position;
+                    }
+                    else {
+                        // the next LRs can start at the previous bezier vertex (well, midway there, so it looks like a dashed line)
+                        lrStartPoint = Vector3.Lerp(lrEndPoint, teleportArcVertexRenderers[i - 1].transform.position, 0.5f);
+                    }
+                    teleportArcVertexRenderers[i].SetPosition(0, lrStartPoint);
+                    teleportArcVertexRenderers[i].SetPosition(1, lrEndPoint);
+                    teleportArcVertexRenderers[i].enabled = true;
+                }
+
+                // position the teleport point
+                teleportLocationModel.SetActive(true);
+                teleportLocationModel.transform.position = teleportTargetPosition;
+                teleportLocationModel.transform.rotation = teleportTargetRotation;
             }
 
-            // determine the bezier control point
-            // TODO: maybe increase the lift angle at very high controller pitches
-            Vector3 targetFromOrigin = teleportTargetPosition - origin.position;
-            Vector3 bezierControlFromOrigin = (teleportTargetPosition - origin.position) * bezierControlPointFraction;
-            Vector3 rotationAxis = Vector3.Cross(targetFromOrigin, downwardsVector);
-            bezierControlFromOrigin = Quaternion.AngleAxis(-bezierControlPointAngleDeg, rotationAxis) * bezierControlFromOrigin;
-
-            // generate bezier vertices along curve
-            Vector3 startPoint = origin.position;
-            Vector3 controlPoint = bezierControlFromOrigin + origin.position;
-            Vector3 endPoint = teleportTargetPosition;
-
-            for (int i = 0; i < MAX_TELEPORT_ARC_VERTICES; i++) {
-                // bezier vertex point
-                float t = (TELEPORT_ARC_FRACTION * i) + (Time.time % teleportArcPeriod) / teleportArcPeriod * TELEPORT_ARC_FRACTION;
-                Vector3 pointA = Vector3.Lerp(startPoint, controlPoint, t);
-                Vector3 pointB = Vector3.Lerp(controlPoint, endPoint, t);
-                teleportArcVertexRenderers[i].transform.position = Vector3.Lerp(pointA, pointB, t);
-
-                // calculate where to start/stop the line renderers
-                Vector3 lrEndPoint = teleportArcVertexRenderers[i].transform.position; // end the line at the current bezier vertex
-                Vector3 lrStartPoint;
-                if (i == 0) {
-                    // the first LR will have to start at the origin of the arc
-                    lrStartPoint = origin.position;
+            // turn off arc renderers when teleport is not allowed
+            if (!isTeleportAllowed) {
+                for (int i = 0; i < MAX_TELEPORT_ARC_VERTICES; i++) {
+                    teleportArcVertexRenderers[i].enabled = false;
                 }
-                else {
-                    // the next LRs can start at the previous bezier vertex (well, midway there, so it looks like a dashed line)
-                    lrStartPoint = Vector3.Lerp(lrEndPoint, teleportArcVertexRenderers[i - 1].transform.position, 0.5f);
-                }
-                teleportArcVertexRenderers[i].SetPosition(0, lrStartPoint);
-                teleportArcVertexRenderers[i].SetPosition(1, lrEndPoint);
-                teleportArcVertexRenderers[i].enabled = true;
+                teleportLocationModel.SetActive(false);
             }
-
-            // position the teleport point
-            teleportLocationModel.SetActive(true);
-            teleportLocationModel.transform.position = teleportTargetPosition;
-            teleportLocationModel.transform.rotation = teleportTargetRotation;
         }
     }
 }
