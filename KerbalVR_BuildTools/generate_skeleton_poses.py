@@ -75,7 +75,7 @@ parsing_state_bones = PARSING_STATES_BONES['none']
 
 for filename in skeleton_poses_asset_files:
     class_name = re.sub(r'\..*$', '', filename)
-    class_filename = re.sub(r'\.asset$', '.cs', filename)
+    class_filename = "KerbalVR_{0}".format(re.sub(r'\.asset$', '.cs', filename))
     asset_file_path = os.path.join(skeleton_poses_dir, filename) # original asset file
     class_file_path = os.path.join(skeleton_poses_dir, class_filename) # new C# file
 
@@ -212,7 +212,7 @@ for filename in skeleton_poses_asset_files:
         out.write('using Valve.VR;\n\n')
         out.write('namespace KerbalVR {\n')
         out.write('    public class SkeletonPose_{0} {{\n'.format(skeleton_pose['class_name']))
-        out.write('        public SteamVR_Skeleton_Pose GetInstance() {\n')
+        out.write('        public static SteamVR_Skeleton_Pose GetInstance() {\n')
         out.write('            SteamVR_Skeleton_Pose pose = ScriptableObject.CreateInstance<SteamVR_Skeleton_Pose>();\n')
         out.write('            pose.applyToSkeletonRoot = {0};\n'.format('true' if skeleton_pose['applyToSkeletonRoot'] else 'false'))
 
