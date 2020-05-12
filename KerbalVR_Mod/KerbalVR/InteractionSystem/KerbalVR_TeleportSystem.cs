@@ -13,11 +13,39 @@ namespace KerbalVR {
         public float bezierControlPointAngleDeg = 40f;
         public float bezierControlPointFraction = 0.75f;
 
+        /// <summary>
+        /// True if teleportation is allowed in the current scene, false otherwise.
+        /// </summary>
+        private bool _isTeleportAllowed = false;
+        public bool IsTeleportAllowed {
+            get {
+                if (KerbalVR.Core.IsVrRunning) {
+                    switch (HighLogic.LoadedScene) {
+                        case GameScenes.MAINMENU:
+                        case GameScenes.EDITOR:
+                            _isTeleportAllowed = true;
+                            break;
+
+                        case GameScenes.FLIGHT:
+                            if (KerbalVR.Scene.IsInEVA()) {
+                                _isTeleportAllowed = true;
+                            }
+                            else {
+                                _isTeleportAllowed = false;
+                            }
+                            break;
+                    }
+                } else {
+                    _isTeleportAllowed = false;
+                }
+                return _isTeleportAllowed;
+            }
+        }
+
         protected Transform origin;
         protected SteamVR_Action_Boolean teleportAction;
         protected SteamVR_Input_Sources teleportSource = SteamVR_Input_Sources.Any;
         protected bool isTeleportShowing = false;
-        protected bool isTeleportAllowed = true;
         protected Vector3 teleportTargetPosition;
         protected Quaternion teleportTargetRotation;
         protected GameObject teleportLocationModel;
@@ -57,9 +85,6 @@ namespace KerbalVR {
         }
 
         protected void Update() {
-            // logic to dictate enabling/disabling teleportation
-            isTeleportAllowed = true;
-
             // position the teleportation origin
             if (origin != null) {
                 this.transform.position = origin.transform.position;
@@ -98,7 +123,7 @@ namespace KerbalVR {
                 }
                 else {
                     // button has been lifted, move to that location
-                    if (isTeleportAllowed && teleportTargetPosition != null) {
+                    if (IsTeleportAllowed && teleportTargetPosition != null) {
                         Vector3 hmdPosition = KerbalVR.Scene.Instance.HmdTransform.pos;
                         Vector3 newPlayerPosition = teleportTargetPosition - new Vector3(hmdPosition.x, 0f, hmdPosition.z);
                         if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
@@ -115,7 +140,7 @@ namespace KerbalVR {
         }
 
         protected void UpdateTeleportTarget() {
-            if (isTeleportShowing && origin != null) {
+            if (IsTeleportAllowed && isTeleportShowing && origin != null) {
                 // raycasts should not strike layer "Scaled Scenery"
                 // TODO: identify other layers to not strike
                 int layerMask = 1 << 10;
@@ -128,8 +153,6 @@ namespace KerbalVR {
                     teleportTargetPosition = forwardHit.point;
                     teleportTargetRotation = Quaternion.LookRotation(
                         Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, forwardHit.normal), forwardHit.normal);
-                    isTeleportAllowed = true;
-
                 }
                 else {
                     // shorten the max forward cast distance when the controller starts to pitch high up,
@@ -145,18 +168,13 @@ namespace KerbalVR {
                         teleportTargetPosition = downwardHit.point;
                         teleportTargetRotation = Quaternion.LookRotation(
                             Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, downwardHit.normal), downwardHit.normal);
-                        isTeleportAllowed = true;
-                    }
-                    else {
-                        isTeleportAllowed = false;
                     }
                 }
             }
-            isTeleportAllowed = isTeleportAllowed && isTeleportShowing;
         }
 
         protected void RenderTeleportArc() {
-            if (isTeleportShowing && origin != null) {
+            if (IsTeleportAllowed && isTeleportShowing && origin != null) {
                 // determine the bezier control point
                 // TODO: maybe increase the lift angle at very high controller pitches
                 Vector3 targetFromOrigin = teleportTargetPosition - origin.position;
@@ -197,9 +215,8 @@ namespace KerbalVR {
                 teleportLocationModel.transform.position = teleportTargetPosition;
                 teleportLocationModel.transform.rotation = teleportTargetRotation;
             }
-
-            // turn off arc renderers when teleport is not allowed
-            if (!isTeleportAllowed) {
+            else {
+                // turn off arc renderers when teleport is not allowed
                 for (int i = 0; i < MAX_TELEPORT_ARC_VERTICES; i++) {
                     teleportArcVertexRenderers[i].enabled = false;
                 }
