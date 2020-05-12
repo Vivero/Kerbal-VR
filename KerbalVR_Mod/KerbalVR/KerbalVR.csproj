@@ -87,6 +87,7 @@
     <Compile Include="InteractionSystem\KerbalVR_Hand.cs" />
     <Compile Include="InteractionSystem\KerbalVR_TeleportSystem.cs" />
     <Compile Include="KerbalVR_Configuration.cs" />
+    <Compile Include="KerbalVR_ConfigUtils.cs" />
     <Compile Include="KerbalVR_Core.cs" />
     <Compile Include="KerbalVR_Events.cs" />
     <Compile Include="KerbalVR_AssetLoader.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="Modules\KerbalVR_AvionicsComputer.cs" />
+    <Compile Include="Modules\KerbalVR_HandRail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SkeletonPoses\KerbalVR_FallbackRelaxedPose.cs" />
     <Compile Include="SteamVR\Input\BehaviourUnityEvents\SteamVR_Behaviour_BooleanEvent.cs" />
