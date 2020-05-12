@@ -73,7 +73,7 @@ namespace KerbalVR
 
         public static int[] Int32MaskToArray(int mask) {
             List<int> maskBits = new List<int>(32);
-            for (int i = 0; i < 32; i++) {
+            for (int i = 0; i < 32; ++i) {
                 int checkMask = 1 << i;
                 if ((mask & checkMask) > 0) {
                     maskBits.Add(i);
@@ -86,7 +86,7 @@ namespace KerbalVR
             if (obj != null) {
                 obj.layer = layer;
                 int numChildren = obj.transform.childCount;
-                for (int i = 0; i < numChildren; i++) {
+                for (int i = 0; i < numChildren; ++i) {
                     SetLayer(obj.transform.GetChild(i).gameObject, layer);
                 }
             }
@@ -96,7 +96,7 @@ namespace KerbalVR
             if (obj != null) {
                 obj.SetActive(active);
                 int numChildren = obj.transform.childCount;
-                for (int i = 0; i < numChildren; i++) {
+                for (int i = 0; i < numChildren; ++i) {
                     SetGameObjectTreeActive(obj.transform.GetChild(i).gameObject, active);
                 }
             }
@@ -105,7 +105,7 @@ namespace KerbalVR
         public static void SetGameObjectChildrenActive(GameObject obj, bool active) {
             if (obj != null) {
                 int numChildren = obj.transform.childCount;
-                for (int i = 0; i < numChildren; i++) {
+                for (int i = 0; i < numChildren; ++i) {
                     obj.transform.GetChild(i).gameObject.SetActive(active);
                 }
             }
@@ -227,7 +227,7 @@ namespace KerbalVR
             msg += indentation + "localScale    : " + go.transform.localScale.ToString() + "\n";
 
             Component[] components = go.GetComponents<Component>();
-            for (int i = 0; i < components.Length; i++) {
+            for (int i = 0; i < components.Length; ++i) {
                 msg += indentation + "Component: " + components[i].GetType().ToString();
 
                 if (components[i] is MeshFilter) {
@@ -273,7 +273,7 @@ namespace KerbalVR
 
         public static string GetGameObjectTree(GameObject go, int level = 0) {
             string logMsg = GetGameObjectInfo(go, level);
-            for (int i = 0; i < go.transform.childCount; i++) {
+            for (int i = 0; i < go.transform.childCount; ++i) {
                 // logMsg += "+-- (" + (i + 1) + "/" + go.transform.childCount + ") Parent: " + go.name + "\n";
                 logMsg += GetGameObjectTree(go.transform.GetChild(i).gameObject, level + 1);
             }
@@ -283,7 +283,7 @@ namespace KerbalVR
         public static void PrintAllCameras() {
             string logMsg = "\nScene: " + HighLogic.LoadedScene;
             logMsg += ", CameraMode: " + (CameraManager.Instance != null ? CameraManager.Instance.currentCameraMode.ToString() : "null") + "\n\n";
-            for (int i = 0; i < Camera.allCamerasCount; i++) {
+            for (int i = 0; i < Camera.allCamerasCount; ++i) {
                 logMsg += "Camera (" + (i + 1) + "/" + Camera.allCamerasCount + ") ";
                 logMsg += GetCameraInfo(Camera.allCameras[i]);
                 logMsg += "-- Object hierarchy --\n";
@@ -312,7 +312,7 @@ namespace KerbalVR
         }
 
         public static void PrintAllLayers() {
-            for (int i = 0; i < 32; i++) {
+            for (int i = 0; i < 32; ++i) {
                 Log("Layer " + i + ": " + LayerMask.LayerToName(i));
             }
         }
@@ -320,7 +320,7 @@ namespace KerbalVR
         public static void PrintFonts() {
             TMPro.TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll(typeof(TMPro.TMP_FontAsset)) as TMPro.TMP_FontAsset[];
             Log("num fonts: " + fonts.Length);
-            for (int i = 0; i < fonts.Length; i++) {
+            for (int i = 0; i < fonts.Length; ++i) {
                 TMPro.TMP_FontAsset font = fonts[i];
                 Log("font name: " + font.name);
             }
@@ -328,7 +328,7 @@ namespace KerbalVR
 
         public static void PrintCollisionMatrix() {
             string header = string.Format("{0,22} {1,3}", "", "");
-            for (int i = 0; i < 32; i++) {
+            for (int i = 0; i < 32; ++i) {
                 header += string.Format("{0,3}", i);
             }
             Log(header);
