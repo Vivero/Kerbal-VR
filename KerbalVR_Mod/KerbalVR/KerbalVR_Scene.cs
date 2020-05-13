@@ -269,22 +269,24 @@ namespace KerbalVR
                         EVREye eye = (EVREye)eyeIdx;
 
                         Camera kvrCameraComponent = VRCameraSets[camIdx].vrCameras[eyeIdx].cameraComponent;
-                        kvrCameraComponent.depth = kspCameraComponent.depth + (eyeIdx * 0.5f);
-                        kvrCameraComponent.clearFlags = kspCameraComponent.clearFlags;
+                        kvrCameraComponent.allowDynamicResolution = kspCameraComponent.allowDynamicResolution;
+                        kvrCameraComponent.allowHDR = kspCameraComponent.allowHDR;
+                        kvrCameraComponent.allowMSAA = kspCameraComponent.allowMSAA;
                         kvrCameraComponent.backgroundColor = kspCameraComponent.backgroundColor;
+                        kvrCameraComponent.clearFlags = kspCameraComponent.clearFlags;
+                        kvrCameraComponent.clearStencilAfterLightingPass = kspCameraComponent.clearStencilAfterLightingPass;
                         kvrCameraComponent.cullingMask = kspCameraComponent.cullingMask;
-                        kvrCameraComponent.orthographic = kspCameraComponent.orthographic;
-                        kvrCameraComponent.nearClipPlane = kspCameraComponent.nearClipPlane;
-                        kvrCameraComponent.farClipPlane = kspCameraComponent.farClipPlane;
+                        kvrCameraComponent.depth = kspCameraComponent.depth + (eyeIdx * 0.5f);
                         kvrCameraComponent.depthTextureMode = kspCameraComponent.depthTextureMode;
-
-                        // camera settings overrides
-                        if (kspCameraName == "Landscape Camera" ||
-                            kspCameraName == "InternalCamera" ||
-                            kspCameraName == "Main Camera" ||
-                            kspCameraName == "Camera 00") {
-                            kvrCameraComponent.nearClipPlane = 0.01f;
-                        }
+                        kvrCameraComponent.eventMask = kspCameraComponent.eventMask;
+                        kvrCameraComponent.farClipPlane = kspCameraComponent.farClipPlane;
+                        kvrCameraComponent.layerCullDistances = kspCameraComponent.layerCullDistances;
+                        kvrCameraComponent.layerCullSpherical = kspCameraComponent.layerCullSpherical;
+                        kvrCameraComponent.nearClipPlane = kspCameraComponent.nearClipPlane;
+                        kvrCameraComponent.opaqueSortMode = kspCameraComponent.opaqueSortMode;
+                        kvrCameraComponent.orthographic = kspCameraComponent.orthographic;
+                        kvrCameraComponent.renderingPath = kspCameraComponent.renderingPath;
+                        kvrCameraComponent.useOcclusionCulling = kspCameraComponent.useOcclusionCulling;
 
                         // set VR specific settings
                         HmdMatrix44_t projectionMatrix = OpenVR.System.GetProjectionMatrix(
