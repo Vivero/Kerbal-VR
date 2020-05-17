@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="kerbalvr" Name="kerbalvr" CreatedTime="-8586127721936838560">
+<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="kerbalvr" Name="kerbalvr" CreatedTime="-8586119080701364429">
   <Author>Vivero</Author>
   <Info>Assets for the KerbalVR mod.</Info>
   <Assets>
     <Asset Name="KVR_TeleportPoint" Path="Assets/Prefabs/KVR_TeleportPoint.prefab" Type="GameObject" Url="Prefabs/KVR_TeleportPoint" AutoLoad="false" />
+    <Asset Name="KerbalVR/FlatWireframe" Path="Assets/Shaders/FlatWireframeShader.shader" Type="Shader" Url="Shaders/FlatWireframeShader" AutoLoad="false" />
     <Asset Name="vr_glove_left" Path="Assets/SteamVR/Prefabs/vr_glove_left.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_left" AutoLoad="false" />
     <Asset Name="vr_glove_left_model_slim" Path="Assets/SteamVR/Prefabs/vr_glove_left_model_slim.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_left_model_slim" AutoLoad="false" />
     <Asset Name="vr_glove_right" Path="Assets/SteamVR/Prefabs/vr_glove_right.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_right" AutoLoad="false" />
     <Asset Name="vr_glove_right_model_slim" Path="Assets/SteamVR/Prefabs/vr_glove_right_model_slim.prefab" Type="GameObject" Url="SteamVR/Prefabs/vr_glove_right_model_slim" AutoLoad="false" />
   </Assets>
-  <Dependencies />
+  <Dependencies>
+    <Dependency>squadcore</Dependency>
+  </Dependencies>
 </KSPBundleDefinition>

@@ -35,7 +35,8 @@ namespace KerbalVR
         #endregion
 
         #region Private Members
-        protected Dictionary<string, GameObject> gameObjectsDictionary;
+        protected Dictionary<string, GameObject> gameObjectsDictionary = new Dictionary<string, GameObject>();
+        protected Dictionary<string, Shader> shadersDictionary = new Dictionary<string, Shader>();
         #endregion
 
         #region Singleton
@@ -61,7 +62,6 @@ namespace KerbalVR
         /// One-time initialization for this singleton class.
         /// </summary>
         protected void Initialize() {
-            gameObjectsDictionary = new Dictionary<string, GameObject>();
 
             // load KerbalVR asset bundles
             LoadAssets();
@@ -71,7 +71,7 @@ namespace KerbalVR
         #endregion
 
         /// <summary>
-        /// Load prefabs from asset bundles.
+        /// Load game assets from asset bundles.
         /// </summary>
         protected void LoadAssets() {
             // load asset bundles
@@ -84,12 +84,18 @@ namespace KerbalVR
                     string[] assetNames = bundle.GetAllAssetNames();
                     for (int i = 0; i < assetNames.Length; i++) {
                         string assetName = assetNames[i];
+                        Utils.Log("Asset: " + assetName);
 
                         // find prefabs
                         if (assetName.EndsWith(".prefab")) {
                             GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
                             gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
-                            Utils.Log("Loaded \"" + assetGameObject.name + "\" from \"" + assetName + "\"");
+                            Utils.Log("Loaded GameObject \"" + assetGameObject.name + "\" from \"" + assetName + "\"");
+
+                        } else if (assetName.EndsWith(".shader")) {
+                            Shader assetShader = bundle.LoadAsset<Shader>(assetName);
+                            shadersDictionary.Add(assetShader.name, assetShader);
+                            Utils.Log("Loaded Shader \"" + assetShader.name + "\" from \"" + assetName + "\"");
                         }
                     }
                 }
@@ -97,13 +103,26 @@ namespace KerbalVR
         }
 
         /// <summary>
-        /// Get an asset that was loaded from an asset bundle.
+        /// Get a GameObject asset that was loaded from an asset bundle.
         /// </summary>
-        /// <param name="gameObjectName">Name of the asset</param>
-        /// <returns></returns>
+        /// <param name="gameObjectName">Name of the GameObject</param>
+        /// <returns>The GameObject, or null if not found</returns>
         public GameObject GetGameObject(string gameObjectName) {
             if (gameObjectsDictionary.TryGetValue(gameObjectName, out GameObject obj)) {
                 return obj;
+            }
+            return null;
+        }
+
+
+        /// <summary>
+        /// Get a Shader asset that was loaded from an asset bundle.
+        /// </summary>
+        /// <param name="shaderName">Name of the Shader</param>
+        /// <returns>The Shader, or null if not found</returns>
+        public Shader GetShader(string shaderName) {
+            if (shadersDictionary.TryGetValue(shaderName, out Shader shader)) {
+                return shader;
             }
             return null;
         }
