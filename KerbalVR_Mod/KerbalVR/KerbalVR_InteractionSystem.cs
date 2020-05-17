@@ -44,23 +44,6 @@ namespace KerbalVR
                 Utils.LogWarning("Could not load prefab: vr_glove_right_model_slim");
                 return;
             }
-
-            // make instance objects out of them
-            handL = Instantiate(glovePrefabL);
-            if (handL == null) {
-                Utils.LogWarning("Could not Instantiate prefab: vr_glove_left_model_slim");
-                return;
-            }
-            handL.name = "KVR_HandL";
-            DontDestroyOnLoad(handL);
-
-            handR = Instantiate(glovePrefabR);
-            if (handR == null) {
-                Utils.LogWarning("Could not Instantiate prefab: vr_glove_right_model_slim");
-                return;
-            }
-            handR.name = "KVR_HandR";
-            DontDestroyOnLoad(handR);
         }
         #endregion
 
@@ -113,15 +96,22 @@ namespace KerbalVR
             teleportAction = SteamVR_Input.GetBooleanAction("EVA", "Teleport");
 
             // set up the hand objects
+            handL = new GameObject("KVR_HandL");
+            DontDestroyOnLoad(handL);
             handScriptL = handL.AddComponent<KerbalVR.Hand>();
             handScriptL.handPrefab = glovePrefabL;
             handScriptL.handType = SteamVR_Input_Sources.LeftHand;
             handScriptL.handActionPose = handActionPose;
 
+            handR = new GameObject("KVR_HandR");
+            DontDestroyOnLoad(handR);
             handScriptR = handR.AddComponent<KerbalVR.Hand>();
             handScriptR.handPrefab = glovePrefabR;
             handScriptR.handType = SteamVR_Input_Sources.RightHand;
             handScriptR.handActionPose = handActionPose;
+
+            handScriptR.otherHand = handL;
+            handScriptL.otherHand = handR;
 
             // can init the skeleton behavior now
             handScriptL.Initialize();
