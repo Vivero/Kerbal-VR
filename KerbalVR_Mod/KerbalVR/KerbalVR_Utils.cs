@@ -403,5 +403,54 @@ namespace KerbalVR
                 }
             }
         }
-    } // class Utils
-} // namespace KerbalVR
+    }
+
+    /// <summary>
+    /// A GameObject component that creates primitives as a visual
+    /// representation of the colliders attached to this GameObject.
+    /// </summary>
+    public class ColliderVisualizer : MonoBehaviour {
+        #region Private Members
+        protected GameObject visual;
+        #endregion
+
+        /// <summary>
+        /// On Awake, look for colliders attached to this GameObject
+        /// and create primitives that visualize those colliders.
+        /// </summary>
+        protected void Awake() {
+            // TODO: handle multiple colliders
+
+            CapsuleCollider capsuleCollider = this.gameObject.GetComponent<CapsuleCollider>();
+            if (capsuleCollider != null) {
+                Utils.Log("ColliderVisualizer found CapsuleCollider");
+
+                visual = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                Destroy(visual.GetComponent<CapsuleCollider>());
+                visual.transform.SetParent(this.transform);
+                visual.transform.localScale = new Vector3(
+                    capsuleCollider.radius * 2f, capsuleCollider.height * 0.5f, capsuleCollider.radius * 2f);
+                visual.transform.localRotation = Quaternion.identity;
+                visual.transform.localPosition = capsuleCollider.center;
+                // TODO: handle axis alignment
+            }
+
+            SphereCollider sphereCollider = this.gameObject.GetComponent<SphereCollider>();
+            if (sphereCollider != null) {
+                Utils.Log("ColliderVisualizer found SphereCollider");
+
+                visual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                Destroy(visual.GetComponent<SphereCollider>());
+                visual.transform.SetParent(this.transform);
+                visual.transform.localScale = Vector3.one * sphereCollider.radius * 2f;
+                visual.transform.localRotation = Quaternion.identity;
+                visual.transform.localPosition = sphereCollider.center;
+            }
+
+            if (visual != null) {
+                visual.name = "ColliderVisualizer";
+                visual.GetComponent<MeshRenderer>().sharedMaterial = new Material(AssetLoader.Instance.GetShader("KerbalVR/FlatWireframe"));
+            }
+        }
+    }
+}
