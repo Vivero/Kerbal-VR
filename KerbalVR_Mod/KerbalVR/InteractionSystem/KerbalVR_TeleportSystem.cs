@@ -46,8 +46,9 @@ namespace KerbalVR {
         protected SteamVR_Action_Boolean teleportAction;
         protected SteamVR_Input_Sources teleportSource = SteamVR_Input_Sources.Any;
         protected bool isTeleportShowing = false;
-        protected Vector3 teleportTargetPosition;
-        protected Quaternion teleportTargetRotation;
+        protected bool isTeleportTargetValid = false;
+        protected Vector3 teleportTargetPosition = Vector3.zero;
+        protected Quaternion teleportTargetRotation = Quaternion.identity;
         protected GameObject teleportLocationModel;
 
         protected const int MAX_TELEPORT_ARC_VERTICES = 10;
@@ -123,7 +124,7 @@ namespace KerbalVR {
                 }
                 else {
                     // button has been lifted, move to that location
-                    if (IsTeleportAllowed && teleportTargetPosition != null) {
+                    if (IsTeleportAllowed && isTeleportTargetValid) {
                         Vector3 hmdPosition = KerbalVR.Scene.Instance.HmdTransform.pos;
                         Vector3 newPlayerPosition = teleportTargetPosition - new Vector3(hmdPosition.x, 0f, hmdPosition.z);
                         if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null) {
@@ -140,6 +141,7 @@ namespace KerbalVR {
         }
 
         protected void UpdateTeleportTarget() {
+            isTeleportTargetValid = false;
             if (IsTeleportAllowed && isTeleportShowing && origin != null) {
                 // raycasts should not strike layer "Scaled Scenery"
                 // TODO: identify other layers to not strike
@@ -153,6 +155,7 @@ namespace KerbalVR {
                     teleportTargetPosition = forwardHit.point;
                     teleportTargetRotation = Quaternion.LookRotation(
                         Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, forwardHit.normal), forwardHit.normal);
+                    isTeleportTargetValid = true;
                 }
                 else {
                     // shorten the max forward cast distance when the controller starts to pitch high up,
@@ -168,13 +171,14 @@ namespace KerbalVR {
                         teleportTargetPosition = downwardHit.point;
                         teleportTargetRotation = Quaternion.LookRotation(
                             Vector3.ProjectOnPlane(teleportTargetPosition - origin.position, downwardHit.normal), downwardHit.normal);
+                        isTeleportTargetValid = true;
                     }
                 }
             }
         }
 
         protected void RenderTeleportArc() {
-            if (IsTeleportAllowed && isTeleportShowing && origin != null) {
+            if (IsTeleportAllowed && isTeleportShowing && isTeleportTargetValid && origin != null) {
                 // determine the bezier control point
                 // TODO: maybe increase the lift angle at very high controller pitches
                 Vector3 targetFromOrigin = teleportTargetPosition - origin.position;
