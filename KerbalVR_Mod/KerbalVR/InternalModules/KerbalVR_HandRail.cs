@@ -4,6 +4,11 @@ using Valve.VR;
 namespace KerbalVR.InternalModules {
     public class HandRail : InteractableInternalModule {
 
+        #region KSP Config Fields
+        [KSPField]
+        public float railLength = 0.1f;
+        #endregion
+
         #region Private Members
         protected ConfigNode moduleConfigNode;
         protected CapsuleCollider handleCollider;
@@ -21,11 +26,8 @@ namespace KerbalVR.InternalModules {
             handleCollider.isTrigger = true;
             handleCollider.center = new Vector3(0f, 0f, -0.0527f);
             handleCollider.radius = 0.01f;
-            handleCollider.height = 0.45f; // 0.38f;
+            handleCollider.height = railLength;
             handleCollider.direction = 1; // y-axis aligned
-
-            // set layer for this object to 20 (Internal Space)
-            Utils.SetLayer(this.gameObject, 20);
 
             // add a pose for this object
             SkeletonPoser = this.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
@@ -34,12 +36,16 @@ namespace KerbalVR.InternalModules {
 
 #if DEBUG
             GameObject gizmo = Utils.CreateGizmo(0.25f);
-            Utils.SetLayer(gizmo, 20);
             gizmo.transform.SetParent(this.transform);
             gizmo.transform.localPosition = Vector3.zero;
             gizmo.transform.localRotation = Quaternion.identity;
             gizmo.transform.localScale = Vector3.one;
+
+            this.gameObject.AddComponent<ColliderVisualizer>();
 #endif
+
+            // set layer for this object to 20 (Internal Space)
+            Utils.SetLayer(this.gameObject, 20);
         }
 
         protected void Update() {
