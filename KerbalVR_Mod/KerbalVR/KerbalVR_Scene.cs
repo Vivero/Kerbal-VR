@@ -474,7 +474,7 @@ namespace KerbalVR
 
             // compare with the previous set of cameras, and turn off any cameras
             // that were removed in the new scene
-            if (newKspSceneCameraNames != null) {
+            if (newKspSceneCameraNames != null && currentKspSceneCameraNames != null) {
                 foreach (string kspCameraName in currentKspSceneCameraNames) {
                     bool foundCamera = false;
                     foreach (string kspCameraNameNew in newKspSceneCameraNames) {
