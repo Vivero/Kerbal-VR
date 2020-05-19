@@ -1,11 +1,13 @@
 using UnityEngine;
 using Valve.VR;
 
-namespace KerbalVR.Modules {
-    public class HandRail : InternalModule {
-        public SteamVR_Skeleton_Poser GrabPoser { get; private set; }
+namespace KerbalVR.InternalModules {
+    public class HandRail : InteractableInternalModule {
+
+        #region Private Members
         protected ConfigNode moduleConfigNode;
         protected CapsuleCollider handleCollider;
+        #endregion
 
         protected void Start() {
             // no setup needed in editor mode
@@ -26,18 +28,26 @@ namespace KerbalVR.Modules {
             Utils.SetLayer(this.gameObject, 20);
 
             // add a pose for this object
-            GrabPoser = this.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
-            GrabPoser.skeletonMainPose = SkeletonPose_HandleRailGrabPose.GetInstance();
-            GrabPoser.Initialize();
+            SkeletonPoser = this.gameObject.AddComponent<SteamVR_Skeleton_Poser>();
+            SkeletonPoser.skeletonMainPose = SkeletonPose_HandleRailGrabPose.GetInstance();
+            SkeletonPoser.Initialize();
 
-            this.gameObject.AddComponent<ColliderVisualizer>();
-
-            GameObject gizmo = Utils.CreateGizmo();
+#if DEBUG
+            GameObject gizmo = Utils.CreateGizmo(0.25f);
             Utils.SetLayer(gizmo, 20);
             gizmo.transform.SetParent(this.transform);
             gizmo.transform.localPosition = Vector3.zero;
             gizmo.transform.localRotation = Quaternion.identity;
-            gizmo.transform.localScale = Vector3.one * 2f;
+            gizmo.transform.localScale = Vector3.one;
+#endif
+        }
+
+        protected void Update() {
+            if (IsGrabbed) {
+                Vector3 deltaPos = GrabbedHand.handActionPose.GetLastLocalPosition(GrabbedHand.handType) -
+                    GrabbedHand.handActionPose.GetLocalPosition(GrabbedHand.handType);
+                KerbalVR.Scene.Instance.CurrentPosition += KerbalVR.Scene.Instance.CurrentRotation * deltaPos;
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-using KerbalVR.Modules;
+using KerbalVR.InternalModules;
 using System;
 using UnityEngine;
 using Valve.VR;
@@ -40,15 +40,15 @@ namespace KerbalVR {
         protected SteamVR_Behaviour_Skeleton handSkeleton;
         protected SphereCollider handCollider;
         protected Rigidbody handRigidbody;
-        protected Transform origin;
 
         // keep tracking of render state
         protected Types.ShiftRegister<bool> isRenderingHands = new Types.ShiftRegister<bool>(2);
         protected Types.ShiftRegister<int> renderLayerHands = new Types.ShiftRegister<int>(2);
 
         // keep track of held objects
-        protected GameObject heldObject;
-        protected SteamVR_Skeleton_Poser heldObjectPoser;
+        protected InteractableInternalModule hoveredObject;
+        protected InteractableInternalModule heldObject;
+        protected SteamVR_Action_Boolean actionGrab;
         #endregion
 
 
@@ -104,6 +104,10 @@ namespace KerbalVR {
             handRigidbody.useGravity = false;
             handRigidbody.isKinematic = true;
 
+            // set up actions
+            actionGrab = SteamVR_Input.GetBooleanAction("default", "GrabGrip");
+            actionGrab[handType].onChange += OnChangeGrab;
+
 #if DEBUG
             GameObject gizmo = Utils.CreateGizmo();
             gizmo.transform.SetParent(this.transform);
@@ -116,6 +120,24 @@ namespace KerbalVR {
             gizmo.transform.localPosition = Vector3.zero;
             gizmo.transform.localRotation = Quaternion.identity;
 #endif
+        }
+
+        protected void OnChangeGrab(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState) {
+            if (newState) {
+                if (hoveredObject != null) {
+                    heldObject = hoveredObject;
+                    heldObject.IsGrabbed = true;
+                    heldObject.GrabbedHand = this;
+                    handSkeleton.BlendToPoser(heldObject.SkeletonPoser);
+                }
+            } else {
+                if (heldObject != null) {
+                    heldObject.IsGrabbed = false;
+                    heldObject.GrabbedHand = null;
+                    heldObject = null;
+                    handSkeleton.BlendToSkeleton();
+                }
+            }
         }
 
         protected void Update() {
@@ -166,11 +188,7 @@ namespace KerbalVR {
                     this.transform.rotation = handTransformRot;
 
                     // determine if the rendered hand object needs to track device, or the interacting object
-                    if (origin == null) {
-                        handObject.transform.position = handTransformPos;
-                        handObject.transform.rotation = handTransformRot;
-                    }
-                    else if (origin != null && heldObject != null && heldObjectPoser != null) {
+                    if (heldObject != null && heldObject.SkeletonPoser != null) {
                         // this equation looks messy because of the way the SteamVR_Skeleton_Pose_Hand object
                         // records the skeleton offset position/rotation. it's like a negative offset, relative
                         // to the object we are interacting with. i think it boils down to this:
@@ -180,14 +198,17 @@ namespace KerbalVR {
                         // so, we are solving for `handTransform`, taking into account the rotations of the various frames of reference.
                         //
                         Quaternion skeletonRotInv = (handType == SteamVR_Input_Sources.LeftHand) ?
-                            Quaternion.Inverse(heldObjectPoser.skeletonMainPose.leftHand.rotation) :
-                            Quaternion.Inverse(heldObjectPoser.skeletonMainPose.rightHand.rotation);
+                            Quaternion.Inverse(heldObject.SkeletonPoser.skeletonMainPose.leftHand.rotation) :
+                            Quaternion.Inverse(heldObject.SkeletonPoser.skeletonMainPose.rightHand.rotation);
                         Vector3 skeletonPos = (handType == SteamVR_Input_Sources.LeftHand) ?
-                            heldObjectPoser.skeletonMainPose.leftHand.position :
-                            heldObjectPoser.skeletonMainPose.rightHand.position;
+                            heldObject.SkeletonPoser.skeletonMainPose.leftHand.position :
+                            heldObject.SkeletonPoser.skeletonMainPose.rightHand.position;
 
                         handObject.transform.position = heldObject.transform.position - heldObject.transform.rotation * skeletonRotInv * skeletonPos;
                         handObject.transform.rotation = heldObject.transform.rotation * skeletonRotInv;
+                    } else {
+                        handObject.transform.position = handTransformPos;
+                        handObject.transform.rotation = handTransformRot;
                     }
                 } else {
                     isRendering = false;
@@ -206,34 +227,19 @@ namespace KerbalVR {
         }
 
         protected void OnTriggerEnter(Collider other) {
-            // TODO: handle interactables
-            Utils.Log("OnTriggerEnter with: " + other.gameObject.name);
             if (other.gameObject.name.StartsWith("KVR_")) {
-                Utils.Log("* KVR Object");
-
-                HandRail interactable = other.gameObject.GetComponent<HandRail>();
+                InteractableInternalModule interactable = other.gameObject.GetComponent<InteractableInternalModule>();
                 if (interactable != null) {
-                    origin = other.transform;
-                    heldObject = other.gameObject;
-                    heldObjectPoser = interactable.GrabPoser;
-                    handSkeleton.BlendToPoser(heldObjectPoser);
+                    hoveredObject = interactable;
                 }
             }
         }
 
         protected void OnTriggerExit(Collider other) {
-            // TODO: handle interactables
-            Utils.Log("OnTriggerExit with: " + other.gameObject.name);
-            if (other.gameObject.name.StartsWith("KVR_")) {
-                Utils.Log("* KVR Object");
-
-                HandRail interactable = other.gameObject.GetComponent<HandRail>();
-                if (interactable != null) {
-                    origin = null;
-                    heldObject = null;
-                    heldObjectPoser = null;
-                    handSkeleton.BlendToSkeleton();
-                    Utils.Log("* Removed held object");
+            if (hoveredObject != null) {
+                InteractableInternalModule interactable = other.gameObject.GetComponent<InteractableInternalModule>();
+                if (interactable == hoveredObject) {
+                    hoveredObject = null;
                 }
             }
         }

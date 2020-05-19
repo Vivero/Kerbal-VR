@@ -1,7 +1,7 @@
 using UnityEngine;
 using Valve.VR;
 
-namespace KerbalVR.Modules {
+namespace KerbalVR.Components {
     /// <summary>
     /// A part module that manages data flow to the vessel,
     /// and other modules. Start up on Flight only.
