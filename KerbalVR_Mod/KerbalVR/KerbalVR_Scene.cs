@@ -415,6 +415,9 @@ namespace KerbalVR
         }
 
         protected void OnCameraChange(CameraManager.CameraMode mode) {
+#if DEBUG
+            Utils.Log("OnCameraChange: " + mode.ToString());
+#endif
             StartCoroutine("TransitionScene");
         }
 
@@ -427,6 +430,9 @@ namespace KerbalVR
         }
 
         protected IEnumerator TransitionScene() {
+#if DEBUG
+            Utils.Log("TransitionScene: started...");
+#endif
             // if we don't have the current camera names, get them
             if (currentKspSceneCameraNames == null) {
                 currentKspSceneCameraNames = GetCameraNamesForCurrentScene();
@@ -438,7 +444,12 @@ namespace KerbalVR
                 foreach (string kspCameraName in currentKspSceneCameraNames) {
                     Camera kspCamera = GetKspCameraComponent(kspCameraName);
                     if (kspCamera == null) continue;
-                    if (!kspCamera.enabled) kspCamera.enabled = true;
+                    if (!kspCamera.enabled) {
+#if DEBUG
+                        Utils.Log("TransitionScene: enabling KSP camera " + kspCameraName);
+#endif
+                        kspCamera.enabled = true;
+                    }
                 }
 
                 // turn off the VR cameras for the current set
@@ -454,9 +465,41 @@ namespace KerbalVR
 
             // wait some time
             yield return new WaitForSeconds(0.5f);
+#if DEBUG
+            Utils.Log("TransitionScene: set up new cameras...");
+#endif
 
             // get the new set of cameras
-            currentKspSceneCameraNames = GetCameraNamesForCurrentScene();
+            string[] newKspSceneCameraNames = GetCameraNamesForCurrentScene();
+
+            // compare with the previous set of cameras, and turn off any cameras
+            // that were removed in the new scene
+            if (newKspSceneCameraNames != null) {
+                foreach (string kspCameraName in currentKspSceneCameraNames) {
+                    bool foundCamera = false;
+                    foreach (string kspCameraNameNew in newKspSceneCameraNames) {
+                        if (kspCameraNameNew == kspCameraName) {
+                            foundCamera = true;
+                            break;
+                        }
+                    }
+                    if (!foundCamera) {
+#if DEBUG
+                        Utils.Log("TransitionScene: need to turn off KSP camera " + kspCameraName);
+#endif
+                        Camera kspCamera = GetKspCameraComponent(kspCameraName);
+                        if (kspCamera == null) continue;
+                        if (kspCamera.enabled) {
+#if DEBUG
+                            Utils.Log("TransitionScene: disabling KSP camera " + kspCameraName);
+#endif
+                            kspCamera.enabled = false;
+                        }
+                    }
+                }
+            }
+            currentKspSceneCameraNames = newKspSceneCameraNames;
+
             if (currentKspSceneCameraNames == null) {
                 // nothing else to be done here
                 yield break;
@@ -503,12 +546,16 @@ namespace KerbalVR
                         // try to find the camera again
                         GameObject kspCameraGameObject = GameObject.Find(kspCameraName);
                         if (kspCameraGameObject == null) {
+#if DEBUG
                             Utils.LogWarning("GetKspCameraComponent: Unexpected state, cannot find camera GameObject " + kspCameraName);
+#endif
                             break;
                         }
                         cameraSet.kspCameraComponent = kspCameraGameObject.GetComponent<Camera>();
                         if (kspCameraGameObject == null) {
+#if DEBUG
                             Utils.LogWarning("GetKspCameraComponent: Unexpected state, cannot find camera Component " + kspCameraName);
+#endif
                             break;
                         }
                         return cameraSet.kspCameraComponent;
@@ -660,7 +707,7 @@ namespace KerbalVR
             }
 
 #if DEBUG
-            Utils.Log("GetCameraNamesForCurrentScene result: " + (cameraNames == null ? "null" : String.Join(",", cameraNames)));
+            Utils.Log("GetCameraNamesForCurrentScene: " + (cameraNames == null ? "null" : String.Join(",", cameraNames)));
 #endif
             return cameraNames;
         }
