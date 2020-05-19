@@ -407,18 +407,18 @@ namespace KerbalVR
         }
 
         protected void OnGameSceneSwitchRequested(GameEvents.FromToAction<GameScenes, GameScenes> fromToAction) {
-            StartCoroutine("TransitionScene");
+            StartCoroutine(TransitionScene());
         }
 
         protected void OnIvaCameraChange(Kerbal kerbal) {
-            StartCoroutine("TransitionScene");
+            StartCoroutine(TransitionScene(true));
         }
 
         protected void OnCameraChange(CameraManager.CameraMode mode) {
 #if DEBUG
             Utils.Log("OnCameraChange: " + mode.ToString());
 #endif
-            StartCoroutine("TransitionScene");
+            StartCoroutine(TransitionScene(true));
         }
 
         protected void OnHmdStatusUpdated(bool isRunning) {
@@ -426,10 +426,10 @@ namespace KerbalVR
             if (isRunning) {
                 BuildVrCameraRig();
             }
-            StartCoroutine("TransitionScene");
+            StartCoroutine(TransitionScene());
         }
 
-        protected IEnumerator TransitionScene() {
+        protected IEnumerator TransitionScene(bool doFastTransition = false) {
 #if DEBUG
             Utils.Log("TransitionScene: started...");
 #endif
@@ -464,7 +464,12 @@ namespace KerbalVR
             }
 
             // wait some time
-            yield return new WaitForSeconds(0.5f);
+            if (doFastTransition) {
+                yield return null;
+            }
+            else {
+                yield return new WaitForSeconds(0.5f);
+            }
 #if DEBUG
             Utils.Log("TransitionScene: set up new cameras...");
 #endif
