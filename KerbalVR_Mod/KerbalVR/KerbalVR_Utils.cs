@@ -314,6 +314,14 @@ namespace KerbalVR
             Log(GetGameObjectTree(go));
         }
 
+        public static void PrintGameObjectTreeComplete(GameObject go) {
+            GameObject rootObject = go;
+            while (rootObject.transform.parent != null) {
+                rootObject = rootObject.transform.parent.gameObject;
+            }
+            Log(GetGameObjectTree(rootObject));
+        }
+
         public static void PrintAllGameObjects() {
             GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
             foreach (GameObject go in allObjects) {
