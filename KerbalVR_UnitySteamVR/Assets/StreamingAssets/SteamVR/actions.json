@@ -62,6 +62,10 @@
       "type": "vector2"
     },
     {
+      "name": "/actions/flight/in/InteractClick",
+      "type": "boolean"
+    },
+    {
       "name": "/actions/EVA/in/Teleport",
       "type": "boolean"
     }
@@ -149,7 +153,8 @@
       "/actions/flight/in/FlightStick": "Flight Stick",
       "/actions/flight/in/YawStick": "Yaw Control",
       "/actions/flight/in/ThrottleStick": "Throttle Control",
-      "/actions/EVA/in/Teleport": "Teleport"
+      "/actions/EVA/in/Teleport": "Teleport",
+      "/actions/flight/in/InteractClick": "Interaction Click"
     }
   ]
 }

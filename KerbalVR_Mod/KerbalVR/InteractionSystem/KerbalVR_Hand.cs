@@ -1,5 +1,6 @@
 using KerbalVR.InternalModules;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
@@ -49,9 +50,17 @@ namespace KerbalVR {
         protected InteractableInternalModule hoveredObject;
         protected InteractableInternalModule heldObject;
         protected SteamVR_Action_Boolean actionGrab;
+
+        // interacting with mouse-clickable objects
+        protected FingertipCollider fingertipInteraction;
+        protected SteamVR_Action_Boolean actionClick;
         #endregion
 
 
+        /// <summary>
+        /// Creates the render models for the hands; sets up behavior scripts on the hands,
+        /// including colliders for interacting with objects.
+        /// </summary>
         public void Initialize() {
             // verify members are set correctly
             if (handType != SteamVR_Input_Sources.LeftHand && handType != SteamVR_Input_Sources.RightHand) {
@@ -67,7 +76,8 @@ namespace KerbalVR {
             DontDestroyOnLoad(handObject);
 
             // cache the hand renderers
-            string renderModelPath = (handType == SteamVR_Input_Sources.LeftHand) ? "slim_l/vr_glove_right_slim" : "slim_r/vr_glove_right_slim";
+            string renderModelParentPath = (handType == SteamVR_Input_Sources.LeftHand) ? "slim_l" : "slim_r";
+            string renderModelPath = renderModelParentPath + "/vr_glove_right_slim";
             Transform handSkin = handObject.transform.Find(renderModelPath);
             handRenderer = handSkin.gameObject.GetComponent<SkinnedMeshRenderer>();
             handRenderer.enabled = false;
@@ -104,9 +114,17 @@ namespace KerbalVR {
             handRigidbody.useGravity = false;
             handRigidbody.isKinematic = true;
 
+            // add fingertip collider for "mouse clicks"
+            string fingertipTransformPath = renderModelParentPath + "/Root/wrist_r/finger_index_meta_r/finger_index_0_r/finger_index_1_r/finger_index_2_r/finger_index_r_end";
+            Transform fingertipTransform = handObject.transform.Find(fingertipTransformPath);
+            fingertipInteraction = fingertipTransform.gameObject.AddComponent<FingertipCollider>();
+
             // set up actions
             actionGrab = SteamVR_Input.GetBooleanAction("default", "GrabGrip");
             actionGrab[handType].onChange += OnChangeGrab;
+
+            actionClick = SteamVR_Input.GetBooleanAction("flight", "InteractClick");
+            actionClick[handType].onChange += OnChangeInteractClick;
 
 #if DEBUG
             GameObject gizmo = Utils.CreateGizmo();
@@ -122,6 +140,12 @@ namespace KerbalVR {
 #endif
         }
 
+        /// <summary>
+        /// Handle grabbing Interactable objects
+        /// </summary>
+        /// <param name="fromAction">SteamVR action that triggered this callback</param>
+        /// <param name="fromSource">Hand type that triggered this callback</param>
+        /// <param name="newState">New state of this action</param>
         protected void OnChangeGrab(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState) {
             if (newState) {
                 if (hoveredObject != null) {
@@ -136,6 +160,25 @@ namespace KerbalVR {
                     heldObject.GrabbedHand = null;
                     heldObject = null;
                     handSkeleton.BlendToSkeleton();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle interacting with mouse-clickable objects (like RPM props)
+        /// </summary>
+        /// <param name="fromAction">SteamVR action that triggered this callback</param>
+        /// <param name="fromSource">Hand type that triggered this callback</param>
+        /// <param name="newState">New state of this action</param>
+        protected void OnChangeInteractClick(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState) {
+            if (newState) {
+                foreach (GameObject go in fingertipInteraction.CollidedGameObjects) {
+                    go.SendMessage("OnMouseDown");
+                }
+            }
+            else {
+                foreach (GameObject go in fingertipInteraction.CollidedGameObjects) {
+                    go.SendMessage("OnMouseUp");
                 }
             }
         }
@@ -240,6 +283,43 @@ namespace KerbalVR {
                 InteractableInternalModule interactable = other.gameObject.GetComponent<InteractableInternalModule>();
                 if (interactable == hoveredObject) {
                     hoveredObject = null;
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// A helper class to collect objects that collide with the index fingertip.
+        /// </summary>
+        protected class FingertipCollider : MonoBehaviour {
+
+            #region Properties
+            public List<GameObject> CollidedGameObjects { get; protected set; } = new List<GameObject>();
+            #endregion
+
+            #region Private Members
+            protected SphereCollider fingertipCollider;
+            protected Rigidbody fingertipRigidbody;
+            #endregion
+
+            protected void Awake() {
+                fingertipRigidbody = this.gameObject.AddComponent<Rigidbody>();
+                fingertipRigidbody.isKinematic = true;
+                fingertipCollider = this.gameObject.AddComponent<SphereCollider>();
+                fingertipCollider.isTrigger = true;
+                fingertipCollider.radius = 0.006f;
+            }
+
+            protected void OnTriggerEnter(Collider other) {
+                // only interact with layer 20 (Internal Space) objects
+                if (other.gameObject.layer == 20 && !CollidedGameObjects.Contains(other.gameObject)) {
+                    CollidedGameObjects.Add(other.gameObject);
+                }
+            }
+
+            protected void OnTriggerExit(Collider other) {
+                if (CollidedGameObjects.Contains(other.gameObject)) {
+                    CollidedGameObjects.Remove(other.gameObject);
                 }
             }
         }

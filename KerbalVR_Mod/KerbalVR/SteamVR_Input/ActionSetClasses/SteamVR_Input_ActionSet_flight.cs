@@ -40,5 +40,13 @@ namespace Valve.VR
                 return SteamVR_Actions.flight_ThrottleStick;
             }
         }
+        
+        public virtual SteamVR_Action_Boolean InteractClick
+        {
+            get
+            {
+                return SteamVR_Actions.flight_InteractClick;
+            }
+        }
     }
 }
