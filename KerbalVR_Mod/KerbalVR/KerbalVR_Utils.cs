@@ -111,31 +111,33 @@ namespace KerbalVR
             }
         }
 
-        public static GameObject CreateGizmo() {
+        public static GameObject CreateGizmo(float length = 0.10f) {
+            float lengthHalf = length * 0.5f;
+
             GameObject gizmo = new GameObject("gizmo");
             gizmo.transform.localScale = Vector3.one;
 
             GameObject gizmoX = GameObject.CreatePrimitive(PrimitiveType.Cube);
             UnityEngine.Object.Destroy(gizmoX.GetComponent<BoxCollider>());
             gizmoX.transform.SetParent(gizmo.transform);
-            gizmoX.transform.localScale = new Vector3(.1f, .01f, .01f);
-            gizmoX.transform.localPosition = new Vector3(.05f, 0f, 0f);
+            gizmoX.transform.localScale = new Vector3(length, .01f, .01f);
+            gizmoX.transform.localPosition = new Vector3(lengthHalf, 0f, 0f);
             gizmoX.GetComponent<MeshRenderer>().material.color = Color.red;
             gizmoX.layer = 0;
 
             GameObject gizmoY = GameObject.CreatePrimitive(PrimitiveType.Cube);
             UnityEngine.Object.Destroy(gizmoY.GetComponent<BoxCollider>());
             gizmoY.transform.SetParent(gizmo.transform);
-            gizmoY.transform.localScale = new Vector3(.01f, .1f, .01f);
-            gizmoY.transform.localPosition = new Vector3(0f, .05f, 0f);
+            gizmoY.transform.localScale = new Vector3(.01f, length, .01f);
+            gizmoY.transform.localPosition = new Vector3(0f, lengthHalf, 0f);
             gizmoY.GetComponent<MeshRenderer>().material.color = Color.green;
             gizmoY.layer = 0;
 
             GameObject gizmoZ = GameObject.CreatePrimitive(PrimitiveType.Cube);
             UnityEngine.Object.Destroy(gizmoZ.GetComponent<BoxCollider>());
             gizmoZ.transform.SetParent(gizmo.transform);
-            gizmoZ.transform.localScale = new Vector3(.01f, .01f, .1f);
-            gizmoZ.transform.localPosition = new Vector3(0f, 0f, .05f);
+            gizmoZ.transform.localScale = new Vector3(.01f, .01f, length);
+            gizmoZ.transform.localPosition = new Vector3(0f, 0f, lengthHalf);
             gizmoZ.GetComponent<MeshRenderer>().material.color = Color.blue;
             gizmoZ.layer = 0;
 
