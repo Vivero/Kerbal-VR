@@ -21,6 +21,7 @@ namespace KerbalVR
                 string[] assetBundlePaths = {
                     Path.Combine(kvrAssetBundlesPath, "kerbalvr.dat"),
                     Path.Combine(kvrAssetBundlesPath, "kerbalvr_ui.dat"),
+                    Path.Combine(kvrAssetBundlesPath, "kerbalvr_font.dat"),
                 };
                 return assetBundlePaths;
             }
@@ -37,6 +38,7 @@ namespace KerbalVR
         #region Private Members
         protected Dictionary<string, GameObject> gameObjectsDictionary = new Dictionary<string, GameObject>();
         protected Dictionary<string, Shader> shadersDictionary = new Dictionary<string, Shader>();
+        protected Dictionary<string, Font> fontsDictionary = new Dictionary<string, Font>();
         #endregion
 
         #region Singleton
@@ -84,18 +86,25 @@ namespace KerbalVR
                     string[] assetNames = bundle.GetAllAssetNames();
                     for (int i = 0; i < assetNames.Length; i++) {
                         string assetName = assetNames[i];
-                        Utils.Log("Asset: " + assetName);
+#if DEBUG
+                        Utils.Log("Bundle: " + bundle.name + ", Asset: " + assetName);
+#endif
 
                         // find prefabs
                         if (assetName.EndsWith(".prefab")) {
                             GameObject assetGameObject = bundle.LoadAsset<GameObject>(assetName);
                             gameObjectsDictionary.Add(assetGameObject.name, assetGameObject);
                             Utils.Log("Loaded GameObject \"" + assetGameObject.name + "\" from \"" + assetName + "\"");
-
-                        } else if (assetName.EndsWith(".shader")) {
+                        }
+                        else if (assetName.EndsWith(".shader")) {
                             Shader assetShader = bundle.LoadAsset<Shader>(assetName);
                             shadersDictionary.Add(assetShader.name, assetShader);
                             Utils.Log("Loaded Shader \"" + assetShader.name + "\" from \"" + assetName + "\"");
+                        }
+                        else if (assetName.EndsWith(".ttf")) {
+                            Font assetFont = bundle.LoadAsset<Font>(assetName);
+                            fontsDictionary.Add(assetFont.name, assetFont);
+                            Utils.Log("Loaded Font \"" + assetFont.name + "\" from \"" + assetName + "\"");
                         }
                     }
                 }
@@ -123,6 +132,19 @@ namespace KerbalVR
         public Shader GetShader(string shaderName) {
             if (shadersDictionary.TryGetValue(shaderName, out Shader shader)) {
                 return shader;
+            }
+            return null;
+        }
+
+
+        /// <summary>
+        /// Get a Font asset that was loaded from an asset bundle.
+        /// </summary>
+        /// <param name="fontName">Name of the Font</param>
+        /// <returns>The Font, or null if not found</returns>
+        public Font GetFont(string fontName) {
+            if (fontsDictionary.TryGetValue(fontName, out Font font)) {
+                return font;
             }
             return null;
         }

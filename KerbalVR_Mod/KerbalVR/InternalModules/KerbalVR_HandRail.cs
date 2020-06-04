@@ -34,7 +34,7 @@ namespace KerbalVR.InternalModules {
             SkeletonPoser.skeletonMainPose = SkeletonPose_HandleRailGrabPose.GetInstance();
             SkeletonPoser.Initialize();
 
-#if DEBUG
+            /*
             GameObject gizmo = Utils.CreateGizmo(0.25f);
             gizmo.transform.SetParent(this.transform);
             gizmo.transform.localPosition = Vector3.zero;
@@ -42,7 +42,7 @@ namespace KerbalVR.InternalModules {
             gizmo.transform.localScale = Vector3.one;
 
             this.gameObject.AddComponent<ColliderVisualizer>();
-#endif
+            */
 
             // set layer for this object to 20 (Internal Space)
             Utils.SetLayer(this.gameObject, 20);

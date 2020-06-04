@@ -7,6 +7,7 @@ regex_apply_root = re.compile(r'\s*applyToSkeletonRoot:\s*(\d+)')
 regex_vector3 = re.compile(r'{\s*x:\s*([e0-9.-]+),\s*y:\s*([e0-9.-]+),\s*z:\s*([e0-9.-]+)\s*}')
 regex_quaternion = re.compile(r'{\s*x:\s*([e0-9.-]+),\s*y:\s*([e0-9.-]+),\s*z:\s*([e0-9.-]+),\s*w:\s*([e0-9.-]+)\s*}')
 
+# enum conversion functions
 def int_to_steamvr_input_sources(value):
     if value == 1:
         return 'SteamVR_Input_Sources.LeftHand'

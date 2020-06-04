@@ -167,7 +167,7 @@ namespace KerbalVR
             return gizmo;
         }
 
-        public static GameObject CreateArrow() {
+        public static GameObject CreateArrow(Color color) {
             GameObject gizmo = new GameObject("gizmo_arrow");
             gizmo.transform.localScale = Vector3.one;
 
@@ -176,7 +176,7 @@ namespace KerbalVR
             gizmoZ.transform.SetParent(gizmo.transform);
             gizmoZ.transform.localScale = new Vector3(.02f, .02f, .1f);
             gizmoZ.transform.localPosition = new Vector3(0f, 0f, .05f);
-            gizmoZ.GetComponent<MeshRenderer>().material.color = Color.blue;
+            gizmoZ.GetComponent<MeshRenderer>().material.color = color;
             gizmoZ.layer = 0;
 
             GameObject gizmoPivot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -387,6 +387,18 @@ namespace KerbalVR
             } else {
                 Log("No MainMenuEnvLogic component found.");
             }
+        }
+
+
+        private static readonly string[] FACTOR_PREFIX = { "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
+        public static void HumanizeQuantity(float value, string baseUnit, out float newValue, out string newUnit) {
+            int factorPrefixIdx = 0;
+            newValue = value;
+            while (newValue > 1000f) {
+                newValue /= 1000f;
+                factorPrefixIdx++;
+            }
+            newUnit = FACTOR_PREFIX[factorPrefixIdx] + baseUnit;
         }
 
         public class DataCollection {

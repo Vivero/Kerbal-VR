@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="kerbalvr_font" Name="kerbalvr_font" CreatedTime="-8586104693062841505">
+  <Author>Vivero</Author>
+  <Info>Font assets for the KerbalVR mod.</Info>
+  <Assets>
+    <Asset Name="Futura_Medium_BT" Path="Assets/Fonts/Futura_Medium_BT.ttf" Type="Font" Url="Fonts/Futura_Medium_BT" AutoLoad="false" />
+    <Asset Name="SpaceMono_Regular" Path="Assets/Fonts/SpaceMono_Regular.ttf" Type="Font" Url="Fonts/SpaceMono_Regular" AutoLoad="false" />
+  </Assets>
+  <Dependencies />
+</KSPBundleDefinition>

@@ -125,19 +125,6 @@ namespace KerbalVR {
 
             actionClick = SteamVR_Input.GetBooleanAction("flight", "InteractClick");
             actionClick[handType].onChange += OnChangeInteractClick;
-
-#if DEBUG
-            GameObject gizmo = Utils.CreateGizmo();
-            gizmo.transform.SetParent(this.transform);
-            gizmo.transform.localPosition = Vector3.zero;
-            gizmo.transform.localRotation = Quaternion.identity;
-            gizmo.transform.localScale = Vector3.one * 0.5f;
-
-            GameObject gizmoHand = Utils.CreateGizmo();
-            gizmo.transform.SetParent(handObject.transform);
-            gizmo.transform.localPosition = Vector3.zero;
-            gizmo.transform.localRotation = Quaternion.identity;
-#endif
         }
 
         /// <summary>
