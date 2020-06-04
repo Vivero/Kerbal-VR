@@ -48,10 +48,16 @@ namespace KerbalVR
         #endregion
 
 
+        #region Properties
+        public GameObject LeftHand { get; private set; }
+        public GameObject RightHand { get; private set; }
+        #endregion
+
+
         #region Private Members
         // hand game objects
-        protected GameObject glovePrefabL, handL;
-        protected GameObject glovePrefabR, handR;
+        protected GameObject glovePrefabL;
+        protected GameObject glovePrefabR;
         protected KerbalVR.Hand handScriptL, handScriptR;
 
         // device behaviors and actions
@@ -96,22 +102,22 @@ namespace KerbalVR
             teleportAction = SteamVR_Input.GetBooleanAction("EVA", "Teleport");
 
             // set up the hand objects
-            handL = new GameObject("KVR_HandL");
-            DontDestroyOnLoad(handL);
-            handScriptL = handL.AddComponent<KerbalVR.Hand>();
+            LeftHand = new GameObject("KVR_HandL");
+            DontDestroyOnLoad(LeftHand);
+            handScriptL = LeftHand.AddComponent<KerbalVR.Hand>();
             handScriptL.handPrefab = glovePrefabL;
             handScriptL.handType = SteamVR_Input_Sources.LeftHand;
             handScriptL.handActionPose = handActionPose;
 
-            handR = new GameObject("KVR_HandR");
-            DontDestroyOnLoad(handR);
-            handScriptR = handR.AddComponent<KerbalVR.Hand>();
+            RightHand = new GameObject("KVR_HandR");
+            DontDestroyOnLoad(RightHand);
+            handScriptR = RightHand.AddComponent<KerbalVR.Hand>();
             handScriptR.handPrefab = glovePrefabR;
             handScriptR.handType = SteamVR_Input_Sources.RightHand;
             handScriptR.handActionPose = handActionPose;
 
-            handScriptR.otherHand = handL;
-            handScriptL.otherHand = handR;
+            handScriptR.otherHand = LeftHand;
+            handScriptL.otherHand = RightHand;
 
             // can init the skeleton behavior now
             handScriptL.Initialize();
@@ -120,8 +126,8 @@ namespace KerbalVR
             // init the teleport system
             teleportSystemGameObject = new GameObject("KVR_TeleportSystem");
             teleportSystem = teleportSystemGameObject.AddComponent<TeleportSystem>();
-            teleportSystem.handOriginLeft = handL.transform;
-            teleportSystem.handOriginRight = handR.transform;
+            teleportSystem.handOriginLeft = LeftHand.transform;
+            teleportSystem.handOriginRight = RightHand.transform;
             DontDestroyOnLoad(teleportSystemGameObject);
         }
 
