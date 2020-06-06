@@ -101,6 +101,7 @@
     <Compile Include="KerbalVR_Types.cs" />
     <Compile Include="KerbalVR_Utils.cs" />
     <Compile Include="InteractionSystem\KerbalVR_Hand.cs" />
+    <Compile Include="InteractionSystem\KerbalVR_HeadUpDisplay.cs" />
     <Compile Include="InteractionSystem\KerbalVR_InteractableInternalModule.cs" />
     <Compile Include="InteractionSystem\KerbalVR_TeleportSystem.cs" />
     <Compile Include="InternalModules\KerbalVR_HandRail.cs" />

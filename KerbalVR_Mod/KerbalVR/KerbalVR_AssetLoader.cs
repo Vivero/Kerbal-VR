@@ -39,6 +39,7 @@ namespace KerbalVR
         protected Dictionary<string, GameObject> gameObjectsDictionary = new Dictionary<string, GameObject>();
         protected Dictionary<string, Shader> shadersDictionary = new Dictionary<string, Shader>();
         protected Dictionary<string, Font> fontsDictionary = new Dictionary<string, Font>();
+        protected Dictionary<string, TMP_FontAsset> tmpFontsDictionary = new Dictionary<string, TMP_FontAsset>();
         #endregion
 
         #region Singleton
@@ -67,6 +68,10 @@ namespace KerbalVR
 
             // load KerbalVR asset bundles
             LoadAssets();
+
+            // load TextMeshPro fonts
+            tmpFontsDictionary.Add("Futura_Medium_BT", KerbalVR.Fonts.TMPFont_Futura_Medium_BT_SDF.GetInstance());
+            tmpFontsDictionary.Add("SpaceMono_Regular", KerbalVR.Fonts.TMPFont_SpaceMono_Regular_SDF.GetInstance());
 
             IsReady = true;
         }
@@ -144,6 +149,19 @@ namespace KerbalVR
         /// <returns>The Font, or null if not found</returns>
         public Font GetFont(string fontName) {
             if (fontsDictionary.TryGetValue(fontName, out Font font)) {
+                return font;
+            }
+            return null;
+        }
+
+
+        /// <summary>
+        /// Get a TMP_FontAsset.
+        /// </summary>
+        /// <param name="fontName">Name of the font</param>
+        /// <returns>The TMP_FontAsset, or null if not found</returns>
+        public TMP_FontAsset GetTmpFont(string fontName) {
+            if (tmpFontsDictionary.TryGetValue(fontName, out TMP_FontAsset font)) {
                 return font;
             }
             return null;

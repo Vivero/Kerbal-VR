@@ -136,6 +136,7 @@ namespace KerbalVR
         public ETrackingUniverseOrigin TrackingSpace { get; private set; } = ETrackingUniverseOrigin.TrackingUniverseSeated;
 
         public SteamVR_Utils.RigidTransform HmdTransform { get; private set; } = new SteamVR_Utils.RigidTransform();
+        public SteamVR_Utils.RigidTransform[] HmdEyeTransform { get; private set; } = new SteamVR_Utils.RigidTransform[2];
 
         public List<Types.VRCameraSet> VRCameraSets { get; private set; } = new List<Types.VRCameraSet>();
         public bool IsVrCamerasEnabled { get; private set; } = false;
@@ -173,6 +174,7 @@ namespace KerbalVR
 
         protected void OnDisable() {
             // remove callback functions
+            GameEvents.onGameSceneSwitchRequested.Remove(OnGameSceneSwitchRequested);
             GameEvents.OnIVACameraKerbalChange.Remove(OnIvaCameraChange);
             GameEvents.OnCameraChange.Remove(OnCameraChange);
             KerbalVR.Events.HmdStatusUpdated.Remove(OnHmdStatusUpdated);
@@ -323,9 +325,8 @@ namespace KerbalVR
 
             // convert SteamVR poses to Unity coordinates
             HmdTransform = new SteamVR_Utils.RigidTransform(KerbalVR.Core.GamePoses[OpenVR.k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
-            SteamVR_Utils.RigidTransform[] hmdEyeTransform = new SteamVR_Utils.RigidTransform[2];
-            hmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
-            hmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
+            HmdEyeTransform[0] = new SteamVR_Utils.RigidTransform(vrLeftEyeTransform);
+            HmdEyeTransform[1] = new SteamVR_Utils.RigidTransform(vrRightEyeTransform);
 
             /**
              * hmdEyeTransform is in a coordinate system that follows the headset, where
@@ -353,8 +354,8 @@ namespace KerbalVR
             // set camera positions to match device positions
             for (int camIdx = 0; camIdx < VRCameraSets.Count; ++camIdx) {
                 Vector3[] eyeDisplacements = {
-                     HmdTransform.rot * hmdEyeTransform[0].pos,
-                     HmdTransform.rot * hmdEyeTransform[1].pos
+                     HmdTransform.rot * HmdEyeTransform[0].pos,
+                     HmdTransform.rot * HmdEyeTransform[1].pos
                 };
                 Vector3[] updatedPositions = {
                     HmdTransform.pos + eyeDisplacements[0],

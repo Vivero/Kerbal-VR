@@ -190,7 +190,7 @@ namespace KerbalVR.InternalModules {
             panelRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenPixelWidth);
             panelRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, screenPixelHeight * 0.5f);
 
-            TMP_FontAsset font = KerbalVR.Fonts.TMPFont_SpaceMono_Regular_SDF.GetInstance();
+            TMP_FontAsset font = KerbalVR.AssetLoader.Instance.GetTmpFont("SpaceMono_Regular");
             for (int y = 0; y < 2; ++y) {
                 for (int x = 0; x < 2; ++x) {
                     GameObject labelName = new GameObject("Label_" + x + "_" + y + "_Name");

@@ -51,6 +51,7 @@ namespace KerbalVR
         #region Properties
         public GameObject LeftHand { get; private set; }
         public GameObject RightHand { get; private set; }
+        public GameObject HeadUpDisplay { get; private set; }
         #endregion
 
 
@@ -59,6 +60,9 @@ namespace KerbalVR
         protected GameObject glovePrefabL;
         protected GameObject glovePrefabR;
         protected KerbalVR.Hand handScriptL, handScriptR;
+
+        // head up display
+        protected KerbalVR.HeadUpDisplay hud;
 
         // device behaviors and actions
         protected bool isHandsInitialized = false;
@@ -129,6 +133,12 @@ namespace KerbalVR
             teleportSystem.handOriginLeft = LeftHand.transform;
             teleportSystem.handOriginRight = RightHand.transform;
             DontDestroyOnLoad(teleportSystemGameObject);
+
+            // init the head up display
+            HeadUpDisplay = new GameObject("KVR_HeadUpDisplay");
+            DontDestroyOnLoad(HeadUpDisplay);
+            hud = HeadUpDisplay.AddComponent<KerbalVR.HeadUpDisplay>();
+            hud.Initialize();
         }
 
         /// <summary>
