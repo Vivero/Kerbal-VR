@@ -45,9 +45,12 @@ parsing_sub_state = PARSING_SUB_STATES['none']
 
 for filename in font_asset_files:
     class_name = re.sub(r'\..*$', '', filename)
-    class_filename = "KerbalVR_{0}".format(re.sub(r'\.asset$', '.cs', filename))
+    class_filename = "KerbalVR_{0}.cs".format(class_name)
+    texture_filename = "{0}_Texture.bin".format(class_name)
+
     asset_file_path = os.path.join(fonts_dir, filename) # original asset file
     class_file_path = os.path.join(fonts_dir, class_filename) # new C# file
+    texture_file_path = os.path.join(fonts_dir, texture_filename) # texture file
 
     # object structure
     tmp_font_data = {
@@ -336,12 +339,6 @@ for filename in font_asset_files:
                     continue
 
 
-
-
-
-
-
-
     # write the output C# file
     with open(class_file_path, 'w') as out:
         out.write('/* ===============================================\n')
@@ -349,7 +346,7 @@ for filename in font_asset_files:
         out.write(' *   Do not edit by hand.                         \n')
         out.write(' * ===============================================\n')
         out.write(' */\n\n')
-        out.write('using System;\n')
+        out.write('using System.IO;\n')
         out.write('using TMPro;\n')
         out.write('using Unity.Collections;\n')
         out.write('using UnityEngine;\n\n')
@@ -394,47 +391,26 @@ for filename in font_asset_files:
 
         out.write('            TMP_Glyph[] glyphs = {\n')
         for glyph in tmp_font_data['glyphInfoList']:
-            out.write('new TMP_Glyph() {\n')
-            out.write('id = {0},\n'.format(glyph['id']))
-            out.write('x = {0}f,\n'.format(glyph['x']))
-            out.write('y = {0}f,\n'.format(glyph['y']))
-            out.write('width = {0}f,\n'.format(glyph['width']))
-            out.write('height = {0}f,\n'.format(glyph['height']))
-            out.write('xOffset = {0}f,\n'.format(glyph['xOffset']))
-            out.write('yOffset = {0}f,\n'.format(glyph['yOffset']))
-            out.write('xAdvance = {0}f,\n'.format(glyph['xAdvance']))
-            out.write('scale = {0}f}},\n'.format(glyph['scale']))
+            out.write('                new TMP_Glyph() {\n')
+            out.write('                    id = {0},\n'.format(glyph['id']))
+            out.write('                    x = {0}f,\n'.format(glyph['x']))
+            out.write('                    y = {0}f,\n'.format(glyph['y']))
+            out.write('                    width = {0}f,\n'.format(glyph['width']))
+            out.write('                    height = {0}f,\n'.format(glyph['height']))
+            out.write('                    xOffset = {0}f,\n'.format(glyph['xOffset']))
+            out.write('                    yOffset = {0}f,\n'.format(glyph['yOffset']))
+            out.write('                    xAdvance = {0}f,\n'.format(glyph['xAdvance']))
+            out.write('                    scale = {0}f,\n'.format(glyph['scale']))
+            out.write('                },\n')
         out.write('            };\n')
         out.write('            tmpFont.AddGlyphInfo(glyphs);\n')
         out.write('            tmpFont.SortGlyphs();\n')
 
-        # parse the texture bytes string
-        rawDataString = tmp_font_data['Texture2D']['rawDataString']
-        rawDataBytes = bytearray()
-        for strIdx in range(0, len(rawDataString), 2):
-            rawDataSubStr = rawDataString[strIdx:strIdx+2]
-            rawDataByte = int(rawDataSubStr, 16)
-            rawDataBytes.append(rawDataByte)
-        rawDataBytesBase64 = base64.b64encode(rawDataBytes)
-        rawDataBytesBase64Str = rawDataBytesBase64.decode('utf8')
-        row_length = 128
-        num_rows = math.ceil(len(rawDataBytesBase64Str) / row_length)
-
         out.write('            Texture2D tmpTexture = new Texture2D({0}, {1}, {2}, false);\n'.format(tmp_font_data['Texture2D']['width'], tmp_font_data['Texture2D']['height'], int_to_texture_format(tmp_font_data['Texture2D']['textureFormat'])))
         out.write('            tmpTexture.name = "{0}";\n'.format(tmp_font_data['Texture2D']['name']))
 
-        # print out the data bytes as `num_rows` rows of `row_length` bytes
-        out.write('            byte[] textureBytes = Convert.FromBase64String(\n')
-        for row in range(num_rows):
-            start = row * row_length
-            end = min(len(rawDataBytesBase64Str), (row + 1) * row_length)
-            bytesRowStr = rawDataBytesBase64Str[start:end]
-            outputLine = '"{0}"'.format(bytesRowStr)
-            if row < (num_rows - 1):
-                outputLine += '+'
-            outputLine += '\n'
-            out.write(outputLine)
-        out.write('            );\n')
+        out.write('            string textureFilePath = Path.Combine(KSPUtil.ApplicationRootPath, "GameData", KerbalVR.Globals.KERBALVR_TEXTURES_DIR, "{0}_Texture.bin");\n'.format(tmp_font_data['class_name']))
+        out.write('            byte[] textureBytes = File.ReadAllBytes(textureFilePath);\n')
 
         out.write('            NativeArray<byte> textureData = tmpTexture.GetRawTextureData<byte>();\n')
         out.write('            textureData.CopyFrom(textureBytes);\n')
@@ -453,11 +429,33 @@ for filename in font_asset_files:
         out.write('    }\n')
         out.write('}\n')
 
+    # write the texture to a file
+    rawDataString = tmp_font_data['Texture2D']['rawDataString']
+    rawDataBytes = bytearray()
+    for strIdx in range(0, len(rawDataString), 2):
+        rawDataSubStr = rawDataString[strIdx:strIdx+2]
+        rawDataByte = int(rawDataSubStr, 16)
+        rawDataBytes.append(rawDataByte)
 
-# move the output files to the KerbalVR_Mod folder
+    with open(texture_file_path, 'wb') as tex_out:
+        tex_out.write(rawDataBytes)
+
+
+
+# move the output class files to the KerbalVR_Mod folder
 input_files_path = fonts_dir
 output_files = [f for f in os.listdir(input_files_path) if os.path.isfile(os.path.join(input_files_path, f)) and f.endswith('.cs')]
 output_path = os.path.join('..', 'KerbalVR_Mod', 'KerbalVR', 'TMPFonts')
+
+for filename in output_files:
+    input_full_path = os.path.abspath(os.path.join(input_files_path, filename))
+    output_full_path = os.path.abspath(os.path.join(output_path, filename))
+
+    shutil.move(input_full_path, output_full_path)
+
+# move the output texture files to the KerbalVR_Mod folder
+output_files = [f for f in os.listdir(input_files_path) if os.path.isfile(os.path.join(input_files_path, f)) and f.endswith('.bin')]
+output_path = os.path.join('..', 'KerbalVR_Mod', 'KerbalVR', 'Assets', 'Textures')
 
 for filename in output_files:
     input_full_path = os.path.abspath(os.path.join(input_files_path, filename))
