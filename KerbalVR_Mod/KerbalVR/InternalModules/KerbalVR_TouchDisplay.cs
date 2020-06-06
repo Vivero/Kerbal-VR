@@ -48,12 +48,15 @@ namespace KerbalVR.InternalModules {
         protected Image hudHeadingImage;
 
         // flight data
+        protected float yawAngle = 0f;
+        protected float pitchAngle = 0f;
         protected float rollAngle = 0f;
 
         // screen text data
         protected TextMeshPro dataLabelVelocityValue, dataLabelVelocityUnits;
         protected TextMeshPro dataLabelAltitudeValue, dataLabelAltitudeUnits;
         protected TextMeshPro dataLabelRollValue, dataLabelRollUnits;
+        protected TextMeshPro dataLabelPitchValue, dataLabelPitchUnits;
         #endregion
 
 
@@ -113,6 +116,7 @@ namespace KerbalVR.InternalModules {
             screenCanvasGameObject = new GameObject("KVR_TouchDisplay_Canvas_" + internalProp.propID);
             screenCanvas = screenCanvasGameObject.AddComponent<Canvas>();
             screenCanvas.renderMode = RenderMode.ScreenSpaceCamera;
+            screenCanvas.pixelPerfect = false;
             screenCanvas.worldCamera = screenCanvasCamera;
             screenCanvas.planeDistance = CANVAS_CAMERA_DEPTH * 0.25f;
             screenCanvasGameObject.AddComponent<CanvasScaler>();
@@ -163,8 +167,8 @@ namespace KerbalVR.InternalModules {
             hudHeadingImage.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             hudHeadingImage.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             hudHeadingImage.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-            hudHeadingImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenPixelWidth);
-            hudHeadingImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, screenPixelHeight);
+            hudHeadingImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenPixelWidth * 1.5f);
+            hudHeadingImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, screenPixelHeight * 1.5f);
             hudHeadingImage.rectTransform.localPosition = new Vector3(0f, 0f);
 
             // create an flight data table
@@ -200,6 +204,7 @@ namespace KerbalVR.InternalModules {
                     if (x == 0 && y == 0) labelNameTMP.text = "Vel:";
                     if (x == 1 && y == 0) labelNameTMP.text = "Alt:";
                     if (x == 0 && y == 1) labelNameTMP.text = "Rol:";
+                    if (x == 1 && y == 1) labelNameTMP.text = "Pch:";
 
                     GameObject labelValue = new GameObject("Label_" + x + "_" + y + "_Value");
                     TextMeshPro labelValueTMP = labelValue.AddComponent<TextMeshPro>();
@@ -212,6 +217,7 @@ namespace KerbalVR.InternalModules {
                     if (x == 0 && y == 0) dataLabelVelocityValue = labelValueTMP;
                     if (x == 1 && y == 0) dataLabelAltitudeValue = labelValueTMP;
                     if (x == 0 && y == 1) dataLabelRollValue = labelValueTMP;
+                    if (x == 1 && y == 1) dataLabelPitchValue = labelValueTMP;
 
                     GameObject labelUnits = new GameObject("Label_" + x + "_" + y + "_Units");
                     TextMeshPro labelUnitsTMP = labelUnits.AddComponent<TextMeshPro>();
@@ -224,6 +230,7 @@ namespace KerbalVR.InternalModules {
                     if (x == 0 && y == 0) dataLabelVelocityUnits = labelUnitsTMP;
                     if (x == 1 && y == 0) dataLabelAltitudeUnits = labelUnitsTMP;
                     if (x == 0 && y == 1) dataLabelRollUnits = labelUnitsTMP;
+                    if (x == 1 && y == 1) dataLabelPitchUnits = labelUnitsTMP;
                 }
             }
         }
@@ -259,17 +266,43 @@ namespace KerbalVR.InternalModules {
                 Vector2d latLon = activeVessel.mainBody.GetLatitudeAndLongitude(activeVessel.transform.position);
                 Vector3d surfaceNormal = activeVessel.mainBody.GetSurfaceNVector(latLon.x, latLon.y);
 
+                // activeVessel.ReferenceTransform.up      : faces towards front (bow) of vessel
+                // activeVessel.ReferenceTransform.forward : faces downwards (floor/nadir) of the vessel
+                // activeVessel.ReferenceTransform.right   : faces towards right side (starboard) of vessel
+
                 // project the craft's direction onto the plane normal to surface of planet
                 Vector3 surfaceForward = Vector3.ProjectOnPlane(activeVessel.ReferenceTransform.up, surfaceNormal);
                 Vector3 surfaceRight = Vector3.Cross(surfaceForward, surfaceNormal);
 
                 rollAngle = Vector3.Angle(activeVessel.ReferenceTransform.right, surfaceRight) - 180f;
+                pitchAngle = Vector3.Angle(activeVessel.ReferenceTransform.up, surfaceForward);
 
-                // is the vessel's right axis aligned with the surfaceRight vector?
+                // how is the vessel's right axis aligned relative to the normal vector?
                 float srfNormalDotVesselRight = Vector3.Dot(surfaceNormal, activeVessel.ReferenceTransform.right);
                 if (srfNormalDotVesselRight < 0f) {
                     rollAngle = rollAngle * -1f;
                 }
+
+                // how is the vessel's forward axis aligned relative to the normal vector?
+                float srfNormalDotVesselForward = Vector3.Dot(surfaceNormal, activeVessel.ReferenceTransform.up);
+                if (srfNormalDotVesselForward < 0f) {
+                    pitchAngle = pitchAngle * -1f;
+                }
+
+                // get a vector pointing north, parallel to surface
+                Vector3d northPos = activeVessel.mainBody.GetWorldSurfacePosition(90.0, 0.0, 0.0);
+                Vector3d toNorth = northPos - activeVessel.mainBody.GetWorldSurfacePosition(latLon.x, latLon.y, 0.0);
+                Vector3 surfaceNorth = Vector3.ProjectOnPlane(toNorth, surfaceNormal);
+
+                yawAngle = Vector3.Angle(surfaceForward, surfaceNorth);
+
+                // how is the vessel's surface right axis aligned relative to the surface north vector?
+                float srfRightDotSrfForward = Vector3.Dot(surfaceRight, surfaceNorth);
+                if (srfRightDotSrfForward < 0f) {
+                    yawAngle = yawAngle * -1f;
+                }
+                yawAngle += 360f;
+                if (yawAngle > 360f) yawAngle -= 360f;
 
                 // rotate the heading background according to roll
                 hudHeadingImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f, rollAngle);
@@ -289,6 +322,9 @@ namespace KerbalVR.InternalModules {
 
                 dataLabelRollValue.text = rollAngle.ToString("F1");
                 dataLabelRollUnits.text = "\xF8";
+
+                dataLabelPitchValue.text = pitchAngle.ToString("F1");
+                dataLabelPitchUnits.text = "\xF8";
             }
         }
     }
