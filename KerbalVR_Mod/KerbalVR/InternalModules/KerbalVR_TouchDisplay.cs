@@ -34,7 +34,6 @@ namespace KerbalVR.InternalModules {
         protected float lastScreenUpdateTime;
 
         // screen display objects
-        protected GameObject screenGameObject;
         protected RenderTexture screenTexture;
         protected GameObject screenCanvasGameObject, screenCanvasCameraGameObject;
         protected Canvas screenCanvas;
@@ -47,11 +46,6 @@ namespace KerbalVR.InternalModules {
         // HUD elements
         protected Image hudHeadingImage;
 
-        // flight data
-        protected float yawAngle = 0f;
-        protected float pitchAngle = 0f;
-        protected float rollAngle = 0f;
-
         // screen text data
         protected TextMeshPro dataLabelVelocityValue, dataLabelVelocityUnits;
         protected TextMeshPro dataLabelAltitudeValue, dataLabelAltitudeUnits;
@@ -61,6 +55,7 @@ namespace KerbalVR.InternalModules {
 
 
         // DEBUG ---
+        int screenIdx = 0;
         VectorLine vLine;
         // ---------
 
@@ -82,7 +77,7 @@ namespace KerbalVR.InternalModules {
             }
 
             // get the mesh renderer for the screen
-            screenGameObject = screenTransform.gameObject;
+            GameObject screenGameObject = screenTransform.gameObject;
             MeshRenderer screenRenderer = screenGameObject.GetComponent<MeshRenderer>();
             if (screenRenderer == null) {
                 Utils.LogWarning("KerbalVR.InternalModules.TouchDisplay: screenRenderer is null");
@@ -126,8 +121,6 @@ namespace KerbalVR.InternalModules {
             //   (screenPixelWidth * 0.5f, screenPixelHeight * 0.5f) is top-right
             //   (screenPixelWidth * -0.5f, screenPixelHeight * -0.5f) is bottom-left
             //
-
-            Utils.Log(screenCanvasCameraGameObject.name + " position: " + screenCanvasCameraGameObject.transform.position.ToString("F3"));
 
             CreateScreenUI();
             CreateDebugObjects();
@@ -262,49 +255,8 @@ namespace KerbalVR.InternalModules {
         protected void RedrawScreenFast() {
             Vessel activeVessel = FlightGlobals.ActiveVessel;
             if (activeVessel != null) {
-                // get the vector normal to the planet surface
-                Vector2d latLon = activeVessel.mainBody.GetLatitudeAndLongitude(activeVessel.transform.position);
-                Vector3d surfaceNormal = activeVessel.mainBody.GetSurfaceNVector(latLon.x, latLon.y);
-
-                // activeVessel.ReferenceTransform.up      : faces towards front (bow) of vessel
-                // activeVessel.ReferenceTransform.forward : faces downwards (floor/nadir) of the vessel
-                // activeVessel.ReferenceTransform.right   : faces towards right side (starboard) of vessel
-
-                // project the craft's direction onto the plane normal to surface of planet
-                Vector3 surfaceForward = Vector3.ProjectOnPlane(activeVessel.ReferenceTransform.up, surfaceNormal);
-                Vector3 surfaceRight = Vector3.Cross(surfaceForward, surfaceNormal);
-
-                rollAngle = Vector3.Angle(activeVessel.ReferenceTransform.right, surfaceRight) - 180f;
-                pitchAngle = Vector3.Angle(activeVessel.ReferenceTransform.up, surfaceForward);
-
-                // how is the vessel's right axis aligned relative to the normal vector?
-                float srfNormalDotVesselRight = Vector3.Dot(surfaceNormal, activeVessel.ReferenceTransform.right);
-                if (srfNormalDotVesselRight < 0f) {
-                    rollAngle = rollAngle * -1f;
-                }
-
-                // how is the vessel's forward axis aligned relative to the normal vector?
-                float srfNormalDotVesselForward = Vector3.Dot(surfaceNormal, activeVessel.ReferenceTransform.up);
-                if (srfNormalDotVesselForward < 0f) {
-                    pitchAngle = pitchAngle * -1f;
-                }
-
-                // get a vector pointing north, parallel to surface
-                Vector3d northPos = activeVessel.mainBody.GetWorldSurfacePosition(90.0, 0.0, 0.0);
-                Vector3d toNorth = northPos - activeVessel.mainBody.GetWorldSurfacePosition(latLon.x, latLon.y, 0.0);
-                Vector3 surfaceNorth = Vector3.ProjectOnPlane(toNorth, surfaceNormal);
-
-                yawAngle = Vector3.Angle(surfaceForward, surfaceNorth);
-
-                // how is the vessel's surface right axis aligned relative to the surface north vector?
-                float srfRightDotSrfForward = Vector3.Dot(surfaceRight, surfaceNorth);
-                if (srfRightDotSrfForward < 0f) {
-                    yawAngle = yawAngle * -1f;
-                }
-                yawAngle += 360f;
-                if (yawAngle > 360f) yawAngle -= 360f;
-
                 // rotate the heading background according to roll
+                float rollAngle = KerbalVR.Components.AvionicsComputer.Instance.RollAngle;
                 hudHeadingImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f, rollAngle);
             }
         }
@@ -312,6 +264,10 @@ namespace KerbalVR.InternalModules {
         protected void RedrawScreenSlow() {
             Vessel activeVessel = FlightGlobals.ActiveVessel;
             if (activeVessel != null) {
+                // get flight data
+                float rollAngle = KerbalVR.Components.AvionicsComputer.Instance.RollAngle;
+                float pitchAngle = KerbalVR.Components.AvionicsComputer.Instance.PitchAngle;
+
                 Utils.HumanizeQuantity(activeVessel.GetSrfVelocity().magnitude, "m/s", out float velocity, out string velocityUnits);
                 dataLabelVelocityValue.text = velocity.ToString("F0");
                 dataLabelVelocityUnits.text = velocityUnits;

@@ -7,29 +7,65 @@ namespace KerbalVR.Components {
     /// and other modules. Start up on Flight only.
     /// </summary>
     [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class KVR_AvionicsComputer : MonoBehaviour {
+    public class AvionicsComputer : MonoBehaviour {
 
         #region Private Members
         protected SteamVR_Action_Vector2 controlFlightStick;
         protected SteamVR_Action_Vector2 controlYawStick;
         protected SteamVR_Action_Vector2 controlThrottleStick;
-        protected bool isInitialized = false;
+        protected bool isVrFunctionalityInitialized = false;
 
         protected float commandThrottle = 0f;
         #endregion
 
+
+        #region Properties
+        public float YawAngle { get; private set; } = 0f;
+        public float PitchAngle { get; private set; } = 0f;
+        public float RollAngle { get; private set; } = 0f;
+        #endregion
+
+
+        #region Singleton
+        /// <summary>
+        /// This is a singleton class, and there must be exactly one GameObject with this Component in the scene.
+        /// </summary>
+        protected static AvionicsComputer _instance;
+        public static AvionicsComputer Instance {
+            get {
+                if (_instance == null) {
+                    _instance = FindObjectOfType<AvionicsComputer>();
+                    if (_instance == null) {
+                        Utils.LogError("The scene needs to have one active GameObject with an AvionicsComputer script attached!");
+                    }
+                    else {
+                        _instance.Initialize();
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        /// <summary>
+        /// One-time initialization for this singleton class.
+        /// </summary>
         protected void Initialize() {
-            if (isInitialized) return;
+            Utils.Log("AvionicsComputer initialized");
+        }
+        #endregion
+
+
+        protected void InitializeVrFunctionality() {
+            if (isVrFunctionalityInitialized) return;
             controlFlightStick = SteamVR_Input.GetVector2Action("flight", "FlightStick");
             controlYawStick = SteamVR_Input.GetVector2Action("flight", "YawStick");
             controlThrottleStick = SteamVR_Input.GetVector2Action("flight", "ThrottleStick");
 
-            isInitialized = true;
-            Utils.Log("KVR_AvionicsComputer initialized");
+            isVrFunctionalityInitialized = true;
         }
 
         protected void Start() {
-            Utils.Log("KVR_AvionicsComputer Start");
+            Utils.Log("AvionicsComputer Start");
             FlightGlobals.ActiveVessel.OnFlyByWire += VesselControl;
 
             // initialize the current throttle setting
@@ -37,22 +73,58 @@ namespace KerbalVR.Components {
         }
 
         protected void OnDestroy() {
-            Utils.Log("KVR_AvionicsComputer shutting down...");
+            Utils.Log("AvionicsComputer shutting down...");
             FlightGlobals.ActiveVessel.OnFlyByWire -= VesselControl;
         }
 
         protected void Update() {
-            if (!isInitialized && KerbalVR.Core.IsOpenVrReady) {
-                Initialize();
+            if (!isVrFunctionalityInitialized && KerbalVR.Core.IsOpenVrReady) {
+                InitializeVrFunctionality();
             }
-            if (!isInitialized) {
-                return;
+
+            UpdateFlightData();
+        }
+
+        protected void UpdateFlightData() {
+            Vessel activeVessel = FlightGlobals.ActiveVessel;
+            if (activeVessel != null) {
+                //
+                // activeVessel.ReferenceTransform.up      : faces towards front (bow) of vessel
+                // activeVessel.ReferenceTransform.forward : faces downwards (floor/nadir) of the vessel
+                // activeVessel.ReferenceTransform.right   : faces towards right side (starboard) of vessel
+                //
+
+                // vector from celestial body to the vessel. this vector is normal to the surface of the body.
+                Vector3d cbToVessel = activeVessel.GetWorldPos3D() - activeVessel.mainBody.position;
+                Vector3d surfaceNormal = cbToVessel.normalized;
+
+                // project the vessel's forward and right direction onto the surface normal
+                Vector3 surfaceForward = Vector3.ProjectOnPlane(activeVessel.ReferenceTransform.up, surfaceNormal).normalized;
+                Vector3 surfaceRight = Vector3.Cross(surfaceNormal, surfaceForward);
+
+                // calculate roll angle as the angle between the vessel's right axis and the surface right axis
+                RollAngle = 180f - Vector3.SignedAngle(surfaceRight, activeVessel.ReferenceTransform.right, activeVessel.ReferenceTransform.up);
+                if (RollAngle > 180f) {
+                    RollAngle -= 360f;
+                }
+
+                // calculate the pitch angle as the angle between the vessel's forward axis and the surface forward axis
+                PitchAngle = -Vector3.SignedAngle(surfaceForward, activeVessel.ReferenceTransform.up, surfaceRight);
+
+                // project an always-north vector onto surface
+                Vector3d surfaceNorth2 = (activeVessel.mainBody.rotation * Vector3d.up).normalized;
+
+                // calculate yaw angle as angle between the north-facing vector on surface and the vessel's forward axis
+                YawAngle = -Vector3.SignedAngle(surfaceForward, surfaceNorth2, surfaceNormal);
+                if (YawAngle < 0f) {
+                    YawAngle += 360f;
+                }
             }
         }
 
         protected void VesselControl(FlightCtrlState state) {
             // do nothing without the OpenVR input system
-            if (!isInitialized) {
+            if (!isVrFunctionalityInitialized) {
                 return;
             }
 
@@ -114,5 +186,5 @@ namespace KerbalVR.Components {
             }
         }
 
-    } // class KVR_AvionicsComputer
-} // namespace KerbalVR
+    }
+}
