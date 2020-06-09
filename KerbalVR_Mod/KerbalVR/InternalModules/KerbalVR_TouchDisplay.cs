@@ -1,3 +1,5 @@
+using LibNoise;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
@@ -45,6 +47,10 @@ namespace KerbalVR.InternalModules {
 
         // HUD elements
         protected Image hudHeadingImage;
+        protected const int NUM_HEADING_LABELS = 9;
+        protected GameObject[] headingLabels = new GameObject[NUM_HEADING_LABELS];
+        protected TextMeshPro[] headingLabelsTMP = new TextMeshPro[NUM_HEADING_LABELS];
+        protected Quaternion headingImageAngle = Quaternion.identity;
 
         // screen text data
         protected TextMeshPro dataLabelVelocityValue, dataLabelVelocityUnits;
@@ -226,6 +232,23 @@ namespace KerbalVR.InternalModules {
                     if (x == 1 && y == 1) dataLabelPitchUnits = labelUnitsTMP;
                 }
             }
+
+            TMP_FontAsset headingsFont = AssetLoader.Instance.GetTmpFont("Futura_Medium_BT");
+            for (int i = 0; i < NUM_HEADING_LABELS; ++i) {
+                headingLabels[i] = new GameObject("Heading_Label_" + i);
+                headingLabelsTMP[i] = headingLabels[i].AddComponent<TextMeshPro>();
+                headingLabelsTMP[i].text = i.ToString();
+                headingLabelsTMP[i].font = headingsFont;
+                headingLabelsTMP[i].fontSize = 300f;
+                headingLabelsTMP[i].color = Color.white;
+                headingLabelsTMP[i].alignment = TextAlignmentOptions.Center;
+                headingLabelsTMP[i].transform.SetParent(screenCanvasGameObject.transform, false);
+                headingLabelsTMP[i].rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                headingLabelsTMP[i].rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                headingLabelsTMP[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                headingLabelsTMP[i].rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300f);
+                headingLabelsTMP[i].rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 100f);
+            }
         }
 
         protected void CreateDebugObjects() {
@@ -257,7 +280,46 @@ namespace KerbalVR.InternalModules {
             if (activeVessel != null) {
                 // rotate the heading background according to roll
                 float rollAngle = KerbalVR.Components.AvionicsComputer.Instance.RollAngle;
-                hudHeadingImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f, rollAngle);
+                headingImageAngle = Quaternion.Euler(0f, 0f, rollAngle);
+                hudHeadingImage.rectTransform.localRotation = headingImageAngle;
+
+                UpdateHeadingLabels();
+            }
+        }
+
+        protected void UpdateHeadingLabels() {
+            float yawAngle = KerbalVR.Components.AvionicsComputer.Instance.YawAngle;
+            float headingRangeDegrees = 18f;
+            float headingRangePixels = screenPixelWidth * 1.2f;
+            float headingPositionEnd = headingRangePixels * 0.5f;
+            float headingBucketSizeDegrees = headingRangeDegrees / NUM_HEADING_LABELS;
+            float headingBucketSizePixels = headingRangePixels / NUM_HEADING_LABELS;
+
+            float headingOffset = yawAngle % headingBucketSizeDegrees;
+            float headingOffsetInt = Mathf.Floor(yawAngle / headingBucketSizeDegrees);
+            float headingOffsetPixels = MathUtils.Map(headingOffset,
+                0f, headingBucketSizeDegrees,
+                0f, headingBucketSizePixels);
+
+            for (int i = 0; i < NUM_HEADING_LABELS; ++i) {
+                float headingLabelPosX = headingPositionEnd - headingBucketSizePixels * (i + 0.5f) - headingOffsetPixels;
+                Vector3 headingLabelPos = headingImageAngle * new Vector3(headingLabelPosX, 0f, 0f);
+                headingLabels[i].transform.localPosition = headingLabelPos;
+                headingLabels[i].transform.localRotation = headingImageAngle;
+
+                float headingValue = (headingOffsetInt + (NUM_HEADING_LABELS >> 1) - i) * headingBucketSizeDegrees;
+                if (headingValue >= 360f) headingValue -= 360f;
+                if (headingValue < 0f) headingValue += 360f;
+                headingLabelsTMP[i].text = ((int)headingValue).ToString();
+                // headingLabelsTMP[i].text = headingValue.ToString("F2");
+
+                // modulate the font size
+                float fontSizeAbs = MathUtils.Map(Mathf.Abs(headingLabelPosX), 0f, headingPositionEnd, 100f, 400f);
+                headingLabelsTMP[i].fontSize = fontSizeAbs;
+
+                // modulate the opacity
+                float fontAlpha = MathUtils.Map(Mathf.Abs(headingLabelPosX), headingRangePixels * 0.1f, headingRangePixels * 0.6f, 0f, 1f);
+                headingLabelsTMP[i].color = new Color(1f, 1f, 1f, fontAlpha);
             }
         }
 
@@ -265,8 +327,9 @@ namespace KerbalVR.InternalModules {
             Vessel activeVessel = FlightGlobals.ActiveVessel;
             if (activeVessel != null) {
                 // get flight data
-                float rollAngle = KerbalVR.Components.AvionicsComputer.Instance.RollAngle;
+                float yawAngle = KerbalVR.Components.AvionicsComputer.Instance.YawAngle;
                 float pitchAngle = KerbalVR.Components.AvionicsComputer.Instance.PitchAngle;
+                float rollAngle = KerbalVR.Components.AvionicsComputer.Instance.RollAngle;
 
                 Utils.HumanizeQuantity(activeVessel.GetSrfVelocity().magnitude, "m/s", out float velocity, out string velocityUnits);
                 dataLabelVelocityValue.text = velocity.ToString("F0");
@@ -279,7 +342,7 @@ namespace KerbalVR.InternalModules {
                 dataLabelRollValue.text = rollAngle.ToString("F1");
                 dataLabelRollUnits.text = "\xF8";
 
-                dataLabelPitchValue.text = pitchAngle.ToString("F1");
+                dataLabelPitchValue.text = yawAngle.ToString("F1");
                 dataLabelPitchUnits.text = "\xF8";
             }
         }

@@ -103,10 +103,7 @@ namespace KerbalVR.Components {
                 Vector3 surfaceRight = Vector3.Cross(surfaceNormal, surfaceForward);
 
                 // calculate roll angle as the angle between the vessel's right axis and the surface right axis
-                RollAngle = 180f - Vector3.SignedAngle(surfaceRight, activeVessel.ReferenceTransform.right, activeVessel.ReferenceTransform.up);
-                if (RollAngle > 180f) {
-                    RollAngle -= 360f;
-                }
+                RollAngle = -Vector3.SignedAngle(surfaceRight, activeVessel.ReferenceTransform.right, activeVessel.ReferenceTransform.up);
 
                 // calculate the pitch angle as the angle between the vessel's forward axis and the surface forward axis
                 PitchAngle = -Vector3.SignedAngle(surfaceForward, activeVessel.ReferenceTransform.up, surfaceRight);
